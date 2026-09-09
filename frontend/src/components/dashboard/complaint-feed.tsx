@@ -1,0 +1,1 @@
+export { ComplaintFeed } from "./ComplaintFeed";
