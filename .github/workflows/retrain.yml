@@ -1,0 +1,42 @@
+name: Weekly Model Retraining
+
+on:
+  schedule:
+    - cron: '0 2 * * 0' # Every Sunday at 2:00 AM
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgdal-dev gdal-bin libproj-dev
+          
+      - name: Install python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          
+      - name: Run training script
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          python backend/app/ml/train.py --production
+          
+      - name: Commit updated model artifacts
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add backend/app/ml/models/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Update predictive models [skip ci]" && git push)
