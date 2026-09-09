@@ -12,6 +12,7 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 - 🖥️ **[Frontend Architecture & UI Guide](docs/FRONTEND_ARCHITECTURE.md)**
 - 🚀 **[DevOps, Docker & Kubernetes Deployment](docs/DEVOPS_DEPLOYMENT_GUIDE.md)**
 - 🛠️ **[Developer & Contributor Setup Guide](docs/DEVELOPER_AND_CONTRIBUTOR_GUIDE.md)**
+- 💳 **[IBM AML Dataset Integration & 40GB ETL Pipeline](docs/IBM_AML_DATASET_INTEGRATION.md)**
 
 
 ```text
