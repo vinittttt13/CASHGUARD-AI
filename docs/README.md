@@ -17,6 +17,8 @@ Welcome to the technical documentation for **CASHGUARD-AI (Cybercrime Predictive
 | **[6. DevOps & Deployment Guide](./DEVOPS_DEPLOYMENT_GUIDE.md)** | Docker Compose setups, Kubernetes (Deployments, StatefulSets, Ingress), GitHub Actions CI/CD, automated retraining cron jobs, and production security hardening. |
 | **[7. Developer & Contributor Guide](./DEVELOPER_AND_CONTRIBUTOR_GUIDE.md)** | Local development environment setup, mock data generation, database seeding, testing with Pytest, and debugging techniques. |
 | **[8. IBM AML Dataset Integration & Preprocessing](./IBM_AML_DATASET_INTEGRATION.md)** | Architecture, graph motifs (Fan-In, Fan-Out, Scatter-Gather), out-of-core 40GB ETL streaming pipeline, and feature engineering for mule network tracking. |
+| **[9. Technical Audit Reports & Improvement Roadmap](./reports/README.md)** | Comprehensive audit of database schema, security/RBAC, backend, ML pipeline, frontend, DevOps, and 4-phase master improvement plan. |
+
 
 
 ---
