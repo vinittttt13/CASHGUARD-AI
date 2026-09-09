@@ -4,6 +4,16 @@
 
 CPAF is a robust system designed to ingest, process, and analyze cybercrime data to provide actionable intelligence and predictive insights.
 
+### 📚 Detailed Documentation Suite
+- 🏛️ **[System Architecture](docs/SYSTEM_ARCHITECTURE.md)**
+- 🤖 **[Machine Learning Pipeline & Models](docs/ML_PIPELINE_AND_MODELS.md)**
+- 🔌 **[Backend & REST/WebSocket API Reference](docs/BACKEND_API_REFERENCE.md)**
+- 🗄️ **[Database Schema & Data Models](docs/DATABASE_AND_DATA_MODELS.md)**
+- 🖥️ **[Frontend Architecture & UI Guide](docs/FRONTEND_ARCHITECTURE.md)**
+- 🚀 **[DevOps, Docker & Kubernetes Deployment](docs/DEVOPS_DEPLOYMENT_GUIDE.md)**
+- 🛠️ **[Developer & Contributor Setup Guide](docs/DEVELOPER_AND_CONTRIBUTOR_GUIDE.md)**
+
+
 ```text
 +----------------+       +-------------------+       +-----------------+
 |                |       |                   |       |                 |
