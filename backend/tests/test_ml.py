@@ -6,11 +6,11 @@ NLPExtractor) with synthetic data — no external services or trained models
 required.
 """
 
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 import pytest
-from datetime import datetime
-
 
 # ==========================================================================
 # FeatureEngineer — Temporal Features
@@ -111,7 +111,7 @@ def test_feature_engineering_categorical_training():
 
 
 def test_feature_engineering_full_matrix():
-    from app.ml.feature_engineering import FeatureEngineer, FEATURE_NAMES
+    from app.ml.feature_engineering import FEATURE_NAMES, FeatureEngineer
 
     fe = FeatureEngineer()
     df = _sample_dataframe(n=5)
@@ -304,13 +304,14 @@ def test_geodesic_ball_tree_atm_accuracy():
 
 
 def test_model_validation_classification_and_regression():
+    from sklearn.linear_model import LogisticRegression
+
     from app.ml.model_validation import (
+        ModelValidator,
+        cross_validate_classifier,
         evaluate_classification_metrics,
         evaluate_regression_metrics,
-        cross_validate_classifier,
-        ModelValidator,
     )
-    from sklearn.linear_model import LogisticRegression
 
     y_true = [0, 1, 1, 0, 1, 0, 1, 1, 0, 0]
     y_pred = [0, 1, 1, 0, 1, 0, 1, 0, 0, 0]
@@ -347,6 +348,7 @@ def test_model_validation_classification_and_regression():
 
 def test_circuit_breaker_state_transitions():
     import time
+
     from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
     cb = CircuitBreaker("unit_test_breaker", failure_threshold=2, recovery_timeout=0.2, success_threshold=1)
@@ -405,7 +407,12 @@ async def test_circuit_breaker_async_call():
 
 
 def test_anonymizer_masking():
-    from app.utils.anonymizer import mask_phone, mask_name, mask_account, mask_complaint_data
+    from app.utils.anonymizer import (
+        mask_account,
+        mask_complaint_data,
+        mask_name,
+        mask_phone,
+    )
 
     # Phone masking
     assert mask_phone("9876543210") == "******3210"
@@ -437,8 +444,9 @@ def test_anonymizer_masking():
 
 
 def test_shap_explainer_radar_and_global():
-    from app.ml.shap_explainer import SHAPExplainer
     from unittest.mock import MagicMock
+
+    from app.ml.shap_explainer import SHAPExplainer
 
     mock_model = MagicMock()
     mock_model.__class__.__name__ = "RandomForestClassifier"
@@ -456,7 +464,7 @@ def test_shap_explainer_radar_and_global():
 
 
 def test_mask_text_comprehensive():
-    from app.utils.anonymizer import mask_text, mask_complaint_data
+    from app.utils.anonymizer import mask_complaint_data, mask_text
 
     sample = (
         "Victim contacted by scammer at 9876543210 and email test.user@fraud.org. "
@@ -490,9 +498,10 @@ def test_mask_text_comprehensive():
 
 
 def test_fraud_ring_detector():
-    from app.ml.graph_analytics import FraudRingDetector
-    from datetime import datetime, timezone
     import uuid
+    from datetime import datetime, timezone
+
+    from app.ml.graph_analytics import FraudRingDetector
 
     detector = FraudRingDetector(min_ring_size=3)
 
@@ -541,9 +550,11 @@ def test_fraud_ring_detector():
 
 
 def test_model_registry_validation_and_rollback():
-    from app.ml.model_registry import ModelRegistry
     from unittest.mock import MagicMock
+
     import pytest
+
+    from app.ml.model_registry import ModelRegistry
 
     registry = ModelRegistry()
 

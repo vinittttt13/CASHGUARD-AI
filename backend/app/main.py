@@ -1,16 +1,17 @@
-from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from fastapi.middleware.cors import CORSMiddleware
-from slowapi import _rate_limit_exceeded_handler
-from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
-from limits import parse as parse_rate_limit
 from contextlib import asynccontextmanager
 from datetime import datetime
 
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from limits import parse as parse_rate_limit
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
 from app.core.config import get_settings
-from app.core.database import init_db, get_db
+from app.core.database import get_db, init_db
 from app.utils.logging_config import get_logger
 from app.utils.rate_limiter import limiter
 
@@ -126,6 +127,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 from fastapi.encoders import jsonable_encoder
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request, exc: RequestValidationError
@@ -164,8 +166,10 @@ async def readiness_check(db=Depends(get_db)):
     pod out of the Service until it recovers.
     """
     import asyncio
+
     from sqlalchemy import text
-    from app.core.redis_client import redis_client, _redis_available
+
+    from app.core.redis_client import _redis_available, redis_client
 
     checks: dict[str, str] = {}
     healthy = True
@@ -202,9 +206,9 @@ async def readiness_check(db=Depends(get_db)):
 # Include API v1 routers
 from app.api.v1.auth import router as auth_router
 from app.api.v1.complaints import router as complaints_router
-from app.api.v1.predict import router as predict_router
 from app.api.v1.intelligence import router as intelligence_router
 from app.api.v1.locations import router as locations_router
+from app.api.v1.predict import router as predict_router
 from app.api.v1.websocket import router as websocket_router
 
 app.include_router(auth_router, prefix="/api/v1")

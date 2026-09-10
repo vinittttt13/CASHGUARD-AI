@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 # ---------- Override SECRET_KEY BEFORE any app import ----------
@@ -25,8 +25,8 @@ os.environ["SECRET_KEY"] = "test-secret-key-must-be-at-least-32-characters-long!
 
 # ---------- Database fixtures (SQLite in-memory) ----------
 
-from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.compiler import compiles
 
 
 @compiles(JSONB, "sqlite")
@@ -114,8 +114,8 @@ def mock_redis():
 @pytest_asyncio.fixture
 async def async_client():
     """HTTP test client using the real FastAPI app with test DB overrides."""
-    from app.main import app
     from app.core.database import get_db
+    from app.main import app
 
     app.dependency_overrides[get_db] = _override_get_db
 
@@ -131,8 +131,8 @@ async def async_client():
 @pytest_asyncio.fixture
 async def test_user():
     """Create a test user directly in the DB and return the record."""
-    from app.models.user import User, UserRole
     from app.core.security import get_password_hash
+    from app.models.user import User, UserRole
 
     async with _TestSessionLocal() as db:
         user = User(
@@ -190,7 +190,7 @@ async def test_complaint():
 @pytest_asyncio.fixture
 async def test_location():
     """Create a test withdrawal location directly in the DB and return the record."""
-    from app.models.withdrawal_location import WithdrawalLocation, LocationType
+    from app.models.withdrawal_location import LocationType, WithdrawalLocation
 
     async with _TestSessionLocal() as db:
         loc = WithdrawalLocation(

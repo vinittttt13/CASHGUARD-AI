@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 try:
     import redis.asyncio as redis
+
     from app.core.config import get_settings
 
     settings = get_settings()

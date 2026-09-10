@@ -1,17 +1,18 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Optional, List
-from jose import jwt, JWTError
-from passlib.context import CryptContext
+from typing import List, Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError, jwt
+from passlib.context import CryptContext
 from pydantic import BaseModel
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.redis_client import is_token_revoked
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
 settings = get_settings()
 

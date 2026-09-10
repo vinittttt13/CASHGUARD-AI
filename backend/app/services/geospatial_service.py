@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -15,8 +16,6 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.withdrawal_location import WithdrawalLocation
-
-import time
 
 logger = logging.getLogger(__name__)
 

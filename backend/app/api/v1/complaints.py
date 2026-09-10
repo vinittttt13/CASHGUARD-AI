@@ -1,19 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
-from typing import Optional, List
-from uuid import UUID
 from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import and_, func, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
+from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
 from app.models.user import User, UserRole
-from app.models.complaint import Complaint, ComplaintStatus, ComplaintCategory
 from app.schemas.complaint import (
     ComplaintCreate,
-    ComplaintUpdate,
-    ComplaintResponse,
     ComplaintListResponse,
+    ComplaintResponse,
+    ComplaintUpdate,
 )
 from app.utils.anonymizer import mask_text
 

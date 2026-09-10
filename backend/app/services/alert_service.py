@@ -1,7 +1,9 @@
-from app.models.intelligence_alert import IntelligenceAlert, AlertPriority, AlertType
 from datetime import datetime, timedelta
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.intelligence_alert import AlertPriority, AlertType, IntelligenceAlert
 
 
 class AlertService:

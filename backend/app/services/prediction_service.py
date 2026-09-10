@@ -18,7 +18,7 @@ import pandas as pd
 
 from app.core.config import get_settings
 from app.core.redis_client import cache_get, cache_set
-from app.ml.feature_engineering import FeatureEngineer, FEATURE_NAMES
+from app.ml.feature_engineering import FEATURE_NAMES, FeatureEngineer
 from app.ml.model_registry import ModelRegistry
 
 logger = logging.getLogger(__name__)
@@ -326,10 +326,12 @@ class PredictionService:
 
     async def get_confidence_stats(self) -> Dict[str, Any]:
         """Return aggregated confidence stats from the predictions table."""
+        from datetime import timedelta
+
+        from sqlalchemy import func, select
+
         from app.core.database import AsyncSessionLocal
         from app.models.prediction import Prediction
-        from sqlalchemy import func, select
-        from datetime import timedelta
 
         async with AsyncSessionLocal() as db:
             thirty_days_ago = datetime.utcnow() - timedelta(days=30)

@@ -6,7 +6,6 @@ import pandas as pd
 from sklearn.neighbors import BallTree
 from sklearn.preprocessing import LabelEncoder
 
-
 FEATURE_NAMES = [
     'hour', 'day_of_week', 'month', 'is_weekend', 'is_holiday_period',
     'dist_to_city_center', 'dist_to_atm',

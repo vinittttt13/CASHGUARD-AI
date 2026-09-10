@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 
 from app.ml.model_registry import ModelRegistry
-from app.ml.random_forest_model import RiskLevelClassifier
 from app.ml.model_validation import ModelValidator
+from app.ml.random_forest_model import RiskLevelClassifier
 
 
 def _fit_rf():

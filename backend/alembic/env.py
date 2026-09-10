@@ -5,16 +5,16 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
+import app.models.complaint
+import app.models.intelligence_alert
+import app.models.prediction
 
-from app.core.config import get_settings
-from app.core.database import Base
 # Import all models to ensure they are registered with Base.metadata
 import app.models.user
-import app.models.complaint
-import app.models.prediction
 import app.models.withdrawal_location
-import app.models.intelligence_alert
+from alembic import context
+from app.core.config import get_settings
+from app.core.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

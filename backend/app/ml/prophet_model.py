@@ -1,8 +1,10 @@
+import json
+
+import joblib
 import pandas as pd
 from prophet import Prophet
-import joblib
-import json
-from prophet.serialize import model_to_json, model_from_json
+from prophet.serialize import model_from_json, model_to_json
+
 
 class TemporalForecaster:
     def __init__(self):
