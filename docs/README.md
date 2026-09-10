@@ -18,6 +18,8 @@ Welcome to the technical documentation for **CASHGUARD-AI (Cybercrime Predictive
 | **[7. Developer & Contributor Guide](./DEVELOPER_AND_CONTRIBUTOR_GUIDE.md)** | Local development environment setup, mock data generation, database seeding, testing with Pytest, and debugging techniques. |
 | **[8. IBM AML Dataset Integration & Preprocessing](./IBM_AML_DATASET_INTEGRATION.md)** | Architecture, graph motifs (Fan-In, Fan-Out, Scatter-Gather), out-of-core 40GB ETL streaming pipeline, and feature engineering for mule network tracking. |
 | **[9. Technical Audit Reports & Improvement Roadmap](./reports/README.md)** | Comprehensive audit of database schema, security/RBAC, backend, ML pipeline, frontend, DevOps, and 4-phase master improvement plan. |
+| **[10. Frontend System Creation Guide](./FRONTEND_SYSTEM_CREATION_GUIDE.md)** | Comprehensive step-by-step engineering runbook for building the Next.js 14, Tailwind CSS, Leaflet geospatial, and WebSocket frontend command center. |
+| **[11. MCP Server Setup Guide](./MCP_SERVER_SETUP.md)** | Shared repository Model Context Protocol (MCP) server running local containerized tools for database, ML analytics, and Redis caching. |
 
 
 
