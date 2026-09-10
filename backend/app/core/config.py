@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     cors_origins: List[str] = []
     log_level: str = "INFO"
     model_version: str = "1.0.0"
+    # Where trained model artifacts live. "" -> local disk only
+    # (backend/app/ml/model_artifacts). "s3://bucket/prefix" -> object store.
+    model_store_uri: str = ""
     geocoding_timeout: int = 10
     max_prediction_radius_km: float = 50.0
 

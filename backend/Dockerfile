@@ -31,6 +31,9 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
+# spaCy NER model — baked in so NLPExtractor never downloads at request time.
+RUN python -m spacy download en_core_web_sm
+
 # Matplotlib/Prophet need a writable config dir when running as non-root.
 ENV MPLCONFIGDIR=/tmp/matplotlib
 

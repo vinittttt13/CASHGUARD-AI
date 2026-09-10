@@ -39,7 +39,30 @@ class PredictionService:
     # ------------------------------------------------------------------
 
     def _try_load_models(self) -> None:
-        """Attempt to load pre-trained model artefacts from disk."""
+        """Load pre-trained model artefacts.
+
+        Order: MODEL_STORE_URI (object store) first, then the local
+        ``model_artifacts/`` directory. Anything left unloaded falls back to the
+        heuristic path at inference time.
+        """
+        store_uri = getattr(settings, "model_store_uri", "") or ""
+        if store_uri:
+            try:
+                self.registry.load_from_store(store_uri)
+                if self.registry.get_all_versions():
+                    self._models_loaded = True
+                    logger.info(
+                        "Loaded models from MODEL_STORE_URI=%s (versions: %s)",
+                        store_uri,
+                        self.registry.get_all_versions(),
+                    )
+                    return
+                logger.warning("MODEL_STORE_URI=%s held no artifacts.", store_uri)
+            except Exception as exc:
+                logger.warning(
+                    "Could not load models from MODEL_STORE_URI=%s: %s", store_uri, exc
+                )
+
         artifacts_dir = self.registry.artifacts_dir
         try:
             pkl_files = [f for f in os.listdir(artifacts_dir) if f.endswith(".pkl")]
@@ -47,9 +70,10 @@ class PredictionService:
                 self.registry.load_from_disk(artifacts_dir)
                 self._models_loaded = True
                 logger.info(
-                    "Loaded %d model artefacts from %s",
+                    "Loaded %d model artefacts from local %s (versions: %s)",
                     len(pkl_files),
                     artifacts_dir,
+                    self.registry.get_all_versions(),
                 )
             else:
                 logger.warning(

@@ -22,8 +22,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
+          python -m spacy download en_core_web_sm
 
-      - name: Train models
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ vars.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Train + validate + publish
         working-directory: backend
         env:
           PYTHONPATH: .
@@ -31,11 +39,11 @@ jobs:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
           MODEL_STORE_URI: ${{ secrets.MODEL_STORE_URI }}
         run: |
-          python -m app.ml.train --production --model-version "v$(date +%Y.%m.%d)-${GITHUB_SHA::7}"
+          # --publish uploads to MODEL_STORE_URI ONLY if the ModelValidator gate
+          # passes. Model binaries are never committed back to git.
+          python -m app.ml.train --production --publish \
+            --model-version "v$(date +%Y.%m.%d)-${GITHUB_SHA::7}"
 
-      # Validation gate + publish to the model store are added in MT-09
-      # (app/ml/model_validation.ModelValidator + model store upload). Model
-      # binaries are NOT committed back to git.
       - name: Upload artifacts (build record)
         uses: actions/upload-artifact@v4
         with:

@@ -1,7 +1,14 @@
-import threading
+import glob
+import logging
 import os
-import joblib
+import tempfile
+import threading
 from collections import defaultdict
+from urllib.parse import urlparse
+
+import joblib
+
+logger = logging.getLogger(__name__)
 
 
 class ModelRegistry:
@@ -92,4 +99,81 @@ class ModelRegistry:
                     data = joblib.load(os.path.join(target_dir, f))
                     self._models[name] = data['model']
                     self._versions[name] = data['version']
+
+    # ------------------------------------------------------------------
+    # Object-store persistence (S3 today; local paths / file:// always work)
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _is_s3(uri: str) -> bool:
+        return uri.startswith("s3://")
+
+    @staticmethod
+    def _local_path(uri: str) -> str:
+        """Turn a local URI into a filesystem path (handles file:// on Windows)."""
+        if uri.startswith("file://"):
+            rest = uri[len("file://"):]
+            # file:///abs/path -> /abs/path ; file://C:/x (Windows) -> C:/x
+            return rest[1:] if rest.startswith("/") and ":" in rest[:3] else rest
+        return uri
+
+    def save_to_store(self, uri: str) -> None:
+        """Persist every registered model as ``<uri>/<name>.pkl``.
+
+        ``uri`` may be an ``s3://bucket/prefix`` URL or a local directory
+        (optionally ``file://``-prefixed).
+        """
+        if not uri:
+            raise ValueError("save_to_store requires a non-empty URI")
+        if self._is_s3(uri):
+            self._save_to_s3(uri)
+        else:
+            local = self._local_path(uri)
+            self.save_to_disk(local)
+        logger.info("Published %d model artifacts to %s", len(self._models), uri)
+
+    def load_from_store(self, uri: str) -> None:
+        """Load model artifacts from ``uri`` into the registry."""
+        if not uri:
+            raise ValueError("load_from_store requires a non-empty URI")
+        if self._is_s3(uri):
+            self._load_from_s3(uri)
+        else:
+            local = self._local_path(uri)
+            self.load_from_disk(local)
+
+    def _s3_client_and_parts(self, uri: str):
+        try:
+            import boto3  # noqa: PLC0415 — optional dependency
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError(
+                "MODEL_STORE_URI is an s3:// URI but boto3 is not installed"
+            ) from exc
+        parsed = urlparse(uri)
+        bucket = parsed.netloc
+        prefix = parsed.path.lstrip("/")
+        return boto3.client("s3"), bucket, prefix
+
+    def _save_to_s3(self, uri: str) -> None:
+        client, bucket, prefix = self._s3_client_and_parts(uri)
+        with tempfile.TemporaryDirectory() as tmp:
+            self.save_to_disk(tmp)
+            for path in glob.glob(os.path.join(tmp, "*.pkl")):
+                key = f"{prefix.rstrip('/')}/{os.path.basename(path)}".lstrip("/")
+                client.upload_file(path, bucket, key)
+
+    def _load_from_s3(self, uri: str) -> None:
+        client, bucket, prefix = self._s3_client_and_parts(uri)
+        resp = client.list_objects_v2(Bucket=bucket, Prefix=prefix)
+        contents = resp.get("Contents", [])
+        if not contents:
+            raise FileNotFoundError(f"No objects under {uri}")
+        with tempfile.TemporaryDirectory() as tmp:
+            for obj in contents:
+                key = obj["Key"]
+                if not key.endswith(".pkl"):
+                    continue
+                dest = os.path.join(tmp, os.path.basename(key))
+                client.download_file(bucket, key, dest)
+            self.load_from_disk(tmp)
 
