@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import pytest
 
-from app.ml.data_loader import load_training_frame, MIN_TRAINING_ROWS
+from app.ml.data_loader import MIN_TRAINING_ROWS, load_training_frame
 
 VALID_RISK = {"low", "medium", "high", "critical"}
 EXPECTED_COLUMNS = {
@@ -17,7 +17,7 @@ EXPECTED_COLUMNS = {
 
 async def _seed(db, n_complaints=25, n_locations=6):
     from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
-    from app.models.withdrawal_location import WithdrawalLocation, LocationType
+    from app.models.withdrawal_location import LocationType, WithdrawalLocation
 
     for i in range(n_locations):
         db.add(

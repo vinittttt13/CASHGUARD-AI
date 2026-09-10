@@ -6,10 +6,10 @@ and mocked Redis.  No external services required.
 """
 
 from unittest.mock import AsyncMock, patch
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-
 
 # ==========================================================================
 # Health
@@ -262,8 +262,8 @@ async def test_readiness_ok(async_client: AsyncClient):
 
 @pytest.mark.asyncio
 async def test_readiness_db_down(async_client: AsyncClient):
-    from app.main import app
     from app.core.database import get_db
+    from app.main import app
     from tests.conftest import _override_get_db
 
     class _BrokenSession:
@@ -362,6 +362,7 @@ async def test_batch_predict(
 
 def test_websocket_invalid_token():
     from fastapi.testclient import TestClient
+
     from app.main import app
 
     client = TestClient(app)
@@ -372,8 +373,9 @@ def test_websocket_invalid_token():
 
 def test_websocket_authenticated(test_user):
     from fastapi.testclient import TestClient
-    from app.main import app
+
     from app.core.security import create_access_token
+    from app.main import app
 
     client = TestClient(app)
     token = create_access_token(data={"sub": test_user.email, "role": test_user.role.value})
@@ -546,9 +548,10 @@ async def test_intelligence_export_csv(
 async def test_intelligence_fraud_rings_api(
     async_client: AsyncClient, auth_headers: dict, db_session
 ):
-    from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
-    from datetime import datetime, timezone
     import uuid
+    from datetime import datetime, timezone
+
+    from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
 
     # Insert 3 complaints with matching masked phone and bank to form an organized syndicate
     for i in range(3):

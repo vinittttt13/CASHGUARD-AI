@@ -1,7 +1,8 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score
 import joblib
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+
 
 class RiskLevelClassifier:
     def __init__(self):

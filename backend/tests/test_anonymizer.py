@@ -3,7 +3,7 @@ Unit tests for PII and financial identifier anonymization in CASHGUARD-AI.
 Tests cover Aadhaar, PAN, phone numbers, bank accounts, UPI IDs, IBANs, and crypto wallets.
 """
 
-from app.utils.anonymizer import mask_text, mask_complaint_data
+from app.utils.anonymizer import mask_complaint_data, mask_text
 
 
 def test_mask_upi_id():

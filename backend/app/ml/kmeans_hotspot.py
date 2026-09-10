@@ -1,7 +1,9 @@
-import numpy as np
-from sklearn.cluster import KMeans, DBSCAN
-from math import radians, cos, sin, asin, sqrt
+from math import asin, cos, radians, sin, sqrt
+
 import joblib
+import numpy as np
+from sklearn.cluster import DBSCAN, KMeans
+
 
 class HotspotDetector:
     def __init__(self):

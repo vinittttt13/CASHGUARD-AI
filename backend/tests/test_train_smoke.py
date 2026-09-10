@@ -27,8 +27,8 @@ def clean_artifacts_dir():
 
 
 def test_train_from_csv_writes_and_loads_artifacts(clean_artifacts_dir):
-    from app.ml.train import main
     from app.ml.model_registry import ModelRegistry
+    from app.ml.train import main
 
     rc = main(["--from-csv", FIXTURE])
     assert rc == 0

@@ -1,11 +1,23 @@
-import uuid
-from sqlalchemy import (
-    Column, String, Float, Enum, DateTime, func, Boolean, ForeignKey, Index, text,
-)
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import enum
+import uuid
+
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    String,
+    func,
+    text,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
+
 
 class AlertType(str, enum.Enum):
     hotspot_detected = "hotspot_detected"

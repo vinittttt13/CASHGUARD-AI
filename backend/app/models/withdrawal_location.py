@@ -1,11 +1,23 @@
+import enum
 import uuid
+
 from sqlalchemy import (
-    Column, String, Float, Enum, DateTime, func, Boolean, Integer, Index,
-    CheckConstraint, text,
+    Boolean,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    Index,
+    Integer,
+    String,
+    func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
-import enum
+
 from app.core.database import Base
+
 
 class LocationType(str, enum.Enum):
     ATM = "ATM"

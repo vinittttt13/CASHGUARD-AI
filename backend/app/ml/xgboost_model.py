@@ -1,6 +1,7 @@
-import xgboost as xgb
-import numpy as np
 import joblib
+import numpy as np
+import xgboost as xgb
+
 
 class CashoutLocationPredictor:
     def __init__(self):

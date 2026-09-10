@@ -1,29 +1,30 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from datetime import timedelta
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.database import get_db
+from app.core.redis_client import revoke_token
 from app.core.security import (
-    get_current_user,
-    require_role,
-    get_password_hash,
-    verify_password,
     create_access_token,
     create_refresh_token,
-    verify_refresh_token,
+    get_current_user,
+    get_password_hash,
     oauth2_scheme,
+    require_role,
+    verify_password,
+    verify_refresh_token,
 )
-from app.core.redis_client import revoke_token
 from app.models.user import User, UserRole
 from app.schemas.user import (
-    UserCreate,
-    UserResponse,
-    UserLogin,
-    Token,
-    RefreshRequest,
     LogoutRequest,
+    RefreshRequest,
+    Token,
+    UserCreate,
+    UserLogin,
+    UserResponse,
 )
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])

@@ -1,12 +1,23 @@
-import uuid
-from sqlalchemy import (
-    Column, String, Float, Enum, DateTime, func, ForeignKey, Integer, Index,
-    CheckConstraint,
-)
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import enum
+import uuid
+
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
+
 
 class RiskLevel(str, enum.Enum):
     low = "low"

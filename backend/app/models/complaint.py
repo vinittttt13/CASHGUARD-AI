@@ -1,11 +1,22 @@
+import enum
 import uuid
+
 from sqlalchemy import (
-    Column, String, Float, Enum, DateTime, func, ForeignKey, Index, CheckConstraint,
+    CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    String,
+    func,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-import enum
+
 from app.core.database import Base
+
 
 class ComplaintCategory(str, enum.Enum):
     vishing = "vishing"

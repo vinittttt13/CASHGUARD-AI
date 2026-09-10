@@ -1,7 +1,7 @@
 import logging
+import re
 
 from textblob import TextBlob
-import re
 
 logger = logging.getLogger(__name__)
 

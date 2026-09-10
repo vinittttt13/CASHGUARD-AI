@@ -4,7 +4,9 @@ Tests verify state transitions: CLOSED -> OPEN -> HALF_OPEN -> CLOSED and failur
 """
 
 import time
+
 import pytest
+
 from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
 
