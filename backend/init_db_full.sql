@@ -1,4 +1,4 @@
--- CASHGUARD-AI / CPAF — Database Initialization Schema
+-- CASHGUARD-AI / CPAF — Full Database Initialization Schema + Seed Users
 -- Matches SQLAlchemy models and Alembic 0001 migration exactly
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -119,3 +119,11 @@ CREATE TABLE IF NOT EXISTS intelligence_alerts (
 CREATE INDEX IF NOT EXISTS ix_intelligence_alerts_active_unack ON intelligence_alerts (created_at DESC) WHERE is_active = true AND is_acknowledged = false;
 CREATE INDEX IF NOT EXISTS ix_intelligence_alerts_expires ON intelligence_alerts (expires_at) WHERE is_active = true AND expires_at IS NOT NULL;
 CREATE INDEX IF NOT EXISTS ix_intelligence_alerts_affected_locations_gin ON intelligence_alerts USING GIN (affected_locations);
+
+-- 6. Default Seed Users (admin123, analyst123, viewer123)
+INSERT INTO users (email, hashed_password, full_name, role, jurisdiction, is_active, is_superuser)
+VALUES
+    ('admin@cpaf.gov.in', '$2b$12$3wXs7B6eBcyk7jXl2S.5t.rJQCx4Hq/4nEEl4TBJjtVktud6/SZeK', 'CPAF Administrator', 'admin', 'National', true, true),
+    ('analyst@cpaf.gov.in', '$2b$12$TLgmebEtUyJ518q8vnIkQuFSLStYs66FXrksjiH9VE9eWZDF67U0S', 'Priya Sharma', 'analyst', 'Maharashtra', true, false),
+    ('viewer@cpaf.gov.in', '$2b$12$gCz3SFfK3g4szECV0iwIqelb3d0UGGftgTBVHOiqFO37C7nXWH4Z.', 'Amit Verma', 'viewer', 'Karnataka', true, false)
+ON CONFLICT (email) DO NOTHING;
