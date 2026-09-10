@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface AppState {
   alerts: any[];
@@ -8,10 +9,17 @@ interface AppState {
   setSocketConnected: (connected: boolean) => void;
 }
 
-export const useAppStore = create<AppState>((set) => ({
-  alerts: [],
-  socketConnected: false,
-  addAlert: (alert) => set((state) => ({ alerts: [alert, ...state.alerts] })),
-  updatePredictionStatus: (data) => console.log('Prediction status updated', data),
-  setSocketConnected: (connected) => set({ socketConnected: connected }),
-}));
+export const useAppStore = create<AppState>()(
+  persist(
+    (set) => ({
+      alerts: [],
+      socketConnected: false,
+      addAlert: (alert) => set((state) => ({ alerts: [alert, ...state.alerts] })),
+      updatePredictionStatus: (data) => console.log('Prediction status updated', data),
+      setSocketConnected: (connected) => set({ socketConnected: connected }),
+    }),
+    {
+      name: 'cgai-store',
+    }
+  )
+);
