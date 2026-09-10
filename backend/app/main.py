@@ -4,6 +4,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from contextlib import asynccontextmanager
 from datetime import datetime
 
@@ -61,6 +62,8 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Enforce the configured limits (global default + per-route @limiter.limit).
+app.add_middleware(SlowAPIMiddleware)
 
 # CORS — never use ["*"] with allow_credentials=True (browser blocks)
 _app_cors_origins = settings.cors_origins if settings.cors_origins != ["*"] else ["http://localhost:3000", "http://localhost:8000"]

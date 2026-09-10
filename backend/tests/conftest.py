@@ -81,6 +81,18 @@ async def setup_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
+# ---------- Rate limiter isolation ----------
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Clear recorded hits so a 5/min or 10/min limit can't leak across tests."""
+    from app.utils.rate_limiter import reset_limiter_storage
+
+    reset_limiter_storage()
+    yield
+    reset_limiter_storage()
+
+
 # ---------- Redis mocking ----------
 
 @pytest.fixture(autouse=True)
