@@ -1,0 +1,4 @@
+{
+  "name": "cashguard-mcp",
+  "description": "Containerized CashGuard Model Context Protocol (MCP) server providing database inspection, cybercrime intelligence, and ML predictive analytics."
+}
