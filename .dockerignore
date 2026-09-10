@@ -1,9 +1,48 @@
+# Root build context ignore — applies to any `docker build .` from repo root.
+# Service-specific builds also have backend/.dockerignore and frontend/.dockerignore.
+
+# VCS / meta
 .git
+.gitignore
+.github
 .agents
-.pytest_cache
+.cursor
+.vscode
+.claude
+*.md
+docs/
+
+# Python
+**/__pycache__/
+**/*.pyc
 backend/venv
+backend/.venv
 backend/.pytest_cache
+backend/.coverage
+backend/htmlcov
+.pytest_cache
+
+# Node / Next
 frontend/node_modules
 frontend/.next
+frontend/out
+frontend/coverage
+**/*.tsbuildinfo
+
+# Local env / secrets
+.env
+.env.*
+!.env.example
+
+# Large data / model binaries
 dataset/*.csv
 dataset/*.zip
+dataset/*.parquet
+dataset/*.txt
+dataset/cleaned/
+backend/app/ml/models/*.pkl
+backend/app/ml/model_artifacts/*.pkl
+
+# Misc
+*.log
+.DS_Store

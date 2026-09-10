@@ -1,0 +1,27 @@
+# Dependencies (reinstalled inside the build)
+node_modules/
+
+# Build output
+.next/
+out/
+coverage/
+
+# VCS
+.git/
+.gitignore
+
+# Local environment
+.env.local
+.env*.local
+
+# Docs / meta
+*.md
+
+# Test tooling
+cypress/
+e2e/
+playwright-report/
+test-results/
+
+# TS incremental build cache
+*.tsbuildinfo
