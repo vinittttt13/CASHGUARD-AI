@@ -54,6 +54,23 @@ async def test_login_success(async_client: AsyncClient, test_user):
     assert data["token_type"] == "bearer"
 
 
+@pytest.mark.asyncio
+async def test_login_rate_limited(async_client: AsyncClient):
+    """The 6th /auth/login hit within a minute is rejected with 429."""
+    payload = {"email": "nonexistent@example.com", "password": "wrongpassword"}
+
+    statuses = []
+    for _ in range(6):
+        resp = await async_client.post("/api/v1/auth/login", json=payload)
+        statuses.append(resp.status_code)
+
+    # First five are allowed through (and fail auth with 401); the sixth is
+    # throttled by slowapi before reaching the handler.
+    assert statuses[:5] == [401] * 5, statuses
+    assert statuses[5] == 429, statuses
+    assert "rate limit" in resp.text.lower() or "too many" in resp.text.lower()
+
+
 # ==========================================================================
 # Auth — /me
 # ==========================================================================

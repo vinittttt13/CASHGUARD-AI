@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from datetime import timedelta
@@ -16,6 +16,7 @@ from app.core.security import (
     oauth2_scheme,
 )
 from app.core.redis_client import revoke_token
+from app.utils.rate_limiter import limiter
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserResponse, UserLogin, Token
 
@@ -24,7 +25,12 @@ settings = get_settings()
 
 
 @router.post("/login", response_model=Token)
-async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
+@limiter.limit("5/minute")
+async def login(
+    request: Request,
+    login_data: UserLogin,
+    db: AsyncSession = Depends(get_db),
+):
     result = await db.execute(select(User).where(User.email == login_data.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(login_data.password, user.hashed_password):
