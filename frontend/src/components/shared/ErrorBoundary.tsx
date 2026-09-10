@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
     retryCount: 0,
   };
 
-  public static getDerivedStateFromError(error: Error): State {
+  public static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
