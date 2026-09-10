@@ -8,7 +8,9 @@ import "leaflet/dist/leaflet.css";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { ATMMarker } from "./ATMMarker";
 import { GeofenceZone } from "./GeofenceZone";
-import { cn, formatConfidence } from "@/lib/utils";
+import { formatConfidence } from "@/lib/utils";
+import { useApiResource } from "@/hooks/useApiResource";
+import { getHeatmapData, getHotspots } from "@/lib/api";
 
 // Fix Leaflet default marker icons without touching the prototype
 // (deleting from prototype causes hasOwnProperty crash in setOptions)
@@ -19,10 +21,6 @@ if (typeof window !== "undefined") {
     shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
   });
 }
-
-// Dummy hooks for demonstration
-const useHotspots = () => ({ data: [] });
-const useHeatmapData = () => ({ data: [] });
 
 interface PredictiveMapProps {
   center?: [number, number];
@@ -77,27 +75,64 @@ function MapEventsHandler({ onClick }: { onClick?: (lat: number, lng: number) =>
 export default function PredictiveMap({
   center = [20.5937, 78.9629],
   zoom = 5,
-  predictions = [],
+  predictions,
   alerts = [],
-  atms = [],
+  atms: atmsProp,
   onAreaClick,
 }: PredictiveMapProps) {
-  const { data: heatmapData } = useHeatmapData();
+  const heatmap = useApiResource(getHeatmapData, []);
+  const hotspots = useApiResource(getHotspots, []);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const heatmapData = useMemo(
+    () =>
+      (heatmap.data ?? []).map((p) => ({
+        lat: p.lat,
+        lng: p.lng,
+        intensity: p.weight,
+      })),
+    [heatmap.data],
+  );
+
+  // Predictions layer: use the prop if given, otherwise derive from hotspots.
+  const predictionPoints = useMemo(() => {
+    if (predictions && predictions.length) return predictions;
+    return (hotspots.data ?? []).map((h) => ({
+      id: h.cluster_id,
+      lat: h.center[0],
+      lng: h.center[1],
+      confidence: h.risk_score,
+      atmName: h.name,
+      lastIncidentDate: `${h.incident_count} incidents`,
+    }));
+  }, [predictions, hotspots.data]);
+
+  const atms = useMemo(() => {
+    if (atmsProp && atmsProp.length) return atmsProp;
+    return (hotspots.data ?? []).map((h) => ({
+      id: h.cluster_id,
+      lat: h.center[0],
+      lng: h.center[1],
+      name: h.name,
+      address: `${h.incident_count} incidents · ${h.radius_km} km`,
+      risk_score: h.risk_score,
+      incident_count: h.incident_count,
+    }));
+  }, [atmsProp, hotspots.data]);
+
   const bounds = useMemo(() => {
-    if (predictions.length === 0) return null;
-    const lats = predictions.map(p => p.lat);
-    const lngs = predictions.map(p => p.lng);
+    if (predictionPoints.length === 0) return null;
+    const lats = predictionPoints.map((p) => p.lat);
+    const lngs = predictionPoints.map((p) => p.lng);
     return L.latLngBounds(
       [Math.min(...lats), Math.min(...lngs)],
-      [Math.max(...lats), Math.max(...lngs)]
+      [Math.max(...lats), Math.max(...lngs)],
     );
-  }, [predictions]);
+  }, [predictionPoints]);
 
   if (!mounted) return <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg" />;
 
@@ -131,7 +166,7 @@ export default function PredictiveMap({
 
           <LayersControl.Overlay checked name="Predictions">
             <LayerGroup>
-              {predictions.map(pred => (
+              {predictionPoints.map(pred => (
                 <CircleMarker
                   key={pred.id}
                   center={[pred.lat, pred.lng]}

@@ -15,6 +15,7 @@ Status of the 10-microtask remediation plan
 | MT-08 | Training entrypoint + DB data loader | ✅ done | `python -m app.ml.train`, `data_loader.load_training_frame`, no `np.random`; `cmdstanpy` pinned |
 | MT-09 | Model store, spaCy model, dataset repro | ✅ done | `MODEL_STORE_URI` (s3/file), store-first load, validation gate on `--publish`; spaCy baked into image; `dataset/manifest.json` + `verify.py` |
 | MT-10 | Frontend CI, lint config, docs | 🟡 in progress | `pyproject.toml` (ruff+black+pytest+coverage), Vitest stack + 10 tests, CI `frontend` job, `dependabot.yml`, `.pre-commit-config.yaml`, docs consolidated. **Follow-up:** one-time `black .` normalization (47 files) — CI `black --check` is non-blocking until then |
+| item 4 | Wire every screen to live backend data | ✅ done | `docs/FRONTEND_BACKEND_INTEGRATION.md`. New `types/api.ts` (backend-truth), retyped `lib/api.ts`, `useApiResource` hook, shared `<Loading/ErrorState/EmptyState>`. Dashboard / Alerts / Analytics / Intelligence all fetch from FastAPI; WS alerts merged into the Alert Center; `/complaints/stats/aggregate` enum keys cleaned. **Whole-project test suite** (`docs/TESTING.md`): backend `test_frontend_contract.py`, frontend Vitest (`useApiResource`, `api.ts`, wired-screen render/error/empty), `scripts/smoke.sh`, Playwright `e2e/` + CI `e2e` job. |
 
 ## Tracked follow-ups (not in the 10)
 

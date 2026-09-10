@@ -6,16 +6,19 @@ import {
   setRefreshToken, 
   clearAuth 
 } from './auth';
-import { 
-  Complaint, 
-  Prediction, 
-  HotspotData, 
-  HeatmapPoint, 
-  IntelligenceReport, 
-  AlertData, 
-  TrendData,
-  PaginatedResponse,
-  Token
+import type {
+  Alert,
+  AlertListResponse,
+  Complaint,
+  ComplaintListResponse,
+  HeatmapPoint,
+  Hotspot,
+  IntelligenceReport,
+  LoginResponse,
+  PredictionResponse,
+  StatsAggregate,
+  TrendsResponse,
+  WithdrawalLocation,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -94,7 +97,10 @@ api.interceptors.response.use(
 );
 
 // Auth
-export const loginUser = async (credentials: { email: string; password: string }) => {
+export const loginUser = async (credentials: {
+  email: string;
+  password: string;
+}): Promise<LoginResponse> => {
   const { data } = await api.post('/api/v1/auth/login', credentials);
   return data;
 };
@@ -112,44 +118,64 @@ export const logoutUser = async () => {
 };
 
 // Complaints
-export const getComplaints = async (params?: any) => {
+export const getComplaints = async (params?: {
+  skip?: number;
+  limit?: number;
+  status?: string;
+  category?: string;
+  state?: string;
+}): Promise<ComplaintListResponse> => {
   const { data } = await api.get('/api/v1/complaints', { params });
   return data;
 };
 
-export const getComplaint = async (id: string) => {
+export const getComplaint = async (id: string): Promise<Complaint> => {
   const { data } = await api.get(`/api/v1/complaints/${id}`);
   return data;
 };
 
-export const createComplaint = async (complaint: Partial<Complaint>): Promise<Complaint> => {
+export const createComplaint = async (
+  complaint: Partial<Complaint>,
+): Promise<Complaint> => {
   const { data } = await api.post('/api/v1/complaints', complaint);
   return data;
 };
 
-export const getComplaintStats = async () => {
+export const getComplaintStats = async (): Promise<StatsAggregate> => {
   const { data } = await api.get('/api/v1/complaints/stats/aggregate');
   return data;
 };
 
 // Predictions
-export const predictComplaint = async (complaintId: string): Promise<Prediction> => {
-  const { data } = await api.post('/api/v1/predict', { complaint_id: complaintId });
+export const predictComplaint = async (
+  complaintId: string,
+  forceRefresh = true,
+): Promise<PredictionResponse> => {
+  const { data } = await api.post('/api/v1/predict', {
+    complaint_id: complaintId,
+    force_refresh: forceRefresh,
+  });
   return data;
 };
 
-export const getPrediction = async (predictionId: string) => {
+export const getPrediction = async (
+  predictionId: string,
+): Promise<PredictionResponse> => {
   const { data } = await api.get(`/api/v1/predict/${predictionId}`);
   return data;
 };
 
 // Locations & Hotspots
-export const getLocations = async (params?: any) => {
+export const getLocations = async (params?: {
+  city?: string;
+  state?: string;
+  loc_type?: string;
+}): Promise<WithdrawalLocation[]> => {
   const { data } = await api.get('/api/v1/locations', { params });
   return data;
 };
 
-export const getHotspots = async (): Promise<HotspotData[]> => {
+export const getHotspots = async (): Promise<Hotspot[]> => {
   const { data } = await api.get('/api/v1/locations/hotspots');
   return data;
 };
@@ -159,7 +185,11 @@ export const getHeatmapData = async (): Promise<HeatmapPoint[]> => {
   return data;
 };
 
-export const getNearbyLocations = async (lat: number, lng: number, radiusKm: number = 5) => {
+export const getNearbyLocations = async (
+  lat: number,
+  lng: number,
+  radiusKm = 5,
+): Promise<WithdrawalLocation[]> => {
   const { data } = await api.get('/api/v1/locations/nearby', {
     params: { lat, lng, radius_km: radiusKm },
   });
@@ -167,24 +197,36 @@ export const getNearbyLocations = async (lat: number, lng: number, radiusKm: num
 };
 
 // Intelligence & Alerts
-export const getAlerts = async (): Promise<AlertData[]> => {
+export const getAlerts = async (): Promise<AlertListResponse> => {
   const { data } = await api.get('/api/v1/intelligence/alerts');
   return data;
 };
 
-export const acknowledgeAlert = async (id: string): Promise<void> => {
-  await api.put(`/api/v1/intelligence/alerts/${id}/acknowledge`);
-};
-
-export const getIntelligenceReport = async (days: number = 7) => {
-  const { data } = await api.get('/api/v1/intelligence/report', { params: { days } });
+export const acknowledgeAlert = async (id: string): Promise<Alert> => {
+  const { data } = await api.put(
+    `/api/v1/intelligence/alerts/${id}/acknowledge`,
+  );
   return data;
 };
 
-export const getTrends = async (days: number = 30): Promise<TrendData[]> => {
-  const { data } = await api.get('/api/v1/intelligence/trends', { params: { days } });
+export const getIntelligenceReport = async (
+  days = 7,
+): Promise<IntelligenceReport> => {
+  const { data } = await api.get('/api/v1/intelligence/report', {
+    params: { days },
+  });
   return data;
 };
+
+export const getTrends = async (days = 30): Promise<TrendsResponse> => {
+  const { data } = await api.get('/api/v1/intelligence/trends', {
+    params: { days },
+  });
+  return data;
+};
+
+export const intelligenceReportExportUrl = (days = 7): string =>
+  `${API_URL}/api/v1/intelligence/report/export?days=${days}`;
 
 // Health
 export const healthCheck = async () => {
