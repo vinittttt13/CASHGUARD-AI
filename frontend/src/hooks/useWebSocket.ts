@@ -66,6 +66,11 @@ export const useWebSocket = (customToken?: string) => {
           // Exponential backoff with jitter: min 1s, max 16s
           const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 16000);
           reconnectAttempts.current += 1;
+          if (reconnectAttempts.current > 5) {
+            console.error("WebSocket max reconnect attempts exceeded; giving up.");
+            reconnectAttempts.current = 0; // reset for next session
+            return; // dead-letter: stop reconnecting
+          }
           reconnectTimeoutRef.current = setTimeout(connect, delay);
         }
       };
