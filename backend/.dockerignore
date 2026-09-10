@@ -1,0 +1,35 @@
+# Python virtualenvs
+venv/
+.venv/
+
+# Python caches / build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Tests & docs are not needed in the runtime image
+tests/
+*.md
+
+# Local environment / secrets
+.env
+.env.*
+
+# VCS
+.git/
+.gitignore
+
+# Alembic bytecode (keep the actual migration .py files!)
+alembic/versions/__pycache__/
+
+# Local SQLite / data dumps
+*.sqlite
+*.sqlite3
+data/

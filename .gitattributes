@@ -1,0 +1,14 @@
+# Normalise line endings to LF in the repo (matches .editorconfig).
+* text=auto eol=lf
+
+# Binary assets — never touch.
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.pkl binary
+*.parquet binary
+*.woff binary
+*.woff2 binary

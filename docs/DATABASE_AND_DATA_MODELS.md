@@ -186,10 +186,11 @@ Catalog of physical cash endpoints (ATMs, bank branches, kiosks).
 
 ## 3. Database Initialisation & Seeding
 
-The database includes automated bootstrap scripts:
-- **`backend/init_db.sql`**: Configures PostGIS extension:
-  ```sql
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  CREATE EXTENSION IF NOT EXISTS postgis;
-  ```
-- **`backend/seed_db.py`**: Initializes standard accounts (`admin`, `analysts`, `viewer`), 39 distinct ATM locations across 13 major Indian metropolitan zones, 50 complaints, 30 predictions with SHAP metrics, and 15 intelligence alerts.
+- **Schema:** owned entirely by Alembic. Run `alembic upgrade head` (the
+  docker-compose `migrate` service, or `kubernetes/migration-job.yaml`). The
+  app no longer creates tables at startup. There is no PostGIS — see
+  `docs/adr/0001-postgis.md`.
+- **`backend/seed_db.py`**: after migrations, initializes standard accounts
+  (`admin`, `analysts`, `viewer`), 39 distinct ATM locations across 13 major
+  Indian metropolitan zones, 50 complaints, 30 predictions with SHAP metrics,
+  and 15 intelligence alerts.

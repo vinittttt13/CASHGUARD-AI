@@ -22,11 +22,20 @@ alembic upgrade head
 alembic downgrade -1
 alembic upgrade head
 
-# Seed verification
-psql -U cpaf_user -d cpaf_db -f backend/init_db_full.sql
+# Seed verification (schema must already be migrated)
+python backend/seed_db.py
 ```
 
-## Database Schema & Migrations
-- `backend/init_db.sql`: DDL synchronized with SQLAlchemy models and PostGIS spatial indexes.
-- `backend/init_db_full.sql`: Full schema plus default administrative and analyst seed users.
-- `backend/alembic/versions/0001_spatial_indexes_and_constraints.py`: Initial migration verified.
+## Database Schema & Migrations (MT-07)
+- Alembic is the single source of schema truth. `backend/init_db.sql` /
+  `backend/init_db_full.sql` were deleted.
+- `backend/alembic/versions/0001_baseline_schema.py`: full baseline —
+  all 5 tables, every index (plain + partial + JSONB GIN), coordinate CHECK
+  constraints. `alembic check` is clean against the models.
+- No PostGIS (`docs/adr/0001-postgis.md`); Postgres image is `postgres:15`.
+- App startup no longer runs `create_all` or `alembic upgrade`. The
+  docker-compose `migrate` service / `kubernetes/migration-job.yaml` runs
+  `alembic upgrade head`.
+- Verified: fresh DB provisioned only by `alembic upgrade head` boots the app
+  with all endpoints 200; `alembic downgrade base && alembic upgrade head`
+  idempotent across 3 cycles.

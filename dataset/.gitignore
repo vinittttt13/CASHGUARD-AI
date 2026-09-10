@@ -1,0 +1,13 @@
+# The IBM AML dataset is ~39 GB — never commit it. Fetch per dataset/README.md.
+*.csv
+*.txt
+*.zip
+*.parquet
+cleaned/
+
+# Keep the reproducibility metadata + scripts.
+!README.md
+!manifest.json
+!clean_aml_data.py
+!verify.py
+!.gitignore

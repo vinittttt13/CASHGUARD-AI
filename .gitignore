@@ -5,14 +5,14 @@ __pycache__/
 *.so
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+# NOTE: do NOT add a bare `lib/` / `lib64/` here — it also matches
+# frontend/src/lib/. A Python virtualenv's lib/ lives under venv/ which is
+# already ignored below.
 parts/
 sdist/
 var/
@@ -26,6 +26,7 @@ share/python-wheels/
 htmlcov/
 venv/
 .venv/
+backend/build/
 
 # Node
 node_modules/
@@ -55,7 +56,7 @@ logs/
 *.log
 
 # Models/Data
-backend/app/ml/models/*.pkl
+backend/app/ml/model_artifacts/*.pkl
 backend/data/
 dataset/*.csv
 dataset/*.txt

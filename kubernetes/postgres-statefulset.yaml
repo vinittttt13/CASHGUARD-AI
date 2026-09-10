@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgis/postgis:15-3.3
+          # PostGIS dropped in MT-07 — see docs/adr/0001-postgis.md
+          image: postgres:15
           ports:
             - containerPort: 5432
           env:

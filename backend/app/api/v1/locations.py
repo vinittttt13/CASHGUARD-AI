@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_
 from typing import Optional
 from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
 from app.models.user import User
-from app.models.withdrawal_location import WithdrawalLocation, LocationType
+from app.models.withdrawal_location import LocationType, WithdrawalLocation
 
 router = APIRouter(prefix="/locations", tags=["Locations"])
 

@@ -5,6 +5,9 @@ metadata:
   labels:
     app: backend
 spec:
+  # The app does NOT migrate on startup. Run kubernetes/migration-job.yaml
+  # (alembic upgrade head) before each rollout — only that Job touches the
+  # schema, so these 3 replicas never race on it.
   replicas: 3
   selector:
     matchLabels:
@@ -57,10 +60,12 @@ spec:
             periodSeconds: 20
           readinessProbe:
             httpGet:
-              path: /health
+              path: /health/ready
               port: 8000
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
 
 ---
 apiVersion: v1

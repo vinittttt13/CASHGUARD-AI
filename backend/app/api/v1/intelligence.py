@@ -1,14 +1,15 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from uuid import UUID
 from datetime import datetime
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
+from app.models.intelligence_alert import AlertPriority, AlertType, IntelligenceAlert
 from app.models.user import User
-from app.models.intelligence_alert import IntelligenceAlert, AlertPriority, AlertType
-from app.schemas.alert import AlertCreate, AlertResponse, AlertListResponse
+from app.schemas.alert import AlertCreate, AlertListResponse, AlertResponse
 
 router = APIRouter(prefix="/intelligence", tags=["Intelligence"])
 
@@ -71,9 +72,10 @@ async def acknowledge_alert(
     return alert
 
 
-from app.services.intelligence_service import IntelligenceService
-from fastapi.responses import Response
 from fastapi import Query
+from fastapi.responses import Response
+
+from app.services.intelligence_service import IntelligenceService
 
 _intel_service = IntelligenceService()
 

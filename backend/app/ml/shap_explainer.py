@@ -1,5 +1,6 @@
-import shap
 import numpy as np
+import shap
+
 
 class SHAPExplainer:
     def __init__(self, model, feature_names):

@@ -9,34 +9,45 @@ jobs:
   retrain:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          
+      - uses: actions/checkout@v4
+
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libgdal-dev gdal-bin libproj-dev
-          
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          
-      - name: Run training script
+          python -m spacy download en_core_web_sm
+
+      - name: Configure AWS credentials (OIDC)
+        if: ${{ vars.AWS_ROLE_ARN != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Train + validate + publish
+        working-directory: backend
         env:
+          PYTHONPATH: .
           DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          MODEL_STORE_URI: ${{ secrets.MODEL_STORE_URI }}
         run: |
-          python backend/app/ml/train.py --production
-          
-      - name: Commit updated model artifacts
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add backend/app/ml/models/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: Update predictive models [skip ci]" && git push)
+          # --publish uploads to MODEL_STORE_URI ONLY if the ModelValidator gate
+          # passes. Model binaries are never committed back to git.
+          python -m app.ml.train --production --publish \
+            --model-version "v$(date +%Y.%m.%d)-${GITHUB_SHA::7}"
+
+      - name: Upload artifacts (build record)
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-artifacts
+          path: backend/app/ml/model_artifacts/*.pkl
+          if-no-files-found: error
+          retention-days: 30

@@ -1,59 +1,21 @@
-# 📋 Technical Audit Reports — CASHGUARD-AI / CPAF
+# Technical Audit Reports — CASHGUARD-AI / CPAF
 
-> **Repository**: `I:/vinit SIH/CASHGUARD-AI`  
-> **Audit Date**: 2026-09-10  
-> **Auditor**: Principal Software Architect / Staff ML Engineer / Cyber Security Specialist  
-> **Status**: All reports restructured, relocated, and enhanced per `docs/reports/` standard.
+> **Audit date**: 2026-09-10
+> **Status**: The audit findings were rolled into
+> [`../REPO_ANALYSIS_AND_IMPROVEMENTS.md`](../REPO_ANALYSIS_AND_IMPROVEMENTS.md)
+> and the 10-microtask plan ([`../IMPLEMENTATION_PLAN_MICROTASKS.md`](../IMPLEMENTATION_PLAN_MICROTASKS.md)).
+> Track execution in [`../ROADMAP.md`](../ROADMAP.md).
 
----
+The per-domain audit reports have been moved to [`../archive/`](../archive/):
 
-## Report Index
+| Report | Domain |
+| :--- | :--- |
+| [`AUDIT_DB_SCHEMA.md`](../archive/AUDIT_DB_SCHEMA.md) | schema / constraints / indexes |
+| [`AUDIT_SECURITY_RBAC.md`](../archive/AUDIT_SECURITY_RBAC.md) | JWT / refresh revocation / rate limiter / PII |
+| [`AUDIT_BACKEND_ARCH.md`](../archive/AUDIT_BACKEND_ARCH.md) | WebSocket PubSub / circuit breaker / geospatial / pool |
+| [`AUDIT_ML_PIPELINE.md`](../archive/AUDIT_ML_PIPELINE.md) | mock predictions / feature leakage / SHAP / split |
+| [`AUDIT_FRONTEND.md`](../archive/AUDIT_FRONTEND.md) | reconnect / types / Leaflet / ErrorBoundary / Zustand |
+| [`AUDIT_DEVOPS.md`](../archive/AUDIT_DEVOPS.md) | CI tests / k8s security / Redis auth / health probes |
+| [`MASTER_IMPROVEMENT_PLAN*.md`](../archive/) | v1 & v3–v5 improvement plans (superseded) |
 
-| Report | Domain | Severity | File |
-| :--- | :--- | :--- | :--- |
-| **DB Schema** | PostgreSQL / PostGIS / Constraints / Indexes | `🔴 CRITICAL` | [`AUDIT_DB_SCHEMA.md`](AUDIT_DB_SCHEMA.md) |
-| **Security & RBAC** | JWT / Refresh Revocation / Rate Limiter / PII Masking / SQL | `🔴 CRITICAL` | [`AUDIT_SECURITY_RBAC.md`](AUDIT_SECURITY_RBAC.md) |
-| **Backend Architecture** | WebSocket PubSub / Circuit Breaker / Geospatial / DB Pool | `🟠 HIGH` | [`AUDIT_BACKEND_ARCH.md`](AUDIT_BACKEND_ARCH.md) |
-| **ML Pipeline** | Mock Predictions / Feature Leakage / SHAP / KDTree / Split | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_ML_PIPELINE.md`](AUDIT_ML_PIPELINE.md) |
-| **Frontend** | Reconnect / Types / Leaflet / Error Boundary / Zustand | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_FRONTEND.md`](AUDIT_FRONTEND.md) |
-| **DevOps** | CI Tests / K8s Security / Redis Auth / Health Probes | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_DEVOPS.md`](AUDIT_DEVOPS.md) |
-| **Master Plan** | 4-Phase Improvement Roadmap (Critical → ML → Scale → Polish) | — | [`MASTER_IMPROVEMENT_PLAN.md`](../plans/MASTER_IMPROVEMENT_PLAN.md) |
-
----
-
-## Document Formatting Standard
-
-Every report follows this unified layout:
-
-```markdown
-# 🛡️ Technical Audit: [Domain Name]
-| Audit Scope | Severity | Affected Files | Status |
-| :--- | :--- | :--- | :--- |
-| **[Subsystem]** | 🔴 / 🟠 / 🟡 | `path/file.py` (L##) | ⚠️ Action Required |
----
-## 1. Executive Summary
-## 2. Identified Flaws & Vulnerabilities
-### 2.1 [Issue Title]
-- **Severity**: ...
-- **Affected File(s)**: ... (Line numbers)
-- **Root Cause Analysis**: ...
-- **Potential Impact**: ...
-#### Proposed Code Fix / Implementation:
-```python
-# Before / After snippet
-```
-```
-
----
-
-## Quick-Start: Critical Actions (Phase 1)
-
-1. **Replace mock predictions** (`predict.py` L45-65) — wire `FeatureEngineer` + `ModelRegistry`
-2. **Fix JWT secret** (`core/config.py` L8) — load from `.env`; enforce `>=32` chars
-3. **Implement refresh revocation** (`core/security.py`, `redis_client.py`) — Redis `revoked:{jti}` with 7-day TTL
-4. **Write real tests** (`tests/test_api.py`, `test_ml.py`) — replace all `pass` with `AsyncClient` assertions
-5. **Add DB indexes** (`init_db.sql`) — `GIST` on `withdrawal_locations`, `predictions`; `CHECK` constraints on coordinates
-
----
-
-*This index replaces the previous `CRITICAL_AUDIT_*.md` and `IMPROVEMENT_PLAN_PHIA_4.md` files from `docs/` root. Original system documentation (`README.md`, `SYSTEM_ARCHITECTURE.md`, etc.) remains unchanged in `docs/`.*
+`VERIFICATION_LOG.md` in this directory records the current verification state.

@@ -4,13 +4,14 @@ Implements specifications from docs/IBM_AML_DATASET_INTEGRATION.md.
 Handles large-scale CSV data efficiently using chunked streaming and snappy-compressed Parquet.
 """
 
+import logging
 import os
 import sys
 import time
-import logging
-from typing import Optional, Dict, List
-import pandas as pd
+from typing import Dict, List, Optional
+
 import numpy as np
+import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 

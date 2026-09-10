@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,loading,error,not-found,route,template,default}.tsx",
+    "src/**/*.{test,spec}.{ts,tsx}",
+    "src/test/setup.ts",
+    "vitest.config.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/components/_wip/**"],
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": false,
+  "ignoreDependencies": ["@vitejs/plugin-react", "@testing-library/jest-dom"],
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "unlisted": "error",
+    "exports": "off",
+    "types": "off",
+    "duplicates": "off",
+    "enumMembers": "off"
+  }
+}
