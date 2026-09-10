@@ -1,5 +1,5 @@
 # Stage 1: Build dependencies
-FROM python:3.11-slim AS builder
+FROM python:3.14-slim AS builder
 
 # Build toolchain + Postgres client headers. GEOS/PROJ are vendored inside the
 # shapely / pyproj manylinux wheels, so no system GDAL/GEOS packages are needed.
@@ -13,7 +13,7 @@ COPY requirements.txt .
 RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
 
 # Stage 2: Final runtime image
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 # Runtime shared libs: libpq for asyncpg/psycopg, curl for the healthcheck.
 RUN apt-get update && apt-get install -y --no-install-recommends \
