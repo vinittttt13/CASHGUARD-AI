@@ -20,10 +20,12 @@ export function HeatmapLayer({ data }: HeatmapLayerProps) {
 
   useEffect(() => {
     if (!map) return;
+    // Viewport filter: only include points inside current map bounds
+    const bounds = map.getBounds();
+    const visible = data.filter((p) => bounds.contains([p.lat, p.lng]));
 
-    // Dynamically import leaflet.heat only on the client
     import("leaflet.heat").then(() => {
-      const points = data.map((p) => [p.lat, p.lng, p.intensity] as [number, number, number]);
+      const points = visible.map((p) => [p.lat, p.lng, p.intensity] as [number, number, number]);
 
       if (layerRef.current) {
         layerRef.current.setLatLngs(points);

@@ -23,6 +23,24 @@ async def lifespan(app: FastAPI):
     await init_db()
     logger.info("Database tables created successfully.")
 
+    # Apply Alembic index/constraints (post-create_all) so dev path matches prod
+    try:
+        from pathlib import Path
+        from alembic.config import Config
+        from alembic import command
+        backend_dir = Path(__file__).resolve().parent.parent
+        ini_path = backend_dir / "alembic.ini"
+        if ini_path.exists():
+            alembic_cfg = Config(str(ini_path))
+            alembic_cfg.set_main_option("script_location", str(backend_dir / "alembic"))
+            alembic_cfg.set_main_option("sqlalchemy.url", get_settings().database_url)
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Alembic upgrade (indexes/constraints) applied.")
+        else:
+            logger.warning("alembic.ini not found at %s", ini_path)
+    except Exception as exc:
+        logger.warning("Alembic upgrade skipped (expected in some envs): %s", exc)
+
     # Start WebSocket PubSub for cross-pod broadcast
     from app.api.v1.websocket import manager as ws_manager
     await ws_manager.start_pubsub()
@@ -44,10 +62,11 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS
+# CORS — never use ["*"] with allow_credentials=True (browser blocks)
+_app_cors_origins = settings.cors_origins if settings.cors_origins != ["*"] else ["http://localhost:3000", "http://localhost:8000"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=_app_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

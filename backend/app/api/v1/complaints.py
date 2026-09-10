@@ -15,6 +15,7 @@ from app.schemas.complaint import (
     ComplaintResponse,
     ComplaintListResponse,
 )
+from app.utils.anonymizer import mask_text
 
 router = APIRouter(prefix="/complaints", tags=["Complaints"])
 
@@ -59,8 +60,10 @@ async def get_complaints(
     # Mask PII for viewer role
     if current_user.role == UserRole.viewer:
         for c in complaints:
-            c.victim_name_masked = "***"
-            c.victim_phone_masked = "***"
+            # victim_name_masked / victim_phone_masked are already masked at
+            # creation time; do NOT overwrite with a literal "***" (loses the
+            # last-4-digit pattern). Only redact free-form complaint_text.
+            c.complaint_text = mask_text(c.complaint_text or "")
 
     return {"total": total, "items": complaints}
 
@@ -118,8 +121,8 @@ async def get_complaint(
         raise HTTPException(status_code=404, detail="Complaint not found")
 
     if current_user.role == UserRole.viewer:
-        complaint.victim_name_masked = "***"
-        complaint.victim_phone_masked = "***"
+        # Preserve existing masked fields; only redact free-form complaint_text.
+        complaint.complaint_text = mask_text(complaint.complaint_text or "")
 
     return complaint
 
