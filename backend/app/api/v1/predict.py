@@ -1,3 +1,9 @@
+import uuid
+import asyncio
+import logging
+
+import numpy as np
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -14,8 +20,25 @@ from app.schemas.prediction import (
     BatchPredictionResponse,
 )
 from app.core.redis_client import cache_get, cache_set
+from app.services.prediction_service import PredictionService
+from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
 router = APIRouter(prefix="/predict", tags=["Prediction"])
+logger = logging.getLogger(__name__)
+
+# Singleton service and circuit breaker for ML prediction
+_prediction_service: PredictionService | None = None
+prediction_circuit_breaker = CircuitBreaker(
+    "ml_prediction", failure_threshold=3, recovery_timeout=30.0
+)
+
+
+def _get_prediction_service() -> PredictionService:
+    """Lazily create / return the shared PredictionService."""
+    global _prediction_service
+    if _prediction_service is None:
+        _prediction_service = PredictionService()
+    return _prediction_service
 
 
 @router.post("", response_model=PredictionResponse)
@@ -42,26 +65,40 @@ async def predict(
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
 
-    # Create mock prediction (real ML pipeline would go here)
-    import uuid
+    # ---------- Real ML inference with Circuit Breaker & SHAP caching ----------
+    svc = _get_prediction_service()
+    shap_cache_key = f"shap:{pred_request.complaint_id}"
+    cached_shap = None
+    if not pred_request.force_refresh:
+        cached_shap = await cache_get(shap_cache_key)
+
+    try:
+        prediction_data = await prediction_circuit_breaker.async_call(
+            svc.run_inference, complaint, cached_shap
+        )
+    except CircuitBreakerOpenException as cbe:
+        logger.warning("Prediction circuit breaker is OPEN: %s. Using heuristic fallback.", cbe)
+        prediction_data = svc.heuristic_fallback(complaint)
+    except Exception as exc:
+        logger.warning("ML inference failed, falling back to heuristic: %s", exc)
+        prediction_data = svc.heuristic_fallback(complaint)
+
+    if prediction_data.get("feature_importance") and not cached_shap:
+        await cache_set(shap_cache_key, prediction_data["feature_importance"], ttl=3600)
+
 
     new_prediction = Prediction(
         id=uuid.uuid4(),
         complaint_id=pred_request.complaint_id,
-        predicted_latitude=complaint.latitude or 28.6139,
-        predicted_longitude=complaint.longitude or 77.2090,
-        confidence_score=0.85,
-        predicted_locations=[
-            {
-                "lat": complaint.latitude or 28.6139,
-                "lng": complaint.longitude or 77.2090,
-                "atm_name": "Predicted ATM",
-                "confidence": 0.85,
-            }
-        ],
-        model_version="1.0.0",
-        model_name="xgboost_v1",
-        risk_level="high",
+        predicted_latitude=prediction_data["predicted_latitude"],
+        predicted_longitude=prediction_data["predicted_longitude"],
+        confidence_score=prediction_data["confidence_score"],
+        predicted_locations=prediction_data["predicted_locations"],
+        model_version=prediction_data.get("model_version"),
+        model_name=prediction_data.get("model_name"),
+        feature_importance=prediction_data.get("feature_importance"),
+        risk_level=prediction_data["risk_level"],
+        prediction_radius_km=prediction_data.get("prediction_radius_km"),
     )
     db.add(new_prediction)
     await db.commit()
@@ -85,6 +122,14 @@ async def batch_predict(
         raise HTTPException(
             status_code=400, detail="Max 100 complaints allowed in batch"
         )
+
+    svc = _get_prediction_service()
+
+    # Actually schedule background work
+    background_tasks.add_task(
+        svc.batch_predict_background,
+        complaint_ids=[str(cid) for cid in batch_request.complaint_ids],
+    )
 
     return {
         "message": "Batch prediction started in background",

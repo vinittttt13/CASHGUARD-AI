@@ -22,8 +22,16 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up application...")
     await init_db()
     logger.info("Database tables created successfully.")
+
+    # Start WebSocket PubSub for cross-pod broadcast
+    from app.api.v1.websocket import manager as ws_manager
+    await ws_manager.start_pubsub()
+    logger.info("WebSocket PubSub relay started.")
+
     yield
+
     # Shutdown
+    await ws_manager.stop_pubsub()
     logger.info("Shutting down application...")
 
 

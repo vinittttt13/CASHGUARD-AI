@@ -114,3 +114,44 @@ export interface ApiError {
   code: string;
   details?: any;
 }
+
+export interface WithdrawalLocationPrediction {
+  atm_id: string;
+  bank_name: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  probability: number;
+  predicted_time_window: string;
+}
+
+export interface TopKCategory {
+  category: string;
+  probability: number;
+}
+
+export interface PredictionResponse {
+  complaint_id: string;
+  category: string;
+  confidence: number;
+  top_k: TopKCategory[];
+  risk_score: number;
+  risk_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  predicted_withdrawal_locations: WithdrawalLocationPrediction[];
+  recommended_actions: string[];
+  financial_impact_est: number;
+  model_version: string;
+}
+
+export interface FraudRing {
+  ring_id: string;
+  suspect_identifiers: string[];
+  complaint_count: number;
+  complaint_ids: string[];
+  total_amount_lost: number;
+  confidence_score: number;
+  coordination_type: string;
+  earliest_date: string | null;
+  latest_date: string | null;
+}
+

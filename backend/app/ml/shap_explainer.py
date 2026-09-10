@@ -20,7 +20,8 @@ class SHAPExplainer:
             vals = shap_values[0]
             if len(vals.shape) > 1:
                 vals = vals[0]
-        return dict(zip(self.feature_names, vals))
+        return {k: float(v) for k, v in zip(self.feature_names, vals)}
+
 
     def explain_batch(self, X_batch):
         shap_values = self.explainer.shap_values(X_batch)
