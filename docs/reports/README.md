@@ -17,7 +17,7 @@
 | **ML Pipeline** | Mock Predictions / Feature Leakage / SHAP / KDTree / Split | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_ML_PIPELINE.md`](AUDIT_ML_PIPELINE.md) |
 | **Frontend** | Reconnect / Types / Leaflet / Error Boundary / Zustand | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_FRONTEND.md`](AUDIT_FRONTEND.md) |
 | **DevOps** | CI Tests / K8s Security / Redis Auth / Health Probes | `🔴 CRITICAL` / `🟠 HIGH` | [`AUDIT_DEVOPS.md`](AUDIT_DEVOPS.md) |
-| **Master Plan** | 4-Phase Improvement Roadmap (Critical → ML → Scale → Polish) | — | [`MASTER_IMPROVEMENT_PLAN.md`](MASTER_IMPROVEMENT_PLAN.md) |
+| **Master Plan** | 4-Phase Improvement Roadmap (Critical → ML → Scale → Polish) | — | [`MASTER_IMPROVEMENT_PLAN.md`](../plans/MASTER_IMPROVEMENT_PLAN.md) |
 
 ---
 
