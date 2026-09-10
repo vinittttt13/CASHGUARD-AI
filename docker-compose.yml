@@ -79,5 +79,21 @@ services:
     depends_on:
       - postgres
 
+  mcp:
+    build:
+      context: ./mcp
+      dockerfile: Dockerfile
+    image: cashguard-mcp:latest
+    container_name: cpaf_mcp
+    profiles: ["mcp", "tools"]
+    environment:
+      - DATABASE_URL=postgresql://cpaf_user:cpaf_pass@postgres:5432/cpaf_db
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
 volumes:
   postgres_data:
