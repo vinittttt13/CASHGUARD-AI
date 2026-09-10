@@ -99,12 +99,16 @@ async def get_complaint_stats(
         select(Complaint.status, func.count()).group_by(Complaint.status)
     )
 
+    def _key(k):
+        # Enum -> its value ("phishing"), plain str stays as-is.
+        return getattr(k, "value", k)
+
     return {
         "by_category": {
-            str(k): v for k, v in category_result.all() if k is not None
+            _key(k): v for k, v in category_result.all() if k is not None
         },
-        "by_state": {str(k): v for k, v in state_result.all() if k is not None},
-        "by_status": {str(k): v for k, v in status_result.all() if k is not None},
+        "by_state": {_key(k): v for k, v in state_result.all() if k is not None},
+        "by_status": {_key(k): v for k, v in status_result.all() if k is not None},
     }
 
 
