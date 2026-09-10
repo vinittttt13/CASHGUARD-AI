@@ -95,5 +95,31 @@ services:
       redis:
         condition: service_healthy
 
+  claude:
+    build:
+      context: .
+      dockerfile: Dockerfile.claude
+    image: cashguard-claude:latest
+    container_name: cpaf_claude
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+    environment:
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - DATABASE_URL=postgresql://cpaf_user:cpaf_pass@postgres:5432/cpaf_db
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+      - TERM=xterm-256color
+    volumes:
+      - .:/workspace
+      - claude_config:/root/.claude
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["claude", "tools"]
+
 volumes:
   postgres_data:
+  claude_config:
