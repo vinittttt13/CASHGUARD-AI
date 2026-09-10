@@ -38,28 +38,48 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Single-flight refresh: if several requests 401 at once, they all await the
+// same rotation call instead of each burning the (single-use) refresh token.
+let refreshPromise: Promise<string> | null = null;
+
+const runRefresh = (): Promise<string> => {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) throw new Error('No refresh token');
+
+    // Token travels in the JSON body, never the query string.
+    const res = await axios.post<{ access_token: string; refresh_token: string }>(
+      `${API_URL}/api/v1/auth/refresh`,
+      { refresh_token: refreshToken }
+    );
+
+    setToken(res.data.access_token);
+    if (res.data.refresh_token) {
+      setRefreshToken(res.data.refresh_token);
+    }
+    return res.data.access_token;
+  })();
+
+  // Clear the latch once settled so the next 401 can refresh again.
+  refreshPromise.finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
-        const refreshToken = getRefreshToken();
-        if (!refreshToken) throw new Error('No refresh token');
-        
-        const res = await axios.post<{ access_token: string; refresh_token: string }>(
-          `${API_URL}/api/v1/auth/refresh`,
-          null,
-          { params: { refresh_token: refreshToken } }
-        );
-        
-        setToken(res.data.access_token);
-        if (res.data.refresh_token) {
-          setRefreshToken(res.data.refresh_token);
-        }
-        
-        originalRequest.headers.Authorization = `Bearer ${res.data.access_token}`;
+        const accessToken = await runRefresh();
+        originalRequest.headers = originalRequest.headers ?? {};
+        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         clearAuth();
@@ -85,7 +105,9 @@ export const getCurrentUser = async () => {
 };
 
 export const logoutUser = async () => {
-  const { data } = await api.post('/api/v1/auth/logout');
+  const { data } = await api.post('/api/v1/auth/logout', {
+    refresh_token: getRefreshToken(),
+  });
   return data;
 };
 

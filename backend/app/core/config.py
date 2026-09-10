@@ -11,7 +11,11 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
-    cors_origins: List[str] = ["*"]
+    # Deployment environment: "development" | "staging" | "production".
+    # Anything other than "development" requires CORS_ORIGINS to be set
+    # explicitly (see app.main) — no wildcard fallback.
+    environment: str = "development"
+    cors_origins: List[str] = []
     log_level: str = "INFO"
     model_version: str = "1.0.0"
     geocoding_timeout: int = 10

@@ -22,7 +22,6 @@ from app.schemas.prediction import (
 from app.core.redis_client import cache_get, cache_set
 from app.services.prediction_service import PredictionService
 from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
-from app.utils.rate_limiter import limiter
 
 router = APIRouter(prefix="/predict", tags=["Prediction"])
 logger = logging.getLogger(__name__)
@@ -43,7 +42,6 @@ def _get_prediction_service() -> PredictionService:
 
 
 @router.post("", response_model=PredictionResponse)
-@limiter.limit("10/minute")
 async def predict(
     request: Request,
     pred_request: PredictionRequest,
