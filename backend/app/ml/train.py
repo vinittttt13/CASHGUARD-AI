@@ -29,6 +29,7 @@ from app.ml.random_forest_model import RiskLevelClassifier
 from app.ml.prophet_model import TemporalForecaster
 from app.ml.kmeans_hotspot import HotspotDetector
 from app.ml.model_registry import ModelRegistry
+from app.ml.model_validation import ModelValidator
 from app.ml.data_loader import (
     load_training_frame,
     load_withdrawal_coords,
@@ -107,6 +108,9 @@ def train_models(df: pd.DataFrame, atm_df: pd.DataFrame, model_version: str) -> 
     rf_model.train(X_train, y_risk[train_idx])
     rf_preds = [p[0] for p in rf_model.predict_risk(X_val)]
     logger.info("   RF val accuracy: %.3f", accuracy_score(y_risk[val_idx], rf_preds))
+    validation = ModelValidator().validate(
+        "rf_risk", list(y_risk[val_idx]), list(rf_preds)
+    )
 
     logger.info("4. Prophet temporal forecaster")
     counts = (
@@ -138,7 +142,7 @@ def train_models(df: pd.DataFrame, atm_df: pd.DataFrame, model_version: str) -> 
     }
     if prophet_model is not None:
         models["prophet_temporal"] = prophet_model
-    return models
+    return models, validation
 
 
 def save_models(models: dict, model_version: str) -> str:
@@ -161,6 +165,11 @@ def main(argv=None) -> int:
     parser.add_argument("--from-csv", type=str, help="Path to a (non-production) training CSV")
     parser.add_argument("--production", action="store_true", help="Production run (DB source)")
     parser.add_argument("--model-version", type=str, default="v1.0")
+    parser.add_argument(
+        "--publish",
+        action="store_true",
+        help="After the validation gate passes, upload artifacts to MODEL_STORE_URI",
+    )
     args = parser.parse_args(argv)
 
     if args.production and args.from_csv:
@@ -171,8 +180,33 @@ def main(argv=None) -> int:
     if df is None or df.empty:
         raise SystemExit("No training data available.")
 
-    models = train_models(df, atm_df, args.model_version)
+    models, validation = train_models(df, atm_df, args.model_version)
     save_models(models, args.model_version)
+
+    logger.info(
+        "Validation gate (rf_risk): passed=%s accuracy=%.3f f1=%.3f",
+        validation["passed"],
+        validation["metrics"]["accuracy"],
+        validation["metrics"]["f1_weighted"],
+    )
+
+    if args.publish:
+        from app.core.config import get_settings
+
+        store_uri = get_settings().model_store_uri
+        if not validation["passed"]:
+            raise SystemExit(
+                "Validation gate FAILED — not publishing. "
+                f"thresholds={validation['thresholds']} metrics={validation['metrics']}"
+            )
+        if not store_uri:
+            raise SystemExit("--publish set but MODEL_STORE_URI is empty")
+        registry = ModelRegistry()
+        for name, model in models.items():
+            registry.register(name, model, args.model_version)
+        registry.save_to_store(store_uri)
+        logger.info("Published version %s to %s", args.model_version, store_uri)
+
     logger.info("Training complete.")
     return 0
 
