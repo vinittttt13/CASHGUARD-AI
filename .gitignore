@@ -56,7 +56,7 @@ logs/
 *.log
 
 # Models/Data
-backend/app/ml/models/*.pkl
+backend/app/ml/model_artifacts/*.pkl
 backend/data/
 dataset/*.csv
 dataset/*.txt

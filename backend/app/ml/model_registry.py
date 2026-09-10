@@ -21,7 +21,10 @@ class ModelRegistry:
 
     def _validate_model(self, model):
         """Validate that the model implements at least one inference method."""
-        valid_methods = ("predict", "predict_top_k", "predict_risk", "predict_proba", "transform")
+        valid_methods = (
+            "predict", "predict_top_k", "predict_risk", "predict_proba",
+            "predict_cluster", "forecast", "transform",
+        )
         if not any(callable(getattr(model, method, None)) for method in valid_methods):
             raise ValueError(
                 f"Invalid model object: must implement at least one of {valid_methods}"
