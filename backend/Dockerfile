@@ -31,6 +31,9 @@ COPY --from=builder /app/wheels /wheels
 COPY --from=builder /app/requirements.txt .
 RUN pip install --no-cache /wheels/*
 
+# Matplotlib/Prophet need a writable config dir when running as non-root.
+ENV MPLCONFIGDIR=/tmp/matplotlib
+
 # Copy application code
 COPY . .
 

@@ -16,6 +16,9 @@ tenacity==8.4.2
 scikit-learn==1.5.1
 xgboost==2.0.3
 prophet==1.1.5
+# prophet 1.1.5 breaks with cmdstanpy >= 1.3 ("Prophet object has no attribute
+# stan_backend"); pin to the last compatible release.
+cmdstanpy==1.2.4
 numpy==1.26.4
 pandas==2.2.2
 pyarrow>=14.0.0

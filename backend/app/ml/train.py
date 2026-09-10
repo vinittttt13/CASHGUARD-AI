@@ -1,103 +1,181 @@
+"""Model training entrypoint.
+
+Run from the ``backend/`` directory::
+
+    python -m app.ml.train                       # load from the database
+    python -m app.ml.train --from-csv fixture.csv
+    python -m app.ml.train --production --model-version v1.3
+
+Writes four artifacts to ``app/ml/model_artifacts/``:
+``xgboost_location``, ``rf_risk``, ``prophet_temporal``, ``kmeans_hotspot``.
+"""
+
 import argparse
-import pandas as pd
-import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+import asyncio
+import logging
 import os
+import sys
 
-from feature_engineering import FeatureEngineer, FEATURE_NAMES
-from xgboost_model import CashoutLocationPredictor
-from random_forest_model import RiskLevelClassifier
-from prophet_model import TemporalForecaster
-from kmeans_hotspot import HotspotDetector
-from model_registry import ModelRegistry
+import joblib
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--from-csv', type=str, help='Path to CSV')
-    parser.add_argument('--production', action='store_true', help='Deploy to prod')
-    parser.add_argument('--model-version', type=str, default='v1.0')
-    args = parser.parse_args()
+import numpy as np
+import pandas as pd
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
-    print(f"Starting training pipeline. Version: {args.model_version}")
+from app.ml.feature_engineering import FeatureEngineer, FEATURE_NAMES
+from app.ml.xgboost_model import CashoutLocationPredictor
+from app.ml.random_forest_model import RiskLevelClassifier
+from app.ml.prophet_model import TemporalForecaster
+from app.ml.kmeans_hotspot import HotspotDetector
+from app.ml.model_registry import ModelRegistry
+from app.ml.data_loader import (
+    load_training_frame,
+    load_withdrawal_coords,
+    MIN_TRAINING_ROWS,
+)
 
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+logger = logging.getLogger("app.ml.train")
+
+ARTIFACT_NAMES = ("xgboost_location", "rf_risk", "prophet_temporal", "kmeans_hotspot")
+
+# Columns a training CSV must provide (a --from-csv fixture is NON-PRODUCTION).
+CSV_COLUMNS = [
+    "timestamp", "lat", "lng", "complaint_text", "amount",
+    "state", "district", "category", "bank_name", "cluster_id", "risk_level",
+]
+
+
+async def _load_from_db() -> tuple[pd.DataFrame, pd.DataFrame]:
+    from app.core.database import AsyncSessionLocal
+
+    async with AsyncSessionLocal() as session:
+        df = await load_training_frame(session)
+        atm = await load_withdrawal_coords(session)
+    return df, atm
+
+
+def _load_data(args) -> tuple[pd.DataFrame, pd.DataFrame]:
     if args.from_csv:
-        df = pd.read_csv(args.from_csv)
-    else:
-        print("Loading from DB (Mocked)...")
-        df = pd.DataFrame({
-            'timestamp': pd.date_range('2024-01-01', periods=100),
-            'lat': np.random.uniform(18, 20, 100),
-            'lng': np.random.uniform(72, 74, 100),
-            'complaint_text': ['mock complaint']*100,
-            'amount': np.random.uniform(100, 10000, 100),
-            'state': ['MH']*100,
-            'district': ['Mumbai']*100,
-            'category': ['Phishing']*100,
-            'bank_name': ['SBI']*100,
-            'cluster_id': np.random.randint(0, 5, 100),
-            'risk_level': np.random.choice(['low', 'medium', 'high'], 100)
-        })
+        logger.info("Loading training data from CSV: %s (non-production)", args.from_csv)
+        df = pd.read_csv(args.from_csv, parse_dates=["timestamp"])
+        missing = [c for c in CSV_COLUMNS if c not in df.columns]
+        if missing:
+            raise SystemExit(f"CSV missing required columns: {missing}")
+        atm = df[["lat", "lng"]].drop_duplicates().reset_index(drop=True)
+        return df, atm
 
-    print("1. Feature Engineering")
+    logger.info("Loading training data from the database...")
+    df, atm = asyncio.run(_load_from_db())
+    if atm is None or atm.empty:
+        atm = df[["lat", "lng"]].drop_duplicates().reset_index(drop=True)
+    return df, atm
+
+
+def train_models(df: pd.DataFrame, atm_df: pd.DataFrame, model_version: str) -> dict:
+    if len(df) < MIN_TRAINING_ROWS:
+        raise SystemExit(
+            f"Only {len(df)} training rows (< {MIN_TRAINING_ROWS}). "
+            "Collect more complaints before training."
+        )
+
+    logger.info("1. Feature engineering on %d rows", len(df))
     fe = FeatureEngineer()
-    
-    atm_df = pd.DataFrame({
-        'lat': np.random.uniform(18, 20, 10),
-        'lng': np.random.uniform(72, 74, 10)
-    })
     fe.fit_atm_tree(atm_df)
-    
-    X = fe.create_feature_matrix(df, is_training=True)
-    
-    y_cluster = df['cluster_id'].values
-    y_risk = df['risk_level'].values
+    X = fe.create_feature_matrix(df, is_training=True)  # -> np.ndarray
+    y_cluster = np.asarray(df["cluster_id"].values)
+    y_risk = np.asarray(df["risk_level"].values)
 
-    # Single synchronized split — same indices for all targets
+    # One synchronized split for every target.
     idx = np.arange(X.shape[0])
-    train_idx, val_idx = train_test_split(idx, test_size=0.2, random_state=42)
-    X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
-    y_cluster_train, y_cluster_val = y_cluster[train_idx], y_cluster[val_idx]
-    y_risk_train, y_risk_val = y_risk[train_idx], y_risk[val_idx]
+    test_size = 0.2 if len(idx) * 0.2 >= 1 else 1 / len(idx)
+    train_idx, val_idx = train_test_split(idx, test_size=test_size, random_state=42)
+    X_train, X_val = X[train_idx], X[val_idx]
 
-
-    print("2. Train XGBoost Location Predictor")
+    logger.info("2. XGBoost cash-out location predictor")
     xgb_model = CashoutLocationPredictor()
-    xgb_model.train(X_train, y_cluster_train, X_val, y_cluster_val, feature_names=FEATURE_NAMES)
-    preds = [p[0][0] for p in xgb_model.predict(X_val)]
-    print(f"XGBoost Validation Accuracy: {accuracy_score(y_cluster_val, preds):.2f}")
+    xgb_model.train(
+        X_train, y_cluster[train_idx], X_val, y_cluster[val_idx],
+        feature_names=FEATURE_NAMES,
+    )
+    xgb_preds = [p[0][0] for p in xgb_model.predict(X_val)]
+    logger.info("   XGBoost val accuracy: %.3f", accuracy_score(y_cluster[val_idx], xgb_preds))
 
-    print("3. Train Random Forest Risk Classifier")
+    logger.info("3. Random-forest risk classifier")
     rf_model = RiskLevelClassifier()
-    rf_model.train(X_train, y_risk_train)
-    risk_preds = [p[0] for p in rf_model.predict_risk(X_val)]
-    print(f"RF Validation Accuracy: {accuracy_score(y_risk_val, risk_preds):.2f}")
+    rf_model.train(X_train, y_risk[train_idx])
+    rf_preds = [p[0] for p in rf_model.predict_risk(X_val)]
+    logger.info("   RF val accuracy: %.3f", accuracy_score(y_risk[val_idx], rf_preds))
 
-    print("4. Train Prophet Temporal Model")
-    prophet_df = df[['timestamp']].copy()
-    prophet_df['ds'] = pd.to_datetime(prophet_df['timestamp']).dt.date
-    prophet_counts = prophet_df.groupby('ds').size().reset_index(name='y')
-    prophet_model = TemporalForecaster()
-    if len(prophet_counts) > 2:
-        prophet_model.train(prophet_counts)
+    logger.info("4. Prophet temporal forecaster")
+    counts = (
+        df[["timestamp"]]
+        .assign(ds=pd.to_datetime(df["timestamp"]).dt.date)
+        .groupby("ds")
+        .size()
+        .reset_index(name="y")
+    )
+    prophet_model = None
+    try:
+        prophet_model = TemporalForecaster()
+        if len(counts) > 2:
+            prophet_model.train(counts)
+        else:
+            logger.warning("   Only %d distinct days — Prophet left unfitted", len(counts))
+    except Exception as exc:  # noqa: BLE001 — Prophet/Stan envs are fragile
+        logger.error("   Prophet unavailable, skipping temporal model: %s", exc)
+        prophet_model = None
 
-    print("5. Train K-Means Hotspot Detector")
+    logger.info("5. K-Means hotspot detector")
     km_model = HotspotDetector()
-    coords = df[['lat', 'lng']].values.tolist()
-    km_model.fit(coords)
+    km_model.fit(df[["lat", "lng"]].values.tolist())
 
-    print("6. Register and Save Models")
-    registry = ModelRegistry()
-    registry.register('xgboost_location', xgb_model, args.model_version)
-    registry.register('rf_risk', rf_model, args.model_version)
-    registry.register('prophet_temporal', prophet_model, args.model_version)
-    registry.register('kmeans_hotspot', km_model, args.model_version)
-    
-    artifacts_dir = os.path.join(os.path.dirname(__file__), 'model_artifacts')
+    models = {
+        "xgboost_location": xgb_model,
+        "rf_risk": rf_model,
+        "kmeans_hotspot": km_model,
+    }
+    if prophet_model is not None:
+        models["prophet_temporal"] = prophet_model
+    return models
+
+
+def save_models(models: dict, model_version: str) -> str:
+    """Serialize exactly the freshly trained models (not the process-wide
+    ModelRegistry singleton, which other code/tests may have populated)."""
+    artifacts_dir = os.path.join(os.path.dirname(__file__), "model_artifacts")
     os.makedirs(artifacts_dir, exist_ok=True)
-    registry.save_to_disk(artifacts_dir)
+    for name, model in models.items():
+        ModelRegistry()._validate_model(model)
+        joblib.dump(
+            {"model": model, "version": model_version},
+            os.path.join(artifacts_dir, f"{name}.pkl"),
+        )
+    logger.info("Saved %d artifacts to %s", len(models), artifacts_dir)
+    return artifacts_dir
 
-    print("Training Complete!")
 
-if __name__ == '__main__':
-    main()
+def main(argv=None) -> int:
+    parser = argparse.ArgumentParser(description="Train CASHGUARD-AI models")
+    parser.add_argument("--from-csv", type=str, help="Path to a (non-production) training CSV")
+    parser.add_argument("--production", action="store_true", help="Production run (DB source)")
+    parser.add_argument("--model-version", type=str, default="v1.0")
+    args = parser.parse_args(argv)
+
+    if args.production and args.from_csv:
+        parser.error("--production and --from-csv are mutually exclusive")
+
+    logger.info("Training pipeline start — version %s", args.model_version)
+    df, atm_df = _load_data(args)
+    if df is None or df.empty:
+        raise SystemExit("No training data available.")
+
+    models = train_models(df, atm_df, args.model_version)
+    save_models(models, args.model_version)
+    logger.info("Training complete.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

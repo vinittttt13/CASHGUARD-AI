@@ -34,6 +34,12 @@ def compile_jsonb_sqlite(type_, compiler, **kw):
     return "JSON"
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers", "slow: heavy tests (real model fits); run in a separate CI leg"
+    )
+
+
 from sqlalchemy.orm import declarative_base
 
 # We create our OWN Base and engine for tests, completely bypassing the
