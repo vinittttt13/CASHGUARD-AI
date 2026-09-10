@@ -1,0 +1,21 @@
+FROM node:20-bookworm-slim
+
+# Install system tools required for Claude Code and repository operations
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    python3 \
+    python3-pip \
+    ca-certificates \
+    procps \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ensure Git allows operations in mounted workspace directory
+RUN git config --global --add safe.directory "*"
+
+# Install Anthropic Claude Code CLI
+RUN npm install -g @anthropic-ai/claude-code
+
+WORKDIR /workspace
+
+ENTRYPOINT ["claude"]
