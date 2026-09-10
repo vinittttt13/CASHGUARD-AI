@@ -37,15 +37,24 @@ async def get_locations(
     return locations
 
 
+from app.services.geospatial_service import GeospatialService
+
+_geo_service = GeospatialService()
+
+
 @router.get("/hotspots")
 async def get_hotspots(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Return locations with highest risk scores
     query = (
         select(WithdrawalLocation)
-        .where(WithdrawalLocation.risk_score > 0.5)
+        .where(
+            and_(
+                WithdrawalLocation.is_active == True,
+                WithdrawalLocation.risk_score >= 0.5,
+            )
+        )
         .order_by(WithdrawalLocation.risk_score.desc())
         .limit(20)
     )
@@ -59,31 +68,11 @@ async def get_hotspots(
                 "cluster_id": str(loc.id)[:8],
                 "center": [loc.latitude, loc.longitude],
                 "radius_km": 5.0,
-                "incident_count": loc.incident_count,
-                "risk_score": loc.risk_score,
+                "incident_count": loc.incident_count or 0,
+                "risk_score": loc.risk_score or 0.0,
                 "name": loc.name,
             }
         )
-
-    # Return mock data if no real data yet
-    if not hotspots:
-        hotspots = [
-            {
-                "cluster_id": "1",
-                "center": [28.7041, 77.1025],
-                "radius_km": 5.0,
-                "incident_count": 45,
-                "risk_score": 0.85,
-            },
-            {
-                "cluster_id": "2",
-                "center": [19.0760, 72.8777],
-                "radius_km": 3.2,
-                "incident_count": 30,
-                "risk_score": 0.72,
-            },
-        ]
-
     return hotspots
 
 
@@ -95,16 +84,7 @@ async def get_heatmap(
     query = select(WithdrawalLocation).where(WithdrawalLocation.is_active == True)
     result = await db.execute(query)
     locations = result.scalars().all()
-
-    points = [
-        {"lat": loc.latitude, "lng": loc.longitude, "weight": loc.risk_score or 0.5}
-        for loc in locations
-    ]
-
-    if not points:
-        points = [{"lat": 28.6, "lng": 77.2, "weight": 0.9}]
-
-    return points
+    return _geo_service.generate_heatmap_points(locations)
 
 
 @router.get("/nearby")
@@ -115,19 +95,9 @@ async def get_nearby_locations(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Simple bounding box filter (approximate, not geodesic)
-    lat_diff = radius_km / 111.0  # ~111 km per degree latitude
-    lng_diff = radius_km / (111.0 * abs(max(0.01, abs(lat))))
+    await _geo_service.load_atm_locations(db)
+    return _geo_service.find_within_radius(lat, lng, radius_km)
 
-    query = select(WithdrawalLocation).where(
-        and_(
-            WithdrawalLocation.latitude.between(lat - lat_diff, lat + lat_diff),
-            WithdrawalLocation.longitude.between(lng - lng_diff, lng + lng_diff),
-            WithdrawalLocation.is_active == True,
-        )
-    )
-    result = await db.execute(query)
-    return result.scalars().all()
 
 
 @router.get("/{location_id}")

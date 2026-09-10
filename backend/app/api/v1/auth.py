@@ -12,8 +12,10 @@ from app.core.security import (
     verify_password,
     create_access_token,
     create_refresh_token,
-    verify_token,
+    verify_refresh_token,
+    oauth2_scheme,
 )
+from app.core.redis_client import revoke_token
 from app.models.user import User, UserRole
 from app.schemas.user import UserCreate, UserResponse, UserLogin, Token
 
@@ -51,23 +53,11 @@ async def login(login_data: UserLogin, db: AsyncSession = Depends(get_db)):
 async def refresh_token_endpoint(
     refresh_token: str, db: AsyncSession = Depends(get_db)
 ):
-    try:
-        from jose import jwt
+    # verify_refresh_token checks JWT validity AND Redis revocation list
+    payload = await verify_refresh_token(refresh_token)
+    email: str = payload.get("sub")
 
-        payload = jwt.decode(
-            refresh_token, settings.secret_key, algorithms=[settings.algorithm]
-        )
-        email: str = payload.get("sub")
-        if email is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
-            )
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
-        )
-
-    # Verify user still exists
+    # Verify user still exists and is active
     result = await db.execute(select(User).where(User.email == email))
     user = result.scalar_one_or_none()
     if not user:
@@ -88,8 +78,24 @@ async def refresh_token_endpoint(
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)):
-    return {"message": "Successfully logged out"}
+async def logout(
+    current_user: User = Depends(get_current_user),
+    token: str = Depends(oauth2_scheme),
+):
+    """Logout by revoking the current access token's JTI in Redis."""
+    from jose import jwt as jose_jwt
+
+    try:
+        payload = jose_jwt.decode(
+            token, settings.secret_key, algorithms=[settings.algorithm]
+        )
+        jti = payload.get("jti")
+        if jti:
+            await revoke_token(jti, ttl_days=settings.refresh_token_expire_days)
+    except Exception:
+        pass  # Token was valid enough for get_current_user; best-effort revocation
+
+    return {"message": "Successfully logged out", "revoked": True}
 
 
 @router.get("/me", response_model=UserResponse)

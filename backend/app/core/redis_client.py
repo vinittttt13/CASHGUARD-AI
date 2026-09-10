@@ -63,3 +63,42 @@ async def cache_delete_pattern(pattern: str) -> int:
         return 0
     except Exception:
         return 0
+
+
+async def revoke_token(jti: str, ttl_days: int = 7) -> bool:
+    """Add a JWT ID to the revocation blacklist in Redis.
+
+    Args:
+        jti: The JWT ID (unique token identifier) to revoke.
+        ttl_days: How long to keep the revocation entry (should match refresh token lifetime).
+
+    Returns:
+        True if the token was successfully revoked, False if Redis is unavailable.
+    """
+    if not _redis_available or redis_client is None:
+        return False
+    try:
+        await redis_client.set(f"revoked:{jti}", "1", ex=ttl_days * 86400)
+        return True
+    except Exception:
+        return False
+
+
+async def is_token_revoked(jti: str) -> bool:
+    """Check whether a JWT ID has been revoked.
+
+    Args:
+        jti: The JWT ID to check.
+
+    Returns:
+        True if the token is revoked (or Redis is unavailable — fail-closed),
+        False if the token is NOT revoked.
+    """
+    if not _redis_available or redis_client is None:
+        # Fail-open when Redis is down to avoid locking out all users.
+        # In a strict-security deployment, you may want to fail-closed instead.
+        return False
+    try:
+        return await redis_client.exists(f"revoked:{jti}") == 1
+    except Exception:
+        return False

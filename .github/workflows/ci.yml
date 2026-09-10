@@ -24,6 +24,21 @@ jobs:
       - name: Check formatting with black
         run: black --check backend
 
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install security scanners
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety
+      - name: Run Bandit SAST security scan
+        run: bandit -r backend/app -ll -ii
+
   test:
     runs-on: ubuntu-latest
     services:
@@ -63,18 +78,19 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r backend/requirements.txt
-          pip install pytest pytest-asyncio
-      - name: Test with pytest
+          pip install pytest pytest-asyncio pytest-cov
+      - name: Test with pytest and enforce coverage
         env:
           DATABASE_URL: postgresql+asyncpg://cpaf_user:cpaf_pass@localhost:5432/cpaf_db_test
           REDIS_URL: redis://localhost:6379
-          SECRET_KEY: testsecret
+          SECRET_KEY: test-secret-key-must-be-at-least-32-characters-long!
         run: |
           cd backend
-          pytest
+          pytest --cov=app --cov-report=term-missing --cov-report=xml --cov-fail-under=70
 
   docker-build:
-    needs: [lint, test]
+    needs: [lint, security-scan, test]
+
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:

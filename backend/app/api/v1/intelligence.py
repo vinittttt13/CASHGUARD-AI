@@ -71,17 +71,20 @@ async def acknowledge_alert(
     return alert
 
 
+from app.services.intelligence_service import IntelligenceService
+from fastapi.responses import Response
+from fastapi import Query
+
+_intel_service = IntelligenceService()
+
+
 @router.get("/trends")
 async def get_trends(
     days: int = 30,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    # Mock trend data
-    return {
-        "daily_counts": [10, 15, 8, 20, 12, 18, 22],
-        "forecast": [14, 16, 18, 20, 22, 24, 26],
-    }
+    return await _intel_service.get_trends(db=db, days=days)
 
 
 @router.get("/report")
@@ -90,25 +93,29 @@ async def get_intelligence_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    from sqlalchemy import func
+    return await _intel_service.generate_report(db=db, days=days)
 
-    # Get actual counts from DB
-    from app.models.complaint import Complaint
 
-    total_complaints = await db.execute(select(func.count(Complaint.id)))
-    alert_count = await db.execute(
-        select(func.count(IntelligenceAlert.id)).where(
-            IntelligenceAlert.is_active == True
-        )
+@router.get("/report/export")
+async def export_intelligence_report(
+    days: int = Query(7, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    csv_content = await _intel_service.export_report_csv(db=db, days=days)
+    filename = f"intelligence_report_{days}d.csv"
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
-    return {
-        "summary": "Cybercrime activity report",
-        "total_complaints": total_complaints.scalar_one(),
-        "active_alerts": alert_count.scalar_one(),
-        "generated_at": datetime.utcnow().isoformat(),
-        "recommendations": [
-            "Increase monitoring at top 5 active hotspots.",
-            "Deploy local task force to recent critical alert zones.",
-        ],
-    }
+
+@router.get("/fraud-rings")
+async def get_fraud_rings(
+    days: int = Query(30, ge=1, le=365),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    return await _intel_service.get_fraud_rings(db=db, days=days)
+
