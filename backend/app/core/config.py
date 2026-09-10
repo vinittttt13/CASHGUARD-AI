@@ -1,7 +1,8 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import field_validator
 from functools import lru_cache
 from typing import List
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,9 +12,19 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
-    cors_origins: List[str] = ["*"]
+    # Deployment environment: "development" | "staging" | "production".
+    # Anything other than "development" requires CORS_ORIGINS to be set
+    # explicitly (see app.main) — no wildcard fallback.
+    environment: str = "development"
+    # When true, init_db() creates tables via SQLAlchemy metadata (used by the
+    # test suite). In every other environment the schema is owned by Alembic.
+    testing: bool = False
+    cors_origins: List[str] = []
     log_level: str = "INFO"
     model_version: str = "1.0.0"
+    # Where trained model artifacts live. "" -> local disk only
+    # (backend/app/ml/model_artifacts). "s3://bucket/prefix" -> object store.
+    model_store_uri: str = ""
     geocoding_timeout: int = 10
     max_prediction_radius_km: float = 50.0
 

@@ -1,9 +1,12 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List
-from uuid import UUID
 from datetime import datetime
+from typing import List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
 from app.models.complaint import ComplaintCategory, ComplaintStatus
 from app.schemas.prediction import PredictionResponse
+
 
 class ComplaintBase(BaseModel):
     complaint_number: str

@@ -1,9 +1,23 @@
-import uuid
-from sqlalchemy import Column, String, Float, Enum, DateTime, func, ForeignKey, Integer
-from sqlalchemy.dialects.postgresql import UUID, JSONB
-from sqlalchemy.orm import relationship
 import enum
+import uuid
+
+from sqlalchemy import (
+    CheckConstraint,
+    Column,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
+
 
 class RiskLevel(str, enum.Enum):
     low = "low"
@@ -13,6 +27,30 @@ class RiskLevel(str, enum.Enum):
 
 class Prediction(Base):
     __tablename__ = "predictions"
+    __table_args__ = (
+        Index("ix_predictions_complaint_id", "complaint_id"),
+        Index("ix_predictions_created_at", "created_at"),
+        Index("ix_predictions_risk_level", "risk_level"),
+        Index("ix_predictions_pred_lat_lng", "predicted_latitude", "predicted_longitude"),
+        Index(
+            "ix_predictions_predicted_locations_gin",
+            "predicted_locations",
+            postgresql_using="gin",
+        ),
+        Index(
+            "ix_predictions_feature_importance_gin",
+            "feature_importance",
+            postgresql_using="gin",
+        ),
+        CheckConstraint(
+            "predicted_latitude BETWEEN -90 AND 90",
+            name="chk_predictions_latitude",
+        ),
+        CheckConstraint(
+            "predicted_longitude BETWEEN -180 AND 180",
+            name="chk_predictions_longitude",
+        ),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     complaint_id = Column(UUID(as_uuid=True), ForeignKey("complaints.id"), nullable=False)

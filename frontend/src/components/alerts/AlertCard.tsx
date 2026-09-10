@@ -92,7 +92,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
         {alert.acknowledged ? (
           <div className="flex items-center gap-1.5 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-md border border-green-100">
             <CheckCircle2 className="w-4 h-4" />
-            <span className="font-medium">Ack'd by {alert.acknowledgedBy}</span>
+            <span className="font-medium">Ack&apos;d by {alert.acknowledgedBy}</span>
           </div>
         ) : (
           <button 

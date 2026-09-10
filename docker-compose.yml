@@ -1,8 +1,7 @@
-version: "3.8"
-
 services:
   postgres:
-    image: postgis/postgis:15-3.3
+    # Plain Postgres — PostGIS was dropped in MT-07 (see docs/adr/0001-postgis.md).
+    image: postgres:15
     container_name: cpaf_postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-cpaf_db}
@@ -29,17 +28,37 @@ services:
       timeout: 3s
       retries: 5
 
+  # One-shot schema migration. Runs `alembic upgrade head` and exits; the
+  # backend waits for it to complete successfully before starting. This is the
+  # ONLY thing that touches the schema (no create_all at app startup).
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cpaf_migrate
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cpaf_user}:${POSTGRES_PASSWORD:-cpaf_pass}@postgres:5432/${POSTGRES_DB:-cpaf_db}
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: cpaf_backend
     environment:
-      - DATABASE_URL=${DATABASE_URL:-postgresql+asyncpg://cpaf_user:cpaf_pass@postgres:5432/cpaf_db}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      # Hostnames are fixed to the compose network — do NOT let a dev .env
+      # (which points at localhost) override them.
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cpaf_user}:${POSTGRES_PASSWORD:-cpaf_pass}@postgres:5432/${POSTGRES_DB:-cpaf_db}
+      - REDIS_URL=redis://redis:6379
       - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
       - ALGORITHM=${ALGORITHM:-HS256}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
     ports:
       - "8000:8000"
     depends_on:
@@ -47,6 +66,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s

@@ -1,7 +1,9 @@
-from pydantic import BaseModel, EmailStr, ConfigDict
+from datetime import datetime
 from typing import Optional
 from uuid import UUID
-from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr
+
 from app.models.user import UserRole
 
 
@@ -42,4 +44,12 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    refresh_token: Optional[str] = None
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class LogoutRequest(BaseModel):
     refresh_token: Optional[str] = None

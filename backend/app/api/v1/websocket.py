@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 
 from app.core.security import verify_token
 from app.services.websocket_manager import WebSocketManager

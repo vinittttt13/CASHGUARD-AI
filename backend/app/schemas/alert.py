@@ -1,8 +1,11 @@
-from pydantic import BaseModel, ConfigDict
-from typing import Optional, List, Dict, Any
-from uuid import UUID
 from datetime import datetime
-from app.models.intelligence_alert import AlertType, AlertPriority
+from typing import Any, Dict, List, Optional
+from uuid import UUID
+
+from pydantic import BaseModel, ConfigDict
+
+from app.models.intelligence_alert import AlertPriority, AlertType
+
 
 class AlertBase(BaseModel):
     title: str

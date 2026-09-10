@@ -1,0 +1,40 @@
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311"]
+extend-exclude = "venv|alembic/versions"
+
+[tool.ruff]
+line-length = 88
+# Run on 3.10+ (local dev venv is 3.10; images are 3.11). Keep it here so ruff
+# never rewrites to 3.11-only syntax (e.g. datetime.UTC).
+target-version = "py310"
+extend-exclude = ["venv", "alembic/versions"]
+
+[tool.ruff.lint]
+# Deliberately narrow: real-bug rules only (Pyflakes) + import hygiene.
+# Style / modern-syntax rules (E, W, UP, B) are a tracked follow-up so the
+# lint gate can go green now without a 300-line reformat diff.
+select = ["F", "I"]
+ignore = ["F401"]  # re-export-style unused imports in __init__/aggregator modules
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["F811", "F841"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = [
+    "slow: heavy tests (real model fits); run in a separate CI leg",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["venv/*", "tests/*", "app/ml/train.py", "alembic/*"]
+
+[tool.coverage.report]
+fail_under = 60
+show_missing = true

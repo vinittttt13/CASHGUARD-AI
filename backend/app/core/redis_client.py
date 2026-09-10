@@ -3,6 +3,7 @@ from typing import Any, Optional
 
 try:
     import redis.asyncio as redis
+
     from app.core.config import get_settings
 
     settings = get_settings()
@@ -91,14 +92,22 @@ async def is_token_revoked(jti: str) -> bool:
         jti: The JWT ID to check.
 
     Returns:
-        True if the token is revoked (or Redis is unavailable — fail-closed),
-        False if the token is NOT revoked.
+        True  -> token is revoked, reject it.
+        False -> token is NOT revoked (this ALSO covers the case where Redis is
+                 unreachable or errors — i.e. we FAIL OPEN).
+
+    Fail-open rationale: if Redis is down we would otherwise lock out every
+    user on every request. The trade-off is that during a Redis outage a
+    logged-out / rotated token keeps working until it expires on its own
+    (access tokens: minutes; refresh tokens: `refresh_token_expire_days`).
+
+    To switch to FAIL CLOSED (reject all tokens while Redis is down), return
+    ``True`` from the two guard branches below instead of ``False``. Do this
+    only if you also run Redis with HA so an outage is rare.
     """
     if not _redis_available or redis_client is None:
-        # Fail-open when Redis is down to avoid locking out all users.
-        # In a strict-security deployment, you may want to fail-closed instead.
-        return False
+        return False  # fail open — see docstring
     try:
         return await redis_client.exists(f"revoked:{jti}") == 1
     except Exception:
-        return False
+        return False  # fail open — see docstring

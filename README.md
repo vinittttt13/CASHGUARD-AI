@@ -23,7 +23,7 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 +----------------+       +-------------------+       +-----------------+
 |                |       |                   |       |                 |
 |  Next.js       |<----->|  FastAPI Backend  |<----->| PostgreSQL      |
-|  Frontend      |       |  (Python/ML)      |       | (w/ PostGIS)    |
+|  Frontend      |       |  (Python/ML)      |       |                 |
 |                |       |                   |       |                 |
 +----------------+       +-------------------+       +-----------------+
                                   ^
@@ -42,7 +42,6 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 - Docker and Docker Compose
 - Node.js (>= 18) for local frontend development
 - Python (>= 3.11) for local backend development
-- GDAL/PostGIS system libraries
 
 ## Quick Start
 
@@ -52,9 +51,15 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
    ```
 2. Build and run containers using Docker Compose:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
-3. Access the applications:
+   The one-shot `migrate` service runs `alembic upgrade head` (the only thing
+   that touches the schema) and the `backend` waits for it before starting.
+3. (Optional) Seed demo data:
+   ```bash
+   docker compose exec backend python seed_db.py
+   ```
+4. Access the applications:
    - Frontend: http://localhost:3000
    - Backend API Docs: http://localhost:8000/docs
    - Database GUI (Adminer): http://localhost:8080
@@ -80,11 +85,15 @@ npm run dev
 ## API Documentation Summary
 
 The system provides a REST API via FastAPI. View the full Swagger UI at `/docs`.
-Key endpoints:
-- `GET /health` - Health check
-- `POST /api/v1/auth/login` - Authenticate users
-- `GET /api/v1/predictions` - Get crime predictions
-- `POST /api/v1/incidents` - Report a new incident
+Key endpoints (all under `/api/v1` except health):
+
+- `GET /health` — liveness; `GET /health/ready` — readiness (DB + Redis)
+- `POST /api/v1/auth/login` · `/auth/refresh` · `/auth/logout` · `GET /auth/me`
+- `GET|POST /api/v1/complaints`, `GET /api/v1/complaints/stats/aggregate`
+- `POST /api/v1/predict`, `GET /api/v1/predict/{id}`
+- `GET /api/v1/intelligence/alerts` · `/intelligence/report` · `/intelligence/trends`
+- `GET /api/v1/locations` · `/locations/hotspots` · `/locations/heatmap` · `/locations/nearby`
+- `WS /api/v1/ws/live-feed?token=<jwt>` — real-time alert feed
 
 ## Environment Variables
 
@@ -97,15 +106,18 @@ Key endpoints:
 
 ## Model Training
 
-Models are retrained weekly via GitHub Actions. To train manually:
+Models are retrained weekly via GitHub Actions (`.github/workflows/retrain.yml`).
+To train manually (from `backend/`):
 ```bash
-python backend/app/ml/train.py
+cd backend
+PYTHONPATH=. python -m app.ml.train                       # from the database
+PYTHONPATH=. python -m app.ml.train --from-csv tests/fixtures/mini_train.csv
 ```
 
 ## Testing
 
-Backend: `pytest backend/`
-Frontend: `npm run test`
+Backend (from `backend/`): `PYTHONPATH=. pytest`  ·  heavy ML tests: `pytest -m slow`
+Frontend (from `frontend/`): `npm run test`  ·  dead code: `npm run lint:dead`
 
 ## Deployment
 

@@ -1,25 +1,25 @@
-import uuid
 import asyncio
 import logging
+import uuid
+from uuid import UUID
 
 import numpy as np
 import pandas as pd
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Request
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from sqlalchemy import select
-from uuid import UUID
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.redis_client import cache_get, cache_set
 from app.core.security import get_current_user, require_role
-from app.models.user import User
 from app.models.prediction import Prediction
+from app.models.user import User
 from app.schemas.prediction import (
-    PredictionRequest,
-    PredictionResponse,
     BatchPredictionRequest,
     BatchPredictionResponse,
+    PredictionRequest,
+    PredictionResponse,
 )
-from app.core.redis_client import cache_get, cache_set
 from app.services.prediction_service import PredictionService
 from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 

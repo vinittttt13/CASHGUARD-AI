@@ -17,7 +17,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useToast } from "@/components/ui/use-toast";
+import { isAuthenticated as checkAuth, clearAuth } from "@/lib/auth";
+import { logoutUser } from "@/lib/api";
+import { useWebSocket } from "@/hooks/useWebSocket";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -34,35 +36,31 @@ export default function DashboardLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    } else {
-      setIsAuthenticated(true);
-      // Initialize WebSocket connection here
-      const ws = new WebSocket("ws://localhost:8000/ws/alerts");
-      ws.onopen = () => console.log("WebSocket connected");
-      ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        toast({
-          title: "New Alert",
-          description: data.message || "A new high-priority threat has been detected.",
-        });
-      };
-      return () => ws.close();
+    if (!checkAuth()) {
+      router.replace("/login");
+      return;
     }
-  }, [router, toast]);
+    setAuthorized(true);
+  }, [router]);
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    router.push("/login");
+  // Live alert feed — the purpose-built hook targets NEXT_PUBLIC_WS_URL +
+  // /api/v1/ws/live-feed?token=<jwt> and no-ops until a token exists.
+  useWebSocket();
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+    } catch {
+      // best-effort server-side revocation; proceed regardless
+    }
+    clearAuth();
+    router.replace("/login");
   };
 
-  if (!isAuthenticated) return null;
+  if (!authorized) return null;
 
   return (
     <div className="flex min-h-screen bg-muted/20">
