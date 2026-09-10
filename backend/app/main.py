@@ -1,15 +1,16 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.middleware import SlowAPIMiddleware
+from slowapi.util import get_remote_address
+from limits import parse as parse_rate_limit
 from contextlib import asynccontextmanager
 from datetime import datetime
 
 from app.core.config import get_settings
-from app.core.database import init_db
+from app.core.database import init_db, get_db
 from app.utils.logging_config import get_logger
 from app.utils.rate_limiter import limiter
 
@@ -62,14 +63,69 @@ app = FastAPI(
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-# Enforce the configured limits (global default + per-route @limiter.limit).
-app.add_middleware(SlowAPIMiddleware)
 
-# CORS — never use ["*"] with allow_credentials=True (browser blocks)
-_app_cors_origins = settings.cors_origins if settings.cors_origins != ["*"] else ["http://localhost:3000", "http://localhost:8000"]
+# Rate limiting is enforced entirely in the middleware below (not via slowapi's
+# route decorators, whose swallow_errors path is broken in 0.1.9). Every request
+# gets the global default; a few sensitive routes get a tighter per-IP budget.
+_GLOBAL_LIMIT = parse_rate_limit("60/minute")
+_ROUTE_LIMITS = {
+    ("POST", "/api/v1/auth/login"): parse_rate_limit("5/minute"),
+    ("POST", "/api/v1/predict"): parse_rate_limit("10/minute"),
+}
+_RATE_LIMIT_EXEMPT_PREFIXES = ("/health", "/docs", "/redoc", "/openapi.json")
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Per-IP fixed-window rate limiting.
+
+    A storage-backend failure (e.g. Redis down) is logged and the request is
+    allowed through rather than turned into a 500 — the readiness probe already
+    reports 503 in that case so Kubernetes drains the pod.
+    """
+    path = request.url.path
+    if not any(path.startswith(p) for p in _RATE_LIMIT_EXEMPT_PREFIXES):
+        client_ip = get_remote_address(request)
+        rules = [(_GLOBAL_LIMIT, "global")]
+        route_limit = _ROUTE_LIMITS.get((request.method, path))
+        if route_limit is not None:
+            rules.append((route_limit, f"{request.method}:{path}"))
+
+        for item, scope in rules:
+            try:
+                allowed = limiter.limiter.hit(item, client_ip, scope)
+            except Exception as exc:  # noqa: BLE001 — storage backend hiccup
+                logger.warning(
+                    "Rate limiter storage error; allowing request: %s", exc
+                )
+                break
+            if not allowed:
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": f"Rate limit exceeded: {item}"},
+                )
+
+    return await call_next(request)
+
+# CORS — explicit origins only. No wildcard (incompatible with
+# allow_credentials=True anyway). A non-development environment MUST set
+# CORS_ORIGINS or the app refuses to start.
+_cors_origins = [o for o in settings.cors_origins if o and o != "*"]
+if not _cors_origins:
+    if settings.environment.lower() != "development":
+        raise RuntimeError(
+            "CORS_ORIGINS must be set to an explicit list of allowed origins "
+            f"when ENVIRONMENT={settings.environment!r}. Refusing to start."
+        )
+    _cors_origins = ["http://localhost:3000"]
+    logger.warning(
+        "CORS_ORIGINS not set — defaulting to %s (development only).",
+        _cors_origins,
+    )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_app_cors_origins,
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -108,11 +164,56 @@ async def generic_exception_handler(request: Request, exc: Exception):
 
 @app.get("/health")
 async def health_check():
+    """Liveness — process is up. Never touches dependencies."""
     return {
         "status": "healthy",
         "version": settings.model_version,
         "timestamp": datetime.utcnow().isoformat(),
     }
+
+
+@app.get("/health/ready")
+async def readiness_check(db=Depends(get_db)):
+    """Readiness — can this pod actually serve traffic?
+
+    Checks the database (`SELECT 1`) and Redis (`PING`) with a short timeout.
+    Returns 503 if either dependency is unreachable so Kubernetes takes the
+    pod out of the Service until it recovers.
+    """
+    import asyncio
+    from sqlalchemy import text
+    from app.core.redis_client import redis_client, _redis_available
+
+    checks: dict[str, str] = {}
+    healthy = True
+
+    async def _probe(coro):
+        # A health probe must never raise — catch BaseException too, since a
+        # cancelled/timed-out driver call can surface as CancelledError.
+        try:
+            await asyncio.wait_for(coro, timeout=2)
+            return "ok"
+        except BaseException as exc:  # noqa: BLE001
+            return f"error: {type(exc).__name__}"
+
+    # Database
+    checks["database"] = await _probe(db.execute(text("SELECT 1")))
+    if checks["database"] != "ok":
+        healthy = False
+
+    # Redis
+    if _redis_available and redis_client is not None:
+        checks["redis"] = await _probe(redis_client.ping())
+        if checks["redis"] != "ok":
+            healthy = False
+    else:
+        checks["redis"] = "unavailable"
+        healthy = False
+
+    body = {"status": "ready" if healthy else "not ready", "checks": checks}
+    if not healthy:
+        return JSONResponse(status_code=503, content=body)
+    return body
 
 
 # Include API v1 routers

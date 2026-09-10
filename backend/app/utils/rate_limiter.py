@@ -42,6 +42,9 @@ limiter = Limiter(
     default_limits=["60/minute"],
     storage_uri=_storage_uri,
     strategy="fixed-window",
+    # If the storage backend (Redis) errors at request time, log and allow the
+    # request through rather than 500-ing the whole API on a Redis blip.
+    swallow_errors=True,
 )
 
 

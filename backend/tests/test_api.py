@@ -108,7 +108,27 @@ async def test_logout(async_client: AsyncClient, auth_headers: dict):
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "Successfully logged out"
-    assert data["revoked"] is True
+    # "revoked" is now a count; Redis is mocked-unavailable so it is 0 here.
+    assert isinstance(data["revoked"], int)
+
+
+@pytest.fixture
+def revocation_store():
+    """Wire revoke_token / is_token_revoked to a shared in-memory set so
+    rotation and logout revocation can be exercised without a real Redis."""
+    store: set[str] = set()
+
+    async def _revoke(jti: str, ttl_days: int = 7) -> bool:
+        store.add(jti)
+        return True
+
+    async def _is_revoked(jti: str) -> bool:
+        return jti in store
+
+    with patch("app.api.v1.auth.revoke_token", new=_revoke), patch(
+        "app.core.security.is_token_revoked", new=_is_revoked
+    ):
+        yield store
 
 
 # ==========================================================================
@@ -116,43 +136,101 @@ async def test_logout(async_client: AsyncClient, auth_headers: dict):
 # ==========================================================================
 
 
-@pytest.mark.asyncio
-async def test_refresh_token_valid(async_client: AsyncClient, test_user):
-    # First login to get a refresh token
-    login_resp = await async_client.post(
+async def _login(async_client: AsyncClient) -> dict:
+    resp = await async_client.post(
         "/api/v1/auth/login",
         json={"email": "testuser@example.com", "password": "testpassword123"},
     )
-    assert login_resp.status_code == 200
-    refresh_token = login_resp.json()["refresh_token"]
+    assert resp.status_code == 200
+    return resp.json()
 
-    # Use the refresh token to get a new access token
+
+@pytest.mark.asyncio
+async def test_refresh_token_valid(async_client: AsyncClient, test_user):
+    refresh_token = (await _login(async_client))["refresh_token"]
+
     refresh_resp = await async_client.post(
         "/api/v1/auth/refresh",
-        params={"refresh_token": refresh_token},
+        json={"refresh_token": refresh_token},
     )
     assert refresh_resp.status_code == 200
     data = refresh_resp.json()
     assert "access_token" in data
+    assert data["refresh_token"] and data["refresh_token"] != refresh_token
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_in_query_is_rejected(async_client: AsyncClient, test_user):
+    """The old query-string transport must no longer work (422 missing body)."""
+    refresh_token = (await _login(async_client))["refresh_token"]
+    resp = await async_client.post(
+        "/api/v1/auth/refresh",
+        params={"refresh_token": refresh_token},
+    )
+    assert resp.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_refresh_token_invalid(async_client: AsyncClient):
     response = await async_client.post(
         "/api/v1/auth/refresh",
-        params={"refresh_token": "invalid-token"},
+        json={"refresh_token": "invalid-token"},
     )
     assert response.status_code == 401
 
 
 @pytest.mark.asyncio
-async def test_refresh_token_revoked(async_client: AsyncClient, test_user):
-    login_resp = await async_client.post(
-        "/api/v1/auth/login",
-        json={"email": "testuser@example.com", "password": "testpassword123"},
+async def test_refresh_token_rotates_and_old_is_single_use(
+    async_client: AsyncClient, test_user, revocation_store
+):
+    old_refresh = (await _login(async_client))["refresh_token"]
+
+    first = await async_client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
     )
-    assert login_resp.status_code == 200
-    refresh_token = login_resp.json()["refresh_token"]
+    assert first.status_code == 200
+    new_refresh = first.json()["refresh_token"]
+    assert new_refresh != old_refresh
+
+    # Replaying the old refresh token now fails — it was revoked on rotation.
+    replay = await async_client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": old_refresh}
+    )
+    assert replay.status_code == 401
+    assert "revoked" in replay.json()["detail"].lower()
+
+    # The freshly issued one still works.
+    third = await async_client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": new_refresh}
+    )
+    assert third.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_logout_revokes_access_and_refresh(
+    async_client: AsyncClient, test_user, revocation_store
+):
+    tokens = await _login(async_client)
+    headers = {"Authorization": f"Bearer {tokens['access_token']}"}
+
+    resp = await async_client.post(
+        "/api/v1/auth/logout",
+        headers=headers,
+        json={"refresh_token": tokens["refresh_token"]},
+    )
+    assert resp.status_code == 200
+    assert resp.json()["revoked"] == 2
+
+    # The refresh token is now unusable.
+    after = await async_client.post(
+        "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+    )
+    assert after.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_refresh_token_revoked(async_client: AsyncClient, test_user):
+    refresh_token = (await _login(async_client))["refresh_token"]
 
     with patch(
         "app.core.security.is_token_revoked",
@@ -161,10 +239,48 @@ async def test_refresh_token_revoked(async_client: AsyncClient, test_user):
     ):
         refresh_resp = await async_client.post(
             "/api/v1/auth/refresh",
-            params={"refresh_token": refresh_token},
+            json={"refresh_token": refresh_token},
         )
         assert refresh_resp.status_code == 401
         assert "revoked" in refresh_resp.json()["detail"].lower()
+
+
+# ==========================================================================
+# Health — readiness
+# ==========================================================================
+
+
+@pytest.mark.asyncio
+async def test_readiness_ok(async_client: AsyncClient):
+    """DB override works; Redis is mocked-unavailable -> 503 with per-check detail."""
+    resp = await async_client.get("/health/ready")
+    assert resp.status_code == 503
+    body = resp.json()
+    assert body["checks"]["database"] == "ok"
+    assert body["checks"]["redis"] == "unavailable"
+
+
+@pytest.mark.asyncio
+async def test_readiness_db_down(async_client: AsyncClient):
+    from app.main import app
+    from app.core.database import get_db
+    from tests.conftest import _override_get_db
+
+    class _BrokenSession:
+        async def execute(self, *_a, **_kw):
+            raise RuntimeError("db connection refused")
+
+    async def _broken_db():
+        yield _BrokenSession()
+
+    app.dependency_overrides[get_db] = _broken_db
+    try:
+        resp = await async_client.get("/health/ready")
+    finally:
+        app.dependency_overrides[get_db] = _override_get_db
+
+    assert resp.status_code == 503
+    assert resp.json()["checks"]["database"].startswith("error")
 
 
 # ==========================================================================
