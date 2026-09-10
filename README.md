@@ -116,8 +116,12 @@ PYTHONPATH=. python -m app.ml.train --from-csv tests/fixtures/mini_train.csv
 
 ## Testing
 
-Backend (from `backend/`): `PYTHONPATH=. pytest`  ·  heavy ML tests: `pytest -m slow`
-Frontend (from `frontend/`): `npm run test`  ·  dead code: `npm run lint:dead`
+See [`docs/TESTING.md`](docs/TESTING.md) for the full strategy.
+
+- Backend (from `backend/`): `PYTHONPATH=. pytest` · heavy ML: `pytest -m slow`
+- Frontend (from `frontend/`): `npm run test` · dead code: `npm run lint:dead`
+- End-to-end: `scripts/smoke.sh` (curl) and `cd frontend && npm run e2e`
+  (Playwright) against a running `docker compose` stack
 
 ## Deployment
 

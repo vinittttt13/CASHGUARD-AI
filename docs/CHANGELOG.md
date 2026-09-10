@@ -2,6 +2,37 @@
 
 All notable changes to CASHGUARD-AI. Newest first.
 
+## [Unreleased] — item 4: live data + whole-project test suite
+
+### Added
+- `docs/FRONTEND_BACKEND_INTEGRATION.md` (per-screen data map) and
+  `docs/TESTING.md` (five-layer test strategy).
+- `src/types/api.ts` — types that mirror the FastAPI responses exactly;
+  `src/hooks/useApiResource.ts` fetch hook; `src/components/shared/states.tsx`
+  (`<Loading>`, `<ErrorState>`, `<EmptyState>`).
+- Backend `tests/test_frontend_contract.py` — locks the JSON shapes the screens
+  depend on.
+- Frontend Vitest: `useApiResource`, `lib/api` path/payload, wired-screen
+  render/error/empty (StatsOverview, ComplaintFeed, AlertCenter).
+- `scripts/smoke.sh` (curl end-to-end) and Playwright `frontend/e2e/`
+  (`auth.setup.ts` + `login.spec.ts` + `dashboard.spec.ts`); CI `e2e` job runs
+  both against `docker compose`.
+
+### Changed
+- **Every dashboard screen now renders live backend data** instead of mocks:
+  Dashboard (stats, complaint feed, predictive map, latest-prediction panel),
+  Alerts (list + summary + acknowledge + WS live feed), Analytics (trends,
+  geo distribution, confidence gauge, SHAP radar, hotspot table), Intelligence
+  (report summary, hotspot grid, state breakdown, trend chart, CSV export).
+- `GET /api/v1/complaints/stats/aggregate` returns clean enum keys
+  (`{"phishing": 9}` not `{"ComplaintCategory.phishing": 9}`).
+- `lib/api.ts` functions are fully typed to `types/api.ts`.
+
+### Removed
+- Hard-coded mock arrays from the screen components; unused `ui/calendar.tsx`
+  + `ui/popover.tsx` and their deps (`@radix-ui/react-popover`,
+  `react-day-picker`).
+
 ## [Unreleased] — remediation plan (MT-01 … MT-10)
 
 ### Added
