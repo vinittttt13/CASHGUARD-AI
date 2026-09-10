@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { getToken } from '@/lib/auth';
 
 const getWsUrl = (): string => {
   if (process.env.NEXT_PUBLIC_WS_URL) {
@@ -27,11 +28,11 @@ export const useWebSocket = (customToken?: string) => {
     if (isUnmounted.current) return;
 
     try {
-      const token =
-        customToken ||
-        (typeof window !== 'undefined'
-          ? localStorage.getItem('accessToken') || localStorage.getItem('token') || 'anonymous'
-          : 'anonymous');
+      const token = customToken || getToken();
+      if (!token) {
+        // No authenticated session yet — do not open an unauthenticated socket.
+        return;
+      }
 
       const baseUrl = getWsUrl();
       const wsUrl = `${baseUrl}${baseUrl.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`;

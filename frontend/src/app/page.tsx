@@ -2,18 +2,13 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isAuthenticated } from "@/lib/auth";
 
 export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    // Basic auth check logic. Replace with real auth hook or context
-    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
-    if (token) {
-      router.push("/dashboard");
-    } else {
-      router.push("/login");
-    }
+    router.replace(isAuthenticated() ? "/dashboard" : "/login");
   }, [router]);
 
   return (
