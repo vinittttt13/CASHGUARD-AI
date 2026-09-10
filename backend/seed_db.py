@@ -12,7 +12,7 @@ import uuid
 import random
 from datetime import datetime, timedelta
 
-from app.core.database import AsyncSessionLocal, init_db
+from app.core.database import AsyncSessionLocal
 from app.core.security import get_password_hash
 from app.models.user import User, UserRole
 from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
@@ -22,10 +22,8 @@ from app.models.withdrawal_location import WithdrawalLocation, LocationType
 
 
 async def seed():
-    print("🔧 Initializing database tables...")
-    await init_db()
-    print("✅ Tables created successfully.")
-
+    # Schema is created by `alembic upgrade head` (the migrate service / Job),
+    # not here. Run migrations first.
     async with AsyncSessionLocal() as session:
         # Check if already seeded
         from sqlalchemy import select, func

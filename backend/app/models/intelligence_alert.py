@@ -1,5 +1,7 @@
 import uuid
-from sqlalchemy import Column, String, Float, Enum, DateTime, func, Boolean, ForeignKey
+from sqlalchemy import (
+    Column, String, Float, Enum, DateTime, func, Boolean, ForeignKey, Index, text,
+)
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 import enum
@@ -19,6 +21,26 @@ class AlertPriority(str, enum.Enum):
 
 class IntelligenceAlert(Base):
     __tablename__ = "intelligence_alerts"
+    __table_args__ = (
+        Index("ix_intelligence_alerts_created_at", "created_at"),
+        Index("ix_intelligence_alerts_is_active", "is_active"),
+        Index("ix_intelligence_alerts_priority", "priority"),
+        Index(
+            "ix_intelligence_alerts_active_unack",
+            text("created_at DESC"),
+            postgresql_where=text("is_active = true AND is_acknowledged = false"),
+        ),
+        Index(
+            "ix_intelligence_alerts_expires",
+            "expires_at",
+            postgresql_where=text("is_active = true AND expires_at IS NOT NULL"),
+        ),
+        Index(
+            "ix_intelligence_alerts_affected_locations_gin",
+            "affected_locations",
+            postgresql_using="gin",
+        ),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String, nullable=False)

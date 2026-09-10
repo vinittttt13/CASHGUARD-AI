@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     # Anything other than "development" requires CORS_ORIGINS to be set
     # explicitly (see app.main) — no wildcard fallback.
     environment: str = "development"
+    # When true, init_db() creates tables via SQLAlchemy metadata (used by the
+    # test suite). In every other environment the schema is owned by Alembic.
+    testing: bool = False
     cors_origins: List[str] = []
     log_level: str = "INFO"
     model_version: str = "1.0.0"

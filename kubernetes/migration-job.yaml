@@ -1,0 +1,54 @@
+# Schema migration Job — run once per release, before rolling the backend.
+#
+#   kubectl apply -f kubernetes/migration-job.yaml
+#   kubectl wait --for=condition=complete job/backend-migrate --timeout=120s
+#   kubectl rollout restart deployment/backend
+#
+# The backend Deployment no longer creates tables at startup (no create_all),
+# so with 3 replicas nothing races on the schema — only this Job touches it.
+# Delete + re-apply (or use `kubectl create job --from`) for each release since
+# a Job's pod template is immutable.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backend-migrate
+  labels:
+    app: backend
+    component: migrate
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: backend
+        component: migrate
+    spec:
+      restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+      containers:
+        - name: migrate
+          image: ghcr.io/yourorg/cpaf-backend:latest
+          imagePullPolicy: Always
+          command: ["alembic", "upgrade", "head"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          envFrom:
+            - secretRef:
+                name: backend-secrets
+            - configMapRef:
+                name: backend-config
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"

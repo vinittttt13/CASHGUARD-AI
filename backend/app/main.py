@@ -22,26 +22,9 @@ settings = get_settings()
 async def lifespan(app: FastAPI):
     # Startup
     logger.info("Starting up application...")
+    # Schema is owned by Alembic (the `migrate` service / k8s Job runs
+    # `alembic upgrade head`). init_db() only does anything when TESTING=1.
     await init_db()
-    logger.info("Database tables created successfully.")
-
-    # Apply Alembic index/constraints (post-create_all) so dev path matches prod
-    try:
-        from pathlib import Path
-        from alembic.config import Config
-        from alembic import command
-        backend_dir = Path(__file__).resolve().parent.parent
-        ini_path = backend_dir / "alembic.ini"
-        if ini_path.exists():
-            alembic_cfg = Config(str(ini_path))
-            alembic_cfg.set_main_option("script_location", str(backend_dir / "alembic"))
-            alembic_cfg.set_main_option("sqlalchemy.url", get_settings().database_url)
-            command.upgrade(alembic_cfg, "head")
-            logger.info("Alembic upgrade (indexes/constraints) applied.")
-        else:
-            logger.warning("alembic.ini not found at %s", ini_path)
-    except Exception as exc:
-        logger.warning("Alembic upgrade skipped (expected in some envs): %s", exc)
 
     # Start WebSocket PubSub for cross-pod broadcast
     from app.api.v1.websocket import manager as ws_manager
