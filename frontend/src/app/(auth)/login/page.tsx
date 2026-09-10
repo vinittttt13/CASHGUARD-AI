@@ -7,6 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldAlert } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { loginUser } from "@/lib/api";
+import { setToken, setRefreshToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,21 +44,25 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // In a real app, set the token here
-      localStorage.setItem("token", "dummy-auth-token");
-      
+      const res = await loginUser({ email: data.email, password: data.password });
+      setToken(res.access_token);
+      if (res.refresh_token) {
+        setRefreshToken(res.refresh_token);
+      }
+
       toast({
         title: "Login Successful",
         description: "Welcome to the Cybercrime Analytics Dashboard.",
       });
       router.push("/dashboard");
-    } catch (error) {
+    } catch (error: any) {
+      const status = error?.response?.status;
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please try again.",
+        description:
+          status === 401
+            ? "Invalid credentials. Please try again."
+            : "Unable to reach the authentication service. Please try again later.",
         variant: "destructive",
       });
     } finally {
