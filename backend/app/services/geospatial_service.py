@@ -16,16 +16,32 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.withdrawal_location import WithdrawalLocation
 
+import time
+
 logger = logging.getLogger(__name__)
 
 
 class GeospatialService:
-    def __init__(self) -> None:
-        self.ball_tree: Optional[BallTree] = None
-        self.locations: List[Dict[str, Any]] = []
+    _instance = None
+    _loaded_once = False
 
-    async def load_atm_locations(self, db: AsyncSession) -> int:
-        """Fetch active withdrawal locations from DB and build a geodesic BallTree index."""
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(GeospatialService, cls).__new__(cls)
+        return cls._instance
+
+    def __init__(self) -> None:
+        if not hasattr(self, 'ball_tree'):
+            self.ball_tree: Optional[BallTree] = None
+            self.locations: List[Dict[str, Any]] = []
+            self._last_load: float = 0.0
+
+    async def load_atm_locations(self, db: AsyncSession, ttl_seconds: float = 300.0) -> int:
+        """Fetch active withdrawal locations; rebuild BallTree only if stale (>ttl)."""
+        now = time.time()
+        if self.ball_tree is not None and (now - getattr(self, '_last_load', 0)) < ttl_seconds:
+            return len(self.locations)
+
         result = await db.execute(
             select(WithdrawalLocation).where(WithdrawalLocation.is_active == True)
         )
@@ -56,6 +72,7 @@ class GeospatialService:
         else:
             self.ball_tree = None
 
+        self._last_load = time.time()
         return len(self.locations)
 
     def haversine(self, lat1: float, lon1: float, lat2: float, lon2: float) -> float:

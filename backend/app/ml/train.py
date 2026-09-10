@@ -53,8 +53,13 @@ def main():
     y_cluster = df['cluster_id'].values
     y_risk = df['risk_level'].values
 
-    X_train, X_val, y_cluster_train, y_cluster_val = train_test_split(X, y_cluster, test_size=0.2, random_state=42)
-    _, _, y_risk_train, y_risk_val = train_test_split(X, y_risk, test_size=0.2, random_state=42)
+    # Single synchronized split — same indices for all targets
+    idx = np.arange(X.shape[0])
+    train_idx, val_idx = train_test_split(idx, test_size=0.2, random_state=42)
+    X_train, X_val = X.iloc[train_idx], X.iloc[val_idx]
+    y_cluster_train, y_cluster_val = y_cluster[train_idx], y_cluster[val_idx]
+    y_risk_train, y_risk_val = y_risk[train_idx], y_risk[val_idx]
+
 
     print("2. Train XGBoost Location Predictor")
     xgb_model = CashoutLocationPredictor()
