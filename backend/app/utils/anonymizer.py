@@ -60,6 +60,15 @@ def mask_text(text: str) -> str:
 
     text = re.sub(r'\b[A-Z]{5}[0-9]{4}[A-Z]\b', _mask_pan, text)
 
+    # 5. UPI IDs
+    text = re.sub(r"\bupi_[A-Za-z0-9]{6,}\b", "***UPI***", text)
+
+    # 6. IBAN
+    text = re.sub(r"\b[A-Z]{2}\d{2}[A-Z0-9]{4}\d{7}([A-Z0-9]?){0,16}\b", "***IBAN***", text)
+
+    # 7. Wallet addresses
+    text = re.sub(r"\b0x[a-fA-F0-9]{40}\b", "***WALLET***", text)
+
     # 5. Bank Account with prefix (e.g., A/C: 123456789012)
     def _mask_acct_match(m):
         full = m.group(0)

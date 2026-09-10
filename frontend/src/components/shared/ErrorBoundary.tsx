@@ -11,12 +11,14 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  retryCount: number;
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
     error: null,
+    retryCount: 0,
   };
 
   public static getDerivedStateFromError(error: Error): State {
@@ -25,10 +27,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Uncaught error:", error, errorInfo);
+    // Telemetry payload (could send to analytics endpoint)
+    const telemetry = { component: "ErrorBoundary", timestamp: new Date().toISOString(), retryCount: (this.state as any).retryCount || 0, stack: errorInfo.componentStack };
+    console.info("ErrorBoundary telemetry:", telemetry);
   }
 
   private handleRetry = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, retryCount: (this.state.retryCount || 0) + 1 });
   };
 
   public render() {
