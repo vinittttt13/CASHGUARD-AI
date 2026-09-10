@@ -28,8 +28,15 @@ async def get_db():
         yield session
 
 async def init_db():
-    # Import all models to ensure they are registered with Base.metadata
-    import app.models  # noqa: F401
+    """Create tables from SQLAlchemy metadata.
+
+    Schema is owned by Alembic everywhere except the test suite. This is a
+    no-op unless ``TESTING`` is set, so a production boot never races schema
+    creation across replicas — run ``alembic upgrade head`` (the migrate
+    service / Job) instead.
+    """
+    if not settings.testing:
+        return
+    import app.models  # noqa: F401  (register models with Base.metadata)
     async with engine.begin() as conn:
-        # Tables should be managed by alembic in production
         await conn.run_sync(Base.metadata.create_all)

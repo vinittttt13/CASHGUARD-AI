@@ -1,5 +1,7 @@
 import uuid
-from sqlalchemy import Column, String, Float, Enum, DateTime, func, ForeignKey
+from sqlalchemy import (
+    Column, String, Float, Enum, DateTime, func, ForeignKey, Index, CheckConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 import enum
@@ -20,6 +22,22 @@ class ComplaintStatus(str, enum.Enum):
 
 class Complaint(Base):
     __tablename__ = "complaints"
+    __table_args__ = (
+        Index("ix_complaints_status", "status"),
+        Index("ix_complaints_complaint_category", "complaint_category"),
+        Index("ix_complaints_state", "state"),
+        Index("ix_complaints_created_at", "created_at"),
+        Index("ix_complaints_bank_name", "bank_name"),
+        Index("ix_complaints_lat_lng", "latitude", "longitude"),
+        CheckConstraint(
+            "latitude IS NULL OR latitude BETWEEN -90 AND 90",
+            name="chk_complaints_latitude",
+        ),
+        CheckConstraint(
+            "longitude IS NULL OR longitude BETWEEN -180 AND 180",
+            name="chk_complaints_longitude",
+        ),
+    )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     complaint_number = Column(String, unique=True, index=True, nullable=False)

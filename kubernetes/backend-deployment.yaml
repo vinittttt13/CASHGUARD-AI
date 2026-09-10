@@ -5,6 +5,9 @@ metadata:
   labels:
     app: backend
 spec:
+  # The app does NOT migrate on startup. Run kubernetes/migration-job.yaml
+  # (alembic upgrade head) before each rollout — only that Job touches the
+  # schema, so these 3 replicas never race on it.
   replicas: 3
   selector:
     matchLabels:

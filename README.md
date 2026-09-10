@@ -23,7 +23,7 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 +----------------+       +-------------------+       +-----------------+
 |                |       |                   |       |                 |
 |  Next.js       |<----->|  FastAPI Backend  |<----->| PostgreSQL      |
-|  Frontend      |       |  (Python/ML)      |       | (w/ PostGIS)    |
+|  Frontend      |       |  (Python/ML)      |       |                 |
 |                |       |                   |       |                 |
 +----------------+       +-------------------+       +-----------------+
                                   ^
@@ -42,7 +42,6 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 - Docker and Docker Compose
 - Node.js (>= 18) for local frontend development
 - Python (>= 3.11) for local backend development
-- GDAL/PostGIS system libraries
 
 ## Quick Start
 
@@ -52,9 +51,15 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
    ```
 2. Build and run containers using Docker Compose:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
-3. Access the applications:
+   The one-shot `migrate` service runs `alembic upgrade head` (the only thing
+   that touches the schema) and the `backend` waits for it before starting.
+3. (Optional) Seed demo data:
+   ```bash
+   docker compose exec backend python seed_db.py
+   ```
+4. Access the applications:
    - Frontend: http://localhost:3000
    - Backend API Docs: http://localhost:8000/docs
    - Database GUI (Adminer): http://localhost:8080
