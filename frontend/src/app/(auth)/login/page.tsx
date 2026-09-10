@@ -6,7 +6,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ShieldAlert } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { loginUser } from "@/lib/api";
 import { setToken, setRefreshToken } from "@/lib/auth";
 import { Button } from "@/components/ui/button";

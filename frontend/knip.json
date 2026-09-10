@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/app/**/{page,layout,loading,error,not-found,route,template,default}.tsx"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignore": ["src/components/_wip/**"],
+  "ignoreExportsUsedInFile": true,
+  "includeEntryExports": false,
+  "rules": {
+    "files": "error",
+    "dependencies": "error",
+    "unlisted": "error",
+    "exports": "off",
+    "types": "off",
+    "duplicates": "off",
+    "enumMembers": "off"
+  }
+}
