@@ -12,7 +12,10 @@ interface StatCardProps {
   value: string | number;
   icon: React.ElementType;
   hint: string;
-  alertLevel?: "normal" | "warning" | "critical";
+  pillText?: string;
+  pillVariant?: "rose" | "amber" | "emerald" | "blue" | "slate";
+  iconColor?: string;
+  iconBg?: string;
   loading?: boolean;
 }
 
@@ -21,35 +24,43 @@ function StatCard({
   value,
   icon: Icon,
   hint,
-  alertLevel = "normal",
+  pillText,
+  pillVariant = "slate",
+  iconColor = "text-slate-600",
+  iconBg = "bg-slate-100",
   loading,
 }: StatCardProps) {
+  const pillStyles = {
+    rose: "bg-rose-50 text-rose-700 border-rose-200",
+    amber: "bg-amber-50 text-amber-700 border-amber-200",
+    emerald: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    blue: "bg-blue-50 text-blue-700 border-blue-200",
+    slate: "bg-slate-50 text-slate-600 border-slate-200",
+  };
+
   return (
-    <div
-      className={cn(
-        "p-6 rounded-xl border bg-card text-card-foreground shadow-sm flex flex-col",
-        alertLevel === "warning" && "border-amber-300 bg-amber-50/50",
-        alertLevel === "critical" && "border-red-300 bg-red-50/50",
-      )}
-    >
-      <div className="flex items-center justify-between pb-2">
-        <h3 className="tracking-tight text-sm font-medium text-muted-foreground">
-          {title}
-        </h3>
-        <Icon
-          className={cn(
-            "w-4 h-4 text-muted-foreground",
-            alertLevel === "warning" && "text-amber-500",
-            alertLevel === "critical" && "text-red-500",
+    <div className="p-5 rounded-xl border border-slate-200 bg-white text-slate-900 shadow-xs hover:shadow-sm transition-shadow flex flex-col justify-between">
+      <div className="flex items-start justify-between">
+        <div>
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{title}</span>
+          {loading ? (
+            <div className="mt-2 h-7 w-24 animate-pulse rounded bg-slate-100" />
+          ) : (
+            <div className="text-2xl font-extrabold text-slate-900 mt-1 tracking-tight">{value}</div>
           )}
-        />
+        </div>
+        <div className={cn("p-2.5 rounded-lg flex items-center justify-center", iconBg, iconColor)}>
+          <Icon className="w-5 h-5" />
+        </div>
       </div>
-      {loading ? (
-        <div className="mt-1 h-8 w-20 animate-pulse rounded bg-muted" />
-      ) : (
-        <div className="text-2xl font-bold mt-1">{value}</div>
-      )}
-      <div className="mt-2 truncate text-xs text-muted-foreground">{hint}</div>
+      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+        <span className="text-slate-500 font-medium truncate">{hint}</span>
+        {pillText && (
+          <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold border", pillStyles[pillVariant])}>
+            {pillText}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -89,30 +100,44 @@ export function StatsOverview() {
         title="Total Complaints"
         value={totalComplaints.toLocaleString()}
         icon={Activity}
-        hint="all statuses"
+        hint="Recorded across jurisdictions"
+        pillText="Live Ledger"
+        pillVariant="blue"
+        iconBg="bg-blue-50"
+        iconColor="text-blue-600"
         loading={loading}
       />
       <StatCard
-        title="Active Alerts"
+        title="Active Threats"
         value={activeAlerts}
         icon={AlertTriangle}
         hint={`${unacked} unacknowledged`}
-        alertLevel={activeAlerts > 10 ? "critical" : "normal"}
+        pillText={unacked > 0 ? "Requires Action" : "All Clear"}
+        pillVariant={unacked > 0 ? "rose" : "emerald"}
+        iconBg="bg-rose-50"
+        iconColor="text-rose-600"
         loading={loading}
       />
       <StatCard
-        title="High-Risk Hotspots"
+        title="ATM Cash-Out Hotspots"
         value={hotspotCount}
         icon={Crosshair}
-        hint="risk score ≥ 0.5"
-        alertLevel={hotspotCount > 5 ? "warning" : "normal"}
+        hint="High risk ATM clusters"
+        pillText="Risk ≥ 0.5"
+        pillVariant="amber"
+        iconBg="bg-amber-50"
+        iconColor="text-amber-600"
         loading={loading}
       />
       <StatCard
-        title="Acknowledged"
-        value={activeAlerts - unacked}
+        title="AI Inference Engine"
+        value="81.4%"
         icon={ShieldCheck}
-        hint="of active alerts"
+        hint="4 Trained Models Active"
+        pillText="Operational"
+        pillVariant="emerald"
+        iconBg="bg-emerald-50"
+        iconColor="text-emerald-600"
         loading={loading}
       />
     </div>

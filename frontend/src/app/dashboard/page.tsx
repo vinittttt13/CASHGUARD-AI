@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MapPin } from "lucide-react";
 import { PredictiveMap } from "@/components/dashboard/predictive-map";
 import { StatsOverview } from "@/components/dashboard/stats-overview";
 import { ComplaintFeed } from "@/components/dashboard/complaint-feed";
@@ -26,7 +26,7 @@ function LatestPrediction() {
     { enabled: Boolean(newestId) },
   );
 
-  if (complaints.loading || prediction.loading) return <Loading label="Scoring latest complaint…" />;
+  if (complaints.loading || prediction.loading) return <Loading label="Scoring incident telemetry…" />;
   if (complaints.error)
     return <ErrorState error={complaints.error} onRetry={complaints.refetch} />;
   if (!newestId) return <EmptyState label="No complaints to score." />;
@@ -55,39 +55,42 @@ function LatestPrediction() {
 
 export default function DashboardPage() {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto">
+      {/* 4-KPI Telemetry Bar */}
       <StatsOverview />
 
-      <div className="grid gap-6 md:grid-cols-[60%_40%] xl:grid-cols-[65%_35%]">
-        <Card className="flex flex-col min-h-[500px]">
-          <CardHeader>
-            <CardTitle>Live Predictive Map</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 p-0 relative">
-            <div className="absolute inset-0 m-6 mt-0 border rounded-md overflow-hidden bg-muted/50">
+      {/* Main Command Center Grid */}
+      <div className="grid gap-6 lg:grid-cols-[62%_38%] xl:grid-cols-[64%_36%] items-start">
+        {/* Left Column: Geospatial Operations Map */}
+        <div className="rounded-xl border border-slate-200 bg-white shadow-xs flex flex-col min-h-[660px] overflow-hidden">
+          <div className="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-md bg-blue-50 text-blue-600">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 leading-tight">Geospatial Threat & Hotspot Map</h3>
+                <span className="text-[10px] text-slate-400 font-medium">India Cybercrime Operations Corridor</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                <span className="w-2 h-2 rounded-full bg-blue-600"></span>
+                ATM Hotspots Active
+              </span>
+            </div>
+          </div>
+          <div className="flex-1 relative w-full min-h-[600px]">
+            <div className="absolute inset-0">
               <PredictiveMap />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <div className="flex flex-col gap-6 h-full">
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>Threat Predictions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LatestPrediction />
-            </CardContent>
-          </Card>
-
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>Recent Complaints</CardTitle>
-            </CardHeader>
-            <CardContent className="px-0">
-              <ComplaintFeed />
-            </CardContent>
-          </Card>
+        {/* Right Column: Threat Triage & Live Incident Feed */}
+        <div className="flex flex-col gap-6">
+          <LatestPrediction />
+          <ComplaintFeed />
         </div>
       </div>
     </div>
