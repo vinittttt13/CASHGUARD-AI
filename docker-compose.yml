@@ -81,6 +81,12 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_* vars are compiled into the client bundle at build time,
+      # so they must be passed as build args, not (only) runtime env vars —
+      # a plain `environment:` entry below has no effect on client code.
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000}
     container_name: cpaf_frontend
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}

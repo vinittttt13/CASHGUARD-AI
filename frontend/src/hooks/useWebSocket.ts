@@ -2,16 +2,22 @@ import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { getToken } from '@/lib/auth';
 
+const WS_PATH = '/api/v1/ws/live-feed';
+
+// NEXT_PUBLIC_WS_URL is documented (README, .env.example) as the backend
+// *origin* — e.g. "ws://localhost:8000" — matching how NEXT_PUBLIC_API_URL
+// is used as a base for arbitrary paths elsewhere. Always append the fixed
+// WS path; never return the env var (or a fallback origin) verbatim.
 const getWsUrl = (): string => {
   if (process.env.NEXT_PUBLIC_WS_URL) {
-    return process.env.NEXT_PUBLIC_WS_URL;
+    return `${process.env.NEXT_PUBLIC_WS_URL.replace(/\/+$/, '')}${WS_PATH}`;
   }
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host || 'localhost:8000';
-    return `${protocol}//${host}/api/v1/ws/live-feed`;
+    return `${protocol}//${host}${WS_PATH}`;
   }
-  return 'ws://localhost:8000/api/v1/ws/live-feed';
+  return `ws://localhost:8000${WS_PATH}`;
 };
 
 export const useWebSocket = (customToken?: string) => {
