@@ -13,6 +13,7 @@ class UserRole(str, enum.Enum):
     analyst = "analyst"
     viewer = "viewer"
 
+
 class User(Base):
     __tablename__ = "users"
 
@@ -25,7 +26,17 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
 
-    complaints = relationship("Complaint", back_populates="assigned_to_user", foreign_keys="Complaint.assigned_to")
-    acknowledged_alerts = relationship("IntelligenceAlert", back_populates="acknowledger", foreign_keys="IntelligenceAlert.acknowledged_by")
+    complaints = relationship(
+        "Complaint",
+        back_populates="assigned_to_user",
+        foreign_keys="Complaint.assigned_to",
+    )
+    acknowledged_alerts = relationship(
+        "IntelligenceAlert",
+        back_populates="acknowledger",
+        foreign_keys="IntelligenceAlert.acknowledged_by",
+    )

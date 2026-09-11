@@ -90,7 +90,9 @@ async def _fetch_complaints(session: AsyncSession) -> pd.DataFrame:
                 "amount": float(c.amount_defrauded or 0.0),
                 "state": c.state,
                 "district": c.district,
-                "category": getattr(c.complaint_category, "value", c.complaint_category),
+                "category": getattr(
+                    c.complaint_category, "value", c.complaint_category
+                ),
                 "bank_name": c.bank_name,
             }
         )
@@ -100,9 +102,7 @@ async def _fetch_complaints(session: AsyncSession) -> pd.DataFrame:
 async def _fetch_location_frame(session: AsyncSession) -> pd.DataFrame:
     from app.models.withdrawal_location import WithdrawalLocation
 
-    rows = (
-        (await session.execute(select(WithdrawalLocation))).scalars().all()
-    )
+    rows = (await session.execute(select(WithdrawalLocation))).scalars().all()
     return pd.DataFrame.from_records(
         [
             {
@@ -164,6 +164,7 @@ async def load_training_frame(session: AsyncSession) -> pd.DataFrame:
             return int(loc_incidents[int(np.argmin(d))])
 
     else:
+
         def nearest_incident(lat, lng) -> int:  # noqa: ARG001
             return 0
 

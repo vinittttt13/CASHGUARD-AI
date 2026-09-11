@@ -132,9 +132,27 @@ def test_kmeans_hotspot_detection():
     detector = HotspotDetector()
     # Create clustered coordinates (3 clusters)
     coords = (
-        [(19.0 + np.random.uniform(-0.01, 0.01), 72.8 + np.random.uniform(-0.01, 0.01)) for _ in range(20)]
-        + [(20.0 + np.random.uniform(-0.01, 0.01), 73.0 + np.random.uniform(-0.01, 0.01)) for _ in range(20)]
-        + [(18.5 + np.random.uniform(-0.01, 0.01), 73.5 + np.random.uniform(-0.01, 0.01)) for _ in range(20)]
+        [
+            (
+                19.0 + np.random.uniform(-0.01, 0.01),
+                72.8 + np.random.uniform(-0.01, 0.01),
+            )
+            for _ in range(20)
+        ]
+        + [
+            (
+                20.0 + np.random.uniform(-0.01, 0.01),
+                73.0 + np.random.uniform(-0.01, 0.01),
+            )
+            for _ in range(20)
+        ]
+        + [
+            (
+                18.5 + np.random.uniform(-0.01, 0.01),
+                73.5 + np.random.uniform(-0.01, 0.01),
+            )
+            for _ in range(20)
+        ]
     )
     detector.fit(coords)
 
@@ -178,7 +196,9 @@ def test_nlp_bank_extraction():
     from app.ml.nlp_extractor import NLPExtractor
 
     extractor = NLPExtractor()
-    banks = extractor.extract_banks("I received a call from SBI and HDFC asking for OTP")
+    banks = extractor.extract_banks(
+        "I received a call from SBI and HDFC asking for OTP"
+    )
     assert "SBI" in banks
     assert "HDFC" in banks
 
@@ -260,23 +280,32 @@ def test_feature_engineering_unseen_categorical():
     from app.ml.feature_engineering import FeatureEngineer
 
     fe = FeatureEngineer()
-    train_df = pd.DataFrame({
-        "state": ["Maharashtra", "Delhi"],
-        "district": ["Mumbai", "Central"],
-        "category": ["phishing", "vishing"],
-        "bank_name": ["SBI", "HDFC"],
-    })
+    train_df = pd.DataFrame(
+        {
+            "state": ["Maharashtra", "Delhi"],
+            "district": ["Mumbai", "Central"],
+            "category": ["phishing", "vishing"],
+            "bank_name": ["SBI", "HDFC"],
+        }
+    )
     fe.extract_categorical_features(train_df, is_training=True)
 
     # Completely unseen categories during inference must not throw KeyError
-    unseen_df = pd.DataFrame({
-        "state": ["UnknownState123"],
-        "district": ["UnknownDistrict456"],
-        "category": ["new_fraud_type"],
-        "bank_name": ["ForeignBank999"],
-    })
+    unseen_df = pd.DataFrame(
+        {
+            "state": ["UnknownState123"],
+            "district": ["UnknownDistrict456"],
+            "category": ["new_fraud_type"],
+            "bank_name": ["ForeignBank999"],
+        }
+    )
     result = fe.extract_categorical_features(unseen_df, is_training=False)
-    for col in ["state_encoded", "district_encoded", "category_encoded", "bank_encoded"]:
+    for col in [
+        "state_encoded",
+        "district_encoded",
+        "category_encoded",
+        "bank_encoded",
+    ]:
         assert col in result.columns
         assert isinstance(result[col].iloc[0], (int, np.integer))
 
@@ -295,7 +324,9 @@ def test_geodesic_ball_tree_atm_accuracy():
 
     # Manual haversine calculation
     expected_dist = fe.haversine(19.0760, 72.8777, 19.0800, 72.8800)
-    assert abs(computed_dist - expected_dist) < 0.05, f"Diff {abs(computed_dist - expected_dist)}"
+    assert (
+        abs(computed_dist - expected_dist) < 0.05
+    ), f"Diff {abs(computed_dist - expected_dist)}"
 
 
 # ==========================================================================
@@ -351,7 +382,12 @@ def test_circuit_breaker_state_transitions():
 
     from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
 
-    cb = CircuitBreaker("unit_test_breaker", failure_threshold=2, recovery_timeout=0.2, success_threshold=1)
+    cb = CircuitBreaker(
+        "unit_test_breaker",
+        failure_threshold=2,
+        recovery_timeout=0.2,
+        success_threshold=1,
+    )
     assert cb.state == "CLOSED"
 
     # Failing function
@@ -455,7 +491,7 @@ def test_shap_explainer_radar_and_global():
     explainer = SHAPExplainer.__new__(SHAPExplainer)
     explainer.model = mock_model
     explainer.feature_names = ["feat1", "feat2"]
-    
+
     # Test radar data formatting
     radar = explainer.to_radar_data({"feat1": 0.5, "feat2": -0.3})
     assert len(radar) == 2
@@ -592,7 +628,3 @@ def test_model_registry_validation_and_rollback():
     # 5. Rollback again when history is empty raises ValueError
     with pytest.raises(ValueError, match="No previous version available"):
         registry.rollback("fraud_classifier")
-
-
-
-

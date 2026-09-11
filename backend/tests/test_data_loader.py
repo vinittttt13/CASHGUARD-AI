@@ -10,8 +10,17 @@ from app.ml.data_loader import MIN_TRAINING_ROWS, load_training_frame
 
 VALID_RISK = {"low", "medium", "high", "critical"}
 EXPECTED_COLUMNS = {
-    "timestamp", "lat", "lng", "complaint_text", "amount", "state",
-    "district", "category", "bank_name", "cluster_id", "risk_level",
+    "timestamp",
+    "lat",
+    "lng",
+    "complaint_text",
+    "amount",
+    "state",
+    "district",
+    "category",
+    "bank_name",
+    "cluster_id",
+    "risk_level",
 }
 
 

@@ -195,14 +195,16 @@ async def seed():
             prediction = Prediction(
                 id=uuid.uuid4(),
                 complaint_id=complaint.id,
-                predicted_latitude=complaint.latitude
-                + random.uniform(-0.01, 0.01)
-                if complaint.latitude
-                else 28.6139,
-                predicted_longitude=complaint.longitude
-                + random.uniform(-0.01, 0.01)
-                if complaint.longitude
-                else 77.2090,
+                predicted_latitude=(
+                    complaint.latitude + random.uniform(-0.01, 0.01)
+                    if complaint.latitude
+                    else 28.6139
+                ),
+                predicted_longitude=(
+                    complaint.longitude + random.uniform(-0.01, 0.01)
+                    if complaint.longitude
+                    else 77.2090
+                ),
                 confidence_score=round(random.uniform(0.5, 0.99), 2),
                 predicted_locations=[
                     {
@@ -216,9 +218,18 @@ async def seed():
                 model_version="1.0.0",
                 model_name="xgboost_v1",
                 feature_importance=[
-                    {"feature": "amount", "importance": round(random.uniform(0.1, 0.5), 2)},
-                    {"feature": "location", "importance": round(random.uniform(0.1, 0.4), 2)},
-                    {"feature": "time_of_day", "importance": round(random.uniform(0.05, 0.3), 2)},
+                    {
+                        "feature": "amount",
+                        "importance": round(random.uniform(0.1, 0.5), 2),
+                    },
+                    {
+                        "feature": "location",
+                        "importance": round(random.uniform(0.1, 0.4), 2),
+                    },
+                    {
+                        "feature": "time_of_day",
+                        "importance": round(random.uniform(0.05, 0.3), 2),
+                    },
                 ],
                 risk_level=random.choice(list(RiskLevel)),
                 prediction_radius_km=round(random.uniform(1.0, 15.0), 1),

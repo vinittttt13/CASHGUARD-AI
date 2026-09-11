@@ -17,16 +17,16 @@ engine = create_async_engine(
 
 
 AsyncSessionLocal = async_sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    bind=engine, class_=AsyncSession, expire_on_commit=False
 )
 
 Base = declarative_base()
 
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
+
 
 async def init_db():
     """Create tables from SQLAlchemy metadata.
@@ -39,5 +39,6 @@ async def init_db():
     if not settings.testing:
         return
     import app.models  # noqa: F401  (register models with Base.metadata)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

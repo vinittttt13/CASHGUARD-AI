@@ -48,11 +48,21 @@ class FraudRingDetector:
             if loc and loc != "unknown":
                 entity_to_complaints[f"loc:{loc}"].add(cid)
 
-            phone = str(c.get("suspect_phone") or c.get("victim_phone_masked") or c.get("phone") or "").strip()
+            phone = str(
+                c.get("suspect_phone")
+                or c.get("victim_phone_masked")
+                or c.get("phone")
+                or ""
+            ).strip()
             if phone:
                 entity_to_complaints[f"phone:{phone}"].add(cid)
 
-            account = str(c.get("suspect_account") or c.get("account_number_masked") or c.get("account") or "").strip()
+            account = str(
+                c.get("suspect_account")
+                or c.get("account_number_masked")
+                or c.get("account")
+                or ""
+            ).strip()
             if account:
                 entity_to_complaints[f"account:{account}"].add(cid)
 
@@ -64,13 +74,18 @@ class FraudRingDetector:
             cid_list = list(cids)
             for i in range(len(cid_list)):
                 for j in range(i + 1, len(cid_list)):
-                    pair = (min(cid_list[i], cid_list[j]), max(cid_list[i], cid_list[j]))
+                    pair = (
+                        min(cid_list[i], cid_list[j]),
+                        max(cid_list[i], cid_list[j]),
+                    )
                     pair_shared_entities[pair].add(entity_key)
 
         adjacency: Dict[str, Set[str]] = defaultdict(set)
         for (c1, c2), shared in pair_shared_entities.items():
             # Edge condition: shared phone/account, or shared >= 2 attributes (e.g. same bank AND same district)
-            has_high_spec = any(e.startswith("phone:") or e.startswith("account:") for e in shared)
+            has_high_spec = any(
+                e.startswith("phone:") or e.startswith("account:") for e in shared
+            )
             if has_high_spec or len(shared) >= 2:
                 adjacency[c1].add(c2)
                 adjacency[c2].add(c1)
@@ -109,55 +124,73 @@ class FraudRingDetector:
                 # Calculate ring aggregates
                 member_complaints = [metadata[c] for c in component if c in metadata]
                 total_amount = sum(
-                    float(c.get("amount_lost") or c.get("amount_defrauded") or c.get("amount") or 0.0)
+                    float(
+                        c.get("amount_lost")
+                        or c.get("amount_defrauded")
+                        or c.get("amount")
+                        or 0.0
+                    )
                     for c in member_complaints
                 )
 
-                banks = list({
-                    str(c.get("bank_name"))
-                    for c in member_complaints
-                    if c.get("bank_name") and str(c.get("bank_name")).lower() != "unknown"
-                })
+                banks = list(
+                    {
+                        str(c.get("bank_name"))
+                        for c in member_complaints
+                        if c.get("bank_name")
+                        and str(c.get("bank_name")).lower() != "unknown"
+                    }
+                )
 
-                locations = list({
-                    str(c.get("district") or c.get("city") or c.get("state"))
-                    for c in member_complaints
-                    if (c.get("district") or c.get("city") or c.get("state"))
-                })
+                locations = list(
+                    {
+                        str(c.get("district") or c.get("city") or c.get("state"))
+                        for c in member_complaints
+                        if (c.get("district") or c.get("city") or c.get("state"))
+                    }
+                )
 
-                suspect_identifiers = list({
-                    str(ident)
-                    for c in member_complaints
-                    for ident in (c.get("suspect_phone"), c.get("suspect_account"), c.get("phone"), c.get("account"))
-                    if ident
-                })
+                suspect_identifiers = list(
+                    {
+                        str(ident)
+                        for c in member_complaints
+                        for ident in (
+                            c.get("suspect_phone"),
+                            c.get("suspect_account"),
+                            c.get("phone"),
+                            c.get("account"),
+                        )
+                        if ident
+                    }
+                )
 
                 # Risk score based on syndicate size and financial impact
                 size_factor = min(0.5, len(component) * 0.05)
                 amount_factor = min(0.5, total_amount / 200000.0)
                 risk_score = round(min(1.0, 0.4 + size_factor + amount_factor), 3)
 
-                rings.append({
-                    "ring_id": f"RING-{ring_counter:03d}",
-                    "member_count": len(component),
-                    "complaint_count": len(component),
-                    "complaint_ids": component,
-                    "suspect_identifiers": suspect_identifiers,
-                    "shared_banks": banks,
-                    "shared_locations": locations,
-                    "total_defrauded_inr": round(total_amount, 2),
-                    "total_amount_lost": round(total_amount, 2),
-                    "risk_score": risk_score,
-                    "confidence_score": risk_score,
-                    "coordination_type": "SYNDICATE_RING",
-                    "pattern": (
-                        f"Organized syndicate targeting {', '.join(banks[:3]) if banks else 'multiple banks'} "
-                        f"across {', '.join(locations[:3]) if locations else 'various regions'} "
-                        f"with {len(component)} correlated complaints."
-                    ),
-                })
+                rings.append(
+                    {
+                        "ring_id": f"RING-{ring_counter:03d}",
+                        "member_count": len(component),
+                        "complaint_count": len(component),
+                        "complaint_ids": component,
+                        "suspect_identifiers": suspect_identifiers,
+                        "shared_banks": banks,
+                        "shared_locations": locations,
+                        "total_defrauded_inr": round(total_amount, 2),
+                        "total_amount_lost": round(total_amount, 2),
+                        "risk_score": risk_score,
+                        "confidence_score": risk_score,
+                        "coordination_type": "SYNDICATE_RING",
+                        "pattern": (
+                            f"Organized syndicate targeting {', '.join(banks[:3]) if banks else 'multiple banks'} "
+                            f"across {', '.join(locations[:3]) if locations else 'various regions'} "
+                            f"with {len(component)} correlated complaints."
+                        ),
+                    }
+                )
                 ring_counter += 1
 
         rings.sort(key=lambda r: (r["risk_score"], r["member_count"]), reverse=True)
         return rings
-

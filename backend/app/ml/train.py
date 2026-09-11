@@ -42,8 +42,17 @@ ARTIFACT_NAMES = ("xgboost_location", "rf_risk", "prophet_temporal", "kmeans_hot
 
 # Columns a training CSV must provide (a --from-csv fixture is NON-PRODUCTION).
 CSV_COLUMNS = [
-    "timestamp", "lat", "lng", "complaint_text", "amount",
-    "state", "district", "category", "bank_name", "cluster_id", "risk_level",
+    "timestamp",
+    "lat",
+    "lng",
+    "complaint_text",
+    "amount",
+    "state",
+    "district",
+    "category",
+    "bank_name",
+    "cluster_id",
+    "risk_level",
 ]
 
 
@@ -58,7 +67,9 @@ async def _load_from_db() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def _load_data(args) -> tuple[pd.DataFrame, pd.DataFrame]:
     if args.from_csv:
-        logger.info("Loading training data from CSV: %s (non-production)", args.from_csv)
+        logger.info(
+            "Loading training data from CSV: %s (non-production)", args.from_csv
+        )
         df = pd.read_csv(args.from_csv, parse_dates=["timestamp"])
         missing = [c for c in CSV_COLUMNS if c not in df.columns]
         if missing:
@@ -96,11 +107,16 @@ def train_models(df: pd.DataFrame, atm_df: pd.DataFrame, model_version: str) -> 
     logger.info("2. XGBoost cash-out location predictor")
     xgb_model = CashoutLocationPredictor()
     xgb_model.train(
-        X_train, y_cluster[train_idx], X_val, y_cluster[val_idx],
+        X_train,
+        y_cluster[train_idx],
+        X_val,
+        y_cluster[val_idx],
         feature_names=FEATURE_NAMES,
     )
     xgb_preds = [p[0][0] for p in xgb_model.predict(X_val)]
-    logger.info("   XGBoost val accuracy: %.3f", accuracy_score(y_cluster[val_idx], xgb_preds))
+    logger.info(
+        "   XGBoost val accuracy: %.3f", accuracy_score(y_cluster[val_idx], xgb_preds)
+    )
 
     logger.info("3. Random-forest risk classifier")
     rf_model = RiskLevelClassifier()
@@ -125,7 +141,9 @@ def train_models(df: pd.DataFrame, atm_df: pd.DataFrame, model_version: str) -> 
         if len(counts) > 2:
             prophet_model.train(counts)
         else:
-            logger.warning("   Only %d distinct days — Prophet left unfitted", len(counts))
+            logger.warning(
+                "   Only %d distinct days — Prophet left unfitted", len(counts)
+            )
     except Exception as exc:  # noqa: BLE001 — Prophet/Stan envs are fragile
         logger.error("   Prophet unavailable, skipping temporal model: %s", exc)
         prophet_model = None
@@ -161,8 +179,12 @@ def save_models(models: dict, model_version: str) -> str:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Train CASHGUARD-AI models")
-    parser.add_argument("--from-csv", type=str, help="Path to a (non-production) training CSV")
-    parser.add_argument("--production", action="store_true", help="Production run (DB source)")
+    parser.add_argument(
+        "--from-csv", type=str, help="Path to a (non-production) training CSV"
+    )
+    parser.add_argument(
+        "--production", action="store_true", help="Production run (DB source)"
+    )
     parser.add_argument("--model-version", type=str, default="v1.0")
     parser.add_argument(
         "--publish",

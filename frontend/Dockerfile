@@ -29,19 +29,30 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+# Docker auto-sets HOSTNAME to the container id, and the Next.js standalone
+# server binds to $HOSTNAME if set — resolving the container id to its own
+# network IP only, not loopback or 0.0.0.0. That breaks any in-container
+# healthcheck/tool hitting localhost/127.0.0.1 (external access still works,
+# since Docker's port-forwarding targets the container's real IP). Force an
+# explicit bind-all address instead of trusting whatever Docker injects.
+ENV HOSTNAME=0.0.0.0
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-COPY --from=builder /app/public ./public
+# --chown so the non-root nextjs user can rewrite env-config.js at startup
+# (see docker-entrypoint.sh) — plain root-owned files aren't writable by it.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --chown=nextjs:nodejs docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
 
 USER nextjs
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1
 
-CMD ["node", "server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

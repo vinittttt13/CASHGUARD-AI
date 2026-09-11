@@ -6,7 +6,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/cybercrime"
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/cybercrime"
+    )
     redis_url: str = "redis://localhost:6379/0"
     secret_key: str = "change-me-to-a-secure-random-key-at-least-32-chars-long!"
     algorithm: str = "HS256"
@@ -35,14 +37,13 @@ class Settings(BaseSettings):
     db_pool_timeout: int = 30
     db_pool_pre_ping: bool = True
 
-
     @field_validator("secret_key")
     @classmethod
     def validate_secret_key(cls, v: str) -> str:
         if len(v) < 32:
             raise ValueError(
                 "SECRET_KEY must be at least 32 characters. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_urlsafe(48))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(48))"'
             )
         return v
 

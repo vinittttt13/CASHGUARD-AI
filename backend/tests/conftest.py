@@ -72,7 +72,6 @@ async def db_session():
 
 @pytest_asyncio.fixture(autouse=True)
 async def setup_database():
-
     """Create all tables before each test, drop after."""
     # Import all models so Base.metadata knows about them
     import app.models  # noqa: F401
@@ -89,6 +88,7 @@ async def setup_database():
 
 # ---------- Rate limiter isolation ----------
 
+
 @pytest.fixture(autouse=True)
 def reset_rate_limiter():
     """Clear recorded hits so a 5/min or 10/min limit can't leak across tests."""
@@ -101,15 +101,19 @@ def reset_rate_limiter():
 
 # ---------- Redis mocking ----------
 
+
 @pytest.fixture(autouse=True)
 def mock_redis():
     """Prevent real Redis connections during tests."""
-    with patch("app.core.redis_client.redis_client", None), \
-         patch("app.core.redis_client._redis_available", False):
+    with (
+        patch("app.core.redis_client.redis_client", None),
+        patch("app.core.redis_client._redis_available", False),
+    ):
         yield
 
 
 # ---------- App + Client fixtures ----------
+
 
 @pytest_asyncio.fixture
 async def async_client():
@@ -127,6 +131,7 @@ async def async_client():
 
 
 # ---------- Auth helpers ----------
+
 
 @pytest_asyncio.fixture
 async def test_user():
@@ -211,5 +216,3 @@ async def test_location():
         await db.commit()
         await db.refresh(loc)
         return loc
-
-

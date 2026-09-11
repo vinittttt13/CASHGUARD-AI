@@ -11,10 +11,28 @@ class NLPExtractor:
         self.nlp = None
         self._nlp_unavailable = False
         self.banks = [
-            'SBI', 'HDFC', 'ICICI', 'Axis', 'PNB', 'BOB', 'Canara', 
-            'Union Bank', 'Bank of India', 'IndusInd', 'Kotak', 'Yes Bank'
+            "SBI",
+            "HDFC",
+            "ICICI",
+            "Axis",
+            "PNB",
+            "BOB",
+            "Canara",
+            "Union Bank",
+            "Bank of India",
+            "IndusInd",
+            "Kotak",
+            "Yes Bank",
         ]
-        self.urgency_keywords = ['urgent', 'threatening', 'blackmail', 'immediately', 'police', 'suicide', 'extortion']
+        self.urgency_keywords = [
+            "urgent",
+            "threatening",
+            "blackmail",
+            "immediately",
+            "police",
+            "suicide",
+            "extortion",
+        ]
 
     def load_model(self):
         """Load the spaCy pipeline if it is installed.
@@ -40,8 +58,24 @@ class NLPExtractor:
     # Fallback: sequences of Capitalised words, minus obvious non-places.
     _LOC_RE = re.compile(r"\b(?:[A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})\b")
     _LOC_STOPWORDS = {
-        "The", "A", "An", "I", "My", "He", "She", "They", "We", "It",
-        "Rs", "Inr", "Sir", "Madam", "Bank", "Sbi", "Hdfc", "Icici",
+        "The",
+        "A",
+        "An",
+        "I",
+        "My",
+        "He",
+        "She",
+        "They",
+        "We",
+        "It",
+        "Rs",
+        "Inr",
+        "Sir",
+        "Madam",
+        "Bank",
+        "Sbi",
+        "Hdfc",
+        "Icici",
     }
 
     def extract_locations(self, text):
@@ -66,12 +100,12 @@ class NLPExtractor:
         return list(set(found))
 
     def extract_amounts(self, text):
-        pattern = r'(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)'
+        pattern = r"(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)"
         matches = re.findall(pattern, text.lower())
         amounts = []
         for m in matches:
             try:
-                amounts.append(float(m.replace(',', '')))
+                amounts.append(float(m.replace(",", "")))
             except:
                 pass
         return amounts
@@ -84,9 +118,9 @@ class NLPExtractor:
         urgency = sum(1 for w in self.urgency_keywords if w in text_lower)
         urgency_score = min(1.0, urgency * 0.3)
         return {
-            'locations': self.extract_locations(text),
-            'banks': self.extract_banks(text),
-            'amounts': self.extract_amounts(text),
-            'sentiment_score': self.get_sentiment_score(text),
-            'urgency_score': urgency_score
+            "locations": self.extract_locations(text),
+            "banks": self.extract_banks(text),
+            "amounts": self.extract_amounts(text),
+            "sentiment_score": self.get_sentiment_score(text),
+            "urgency_score": urgency_score,
         }

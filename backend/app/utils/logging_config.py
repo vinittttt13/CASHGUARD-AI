@@ -7,6 +7,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
+
 def setup_logging():
     logging.basicConfig(
         format="%(message)s",
@@ -32,12 +33,13 @@ def setup_logging():
         cache_logger_on_first_use=True,
     )
 
+
 setup_logging()
+
 
 def get_logger(name: str):
     logger = structlog.get_logger(name)
     logger = logger.bind(
-        service_name="cybercrime_predictive_analytics",
-        version=settings.model_version
+        service_name="cybercrime_predictive_analytics", version=settings.model_version
     )
     return logger

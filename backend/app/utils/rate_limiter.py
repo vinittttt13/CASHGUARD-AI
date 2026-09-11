@@ -35,7 +35,9 @@ def _redis_reachable(url: str, timeout: float = 1.5) -> bool:
         return False
 
 
-_storage_uri = settings.redis_url if _redis_reachable(settings.redis_url) else "memory://"
+_storage_uri = (
+    settings.redis_url if _redis_reachable(settings.redis_url) else "memory://"
+)
 
 limiter = Limiter(
     key_func=get_remote_address,

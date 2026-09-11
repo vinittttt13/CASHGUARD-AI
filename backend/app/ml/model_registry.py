@@ -22,15 +22,22 @@ class ModelRegistry:
                 cls._instance._models = {}
                 cls._instance._versions = {}
                 cls._instance._history = defaultdict(list)
-                cls._instance.artifacts_dir = os.path.join(os.path.dirname(__file__), 'model_artifacts')
+                cls._instance.artifacts_dir = os.path.join(
+                    os.path.dirname(__file__), "model_artifacts"
+                )
                 os.makedirs(cls._instance.artifacts_dir, exist_ok=True)
         return cls._instance
 
     def _validate_model(self, model):
         """Validate that the model implements at least one inference method."""
         valid_methods = (
-            "predict", "predict_top_k", "predict_risk", "predict_proba",
-            "predict_cluster", "forecast", "transform",
+            "predict",
+            "predict_top_k",
+            "predict_risk",
+            "predict_proba",
+            "predict_cluster",
+            "forecast",
+            "transform",
         )
         if not any(callable(getattr(model, method, None)) for method in valid_methods):
             raise ValueError(
@@ -56,7 +63,9 @@ class ModelRegistry:
         self._validate_model(new_model)
         with self._lock:
             if name in self._models:
-                self._history[name].append((self._models[name], self._versions.get(name, "initial")))
+                self._history[name].append(
+                    (self._models[name], self._versions.get(name, "initial"))
+                )
             self._models[name] = new_model
             self._versions[name] = new_version
 
@@ -64,7 +73,9 @@ class ModelRegistry:
         """Roll back to the previous model version from history stack."""
         with self._lock:
             if not self._history[name]:
-                raise ValueError(f"No previous version available to rollback for model '{name}'")
+                raise ValueError(
+                    f"No previous version available to rollback for model '{name}'"
+                )
             prev_model, prev_version = self._history[name].pop()
             self._models[name] = prev_model
             self._versions[name] = prev_version
@@ -83,10 +94,10 @@ class ModelRegistry:
             target_dir = path if path else self.artifacts_dir
             os.makedirs(target_dir, exist_ok=True)
             for name, model in self._models.items():
-                joblib.dump({
-                    'model': model,
-                    'version': self._versions.get(name)
-                }, os.path.join(target_dir, f"{name}.pkl"))
+                joblib.dump(
+                    {"model": model, "version": self._versions.get(name)},
+                    os.path.join(target_dir, f"{name}.pkl"),
+                )
 
     def load_from_disk(self, path=None):
         with self._lock:
@@ -94,11 +105,11 @@ class ModelRegistry:
             if not os.path.exists(target_dir):
                 return
             for f in os.listdir(target_dir):
-                if f.endswith('.pkl'):
-                    name = f.replace('.pkl', '')
+                if f.endswith(".pkl"):
+                    name = f.replace(".pkl", "")
                     data = joblib.load(os.path.join(target_dir, f))
-                    self._models[name] = data['model']
-                    self._versions[name] = data['version']
+                    self._models[name] = data["model"]
+                    self._versions[name] = data["version"]
 
     # ------------------------------------------------------------------
     # Object-store persistence (S3 today; local paths / file:// always work)
@@ -112,7 +123,7 @@ class ModelRegistry:
     def _local_path(uri: str) -> str:
         """Turn a local URI into a filesystem path (handles file:// on Windows)."""
         if uri.startswith("file://"):
-            rest = uri[len("file://"):]
+            rest = uri[len("file://") :]
             # file:///abs/path -> /abs/path ; file://C:/x (Windows) -> C:/x
             return rest[1:] if rest.startswith("/") and ":" in rest[:3] else rest
         return uri
@@ -176,4 +187,3 @@ class ModelRegistry:
                 dest = os.path.join(tmp, os.path.basename(key))
                 client.download_file(bucket, key, dest)
             self.load_from_disk(tmp)
-

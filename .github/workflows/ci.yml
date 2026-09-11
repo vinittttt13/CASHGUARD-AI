@@ -19,9 +19,6 @@ jobs:
         run: ruff check backend
       - name: black --check
         run: black --check backend
-        # Formatting normalization is a tracked follow-up (docs/ROADMAP.md);
-        # don't block PRs on it yet.
-        continue-on-error: true
 
   backend-security:
     runs-on: ubuntu-latest

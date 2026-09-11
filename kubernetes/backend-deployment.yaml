@@ -24,7 +24,7 @@ spec:
         fsGroup: 10001
       containers:
         - name: backend
-          image: ghcr.io/yourorg/cpaf-backend:latest
+          image: ghcr.io/vinittttt13/cpaf-backend:latest
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

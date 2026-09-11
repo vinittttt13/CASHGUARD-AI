@@ -96,7 +96,9 @@ class PredictionService:
         return pd.DataFrame(
             [
                 {
-                    "timestamp": complaint.complaint_date or complaint.created_at or now,
+                    "timestamp": complaint.complaint_date
+                    or complaint.created_at
+                    or now,
                     "lat": complaint.latitude or 28.6139,
                     "lng": complaint.longitude or 77.2090,
                     "complaint_text": complaint.complaint_text or "",
@@ -136,7 +138,9 @@ class PredictionService:
 
         # 1. Extract features
         try:
-            feature_matrix = self.feature_engineer.create_feature_matrix(df, is_training=False)
+            feature_matrix = self.feature_engineer.create_feature_matrix(
+                df, is_training=False
+            )
         except Exception as exc:
             logger.warning("Feature extraction failed: %s", exc)
             return self.heuristic_fallback(complaint)
@@ -205,7 +209,6 @@ class PredictionService:
             except Exception as exc:
                 logger.warning("SHAP explanation failed: %s", exc)
 
-
         return {
             "predicted_latitude": pred_lat,
             "predicted_longitude": pred_lng,
@@ -266,9 +269,7 @@ class PredictionService:
     # Batch background task
     # ------------------------------------------------------------------
 
-    async def batch_predict_background(
-        self, complaint_ids: List[str]
-    ) -> None:
+    async def batch_predict_background(self, complaint_ids: List[str]) -> None:
         """Run predictions for a list of complaint IDs in the background.
 
         Each complaint is fetched from the DB, run through inference, and the
@@ -288,9 +289,9 @@ class PredictionService:
 
                     cid = UUID(cid_str)
                     result = await db.execute(
-                        __import__("sqlalchemy").select(Complaint).where(
-                            Complaint.id == cid
-                        )
+                        __import__("sqlalchemy")
+                        .select(Complaint)
+                        .where(Complaint.id == cid)
                     )
                     complaint = result.scalar_one_or_none()
                     if complaint is None:
@@ -339,9 +340,7 @@ class PredictionService:
                 select(
                     func.avg(Prediction.confidence_score),
                     func.count(Prediction.id),
-                    func.count(Prediction.id).filter(
-                        Prediction.confidence_score > 0.7
-                    ),
+                    func.count(Prediction.id).filter(Prediction.confidence_score > 0.7),
                 ).where(Prediction.created_at >= thirty_days_ago)
             )
             row = result.one()

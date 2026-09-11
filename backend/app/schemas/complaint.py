@@ -28,12 +28,15 @@ class ComplaintBase(BaseModel):
     bank_name: Optional[str] = None
     account_type: Optional[str] = None
 
+
 class ComplaintCreate(ComplaintBase):
     pass
+
 
 class ComplaintUpdate(BaseModel):
     status: Optional[ComplaintStatus] = None
     assigned_to: Optional[UUID] = None
+
 
 class ComplaintResponse(ComplaintBase):
     id: UUID
@@ -43,6 +46,7 @@ class ComplaintResponse(ComplaintBase):
     predictions: List[PredictionResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class ComplaintListResponse(BaseModel):
     items: List[ComplaintResponse]

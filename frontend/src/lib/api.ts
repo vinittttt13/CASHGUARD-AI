@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { 
-  getToken, 
-  getRefreshToken, 
-  setToken, 
-  setRefreshToken, 
-  clearAuth 
+import {
+  getToken,
+  getRefreshToken,
+  setToken,
+  setRefreshToken,
+  clearAuth
 } from './auth';
+import { getRuntimeEnv } from './runtime-env';
 import type {
   Alert,
   AlertListResponse,
@@ -22,7 +23,7 @@ import type {
   FraudRing,
 } from '@/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL = getRuntimeEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8000');
 
 const api = axios.create({
   baseURL: API_URL,

@@ -24,6 +24,7 @@ class LocationType(str, enum.Enum):
     bank_branch = "bank_branch"
     payment_kiosk = "payment_kiosk"
 
+
 class WithdrawalLocation(Base):
     __tablename__ = "withdrawal_locations"
     __table_args__ = (
@@ -59,6 +60,8 @@ class WithdrawalLocation(Base):
     risk_score = Column(Float, default=0.0)
     last_incident_date = Column(DateTime(timezone=True), nullable=True)
     incident_count = Column(Integer, default=0)
-    
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

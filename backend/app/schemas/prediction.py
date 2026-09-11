@@ -11,15 +11,18 @@ class FeatureImportance(BaseModel):
     feature: str
     importance: float
 
+
 class PredictedLocation(BaseModel):
     lat: float
     lng: float
     atm_name: Optional[str] = None
     confidence: float
 
+
 class PredictionRequest(BaseModel):
     complaint_id: UUID
     force_refresh: bool = False
+
 
 class PredictionResponse(BaseModel):
     id: UUID
@@ -38,12 +41,15 @@ class PredictionResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
+
 class BatchPredictionRequest(BaseModel):
     complaint_ids: List[UUID]
+
 
 class BatchPredictionResponse(BaseModel):
     predictions: List[PredictionResponse]
     failed_ids: List[UUID]
+
 
 class HotspotResponse(BaseModel):
     cluster_id: int

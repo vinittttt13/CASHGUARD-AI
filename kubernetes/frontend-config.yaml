@@ -1,0 +1,11 @@
+# Non-sensitive frontend runtime config. Consumed by docker-entrypoint.sh
+# (see frontend/Dockerfile) at container start — genuinely live per pod, no
+# image rebuild required to change these. Replace the placeholder hosts with
+# your cluster's real public backend URL/WebSocket URL before applying.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+data:
+  NEXT_PUBLIC_API_URL: "https://api.cashguard.example.com"
+  NEXT_PUBLIC_WS_URL: "wss://api.cashguard.example.com"

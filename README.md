@@ -126,10 +126,11 @@ See [`docs/TESTING.md`](docs/TESTING.md) for the full strategy.
 
 ## Deployment
 
-Kubernetes manifests are provided in the `kubernetes/` directory.
-```bash
-kubectl apply -f kubernetes/
-```
+Kubernetes manifests are provided in the `kubernetes/` directory. **Do not**
+`kubectl apply -f kubernetes/` directly — that directory also holds
+`*-secrets.example.yaml` templates (placeholder credentials, never meant to
+be applied as-is). See [`docs/DEVOPS_DEPLOYMENT_GUIDE.md`](docs/DEVOPS_DEPLOYMENT_GUIDE.md#3-production-kubernetes-manifests-kubernetes)
+for the real Secrets-first deployment order.
 
 ## Security Notes
 

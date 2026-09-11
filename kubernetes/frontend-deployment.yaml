@@ -16,10 +16,21 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/yourorg/cpaf-frontend:latest
+          # :latest + imagePullPolicy: Always means no rollback story — these
+          # manifests have no templating layer (Kustomize/Helm) to pin a
+          # release tag. Acceptable for a demo cluster; before a real
+          # production deploy, either adopt Kustomize/Helm to template the
+          # tag per release, or `kubectl set image` a SHA-pinned tag.
+          image: ghcr.io/vinittttt13/cpaf-frontend:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
+          # NEXT_PUBLIC_API_URL / NEXT_PUBLIC_WS_URL here ARE genuinely live
+          # at runtime — docker-entrypoint.sh regenerates public/env-config.js
+          # from these on every pod start, and the client reads it via
+          # window.__ENV__ (see frontend/src/lib/runtime-env.ts). No image
+          # rebuild needed to change these; just edit the ConfigMap and roll
+          # the deployment (`kubectl rollout restart deployment/frontend`).
           envFrom:
             - configMapRef:
                 name: frontend-config
