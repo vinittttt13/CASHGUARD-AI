@@ -25,11 +25,13 @@ class ComplaintCategory(str, enum.Enum):
     atm_fraud = "atm_fraud"
     other = "other"
 
+
 class ComplaintStatus(str, enum.Enum):
     pending = "pending"
     processing = "processing"
     predicted = "predicted"
     resolved = "resolved"
+
 
 class Complaint(Base):
     __tablename__ = "complaints"
@@ -55,7 +57,9 @@ class Complaint(Base):
     victim_name_masked = Column(String, nullable=True)
     victim_phone_masked = Column(String, nullable=True)
     complaint_text = Column(String, nullable=False)
-    complaint_category = Column(Enum(ComplaintCategory), default=ComplaintCategory.other)
+    complaint_category = Column(
+        Enum(ComplaintCategory), default=ComplaintCategory.other
+    )
     amount_defrauded = Column(Float, default=0.0)
     currency = Column(String, default="INR")
     state = Column(String, nullable=True)
@@ -69,11 +73,20 @@ class Complaint(Base):
     status = Column(Enum(ComplaintStatus), default=ComplaintStatus.pending)
     bank_name = Column(String, nullable=True)
     account_type = Column(String, nullable=True)
-    
-    assigned_to = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
-    
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
-    assigned_to_user = relationship("User", back_populates="complaints", foreign_keys=[assigned_to], lazy="selectin")
-    predictions = relationship("Prediction", back_populates="complaint", cascade="all, delete-orphan", lazy="selectin")
+    assigned_to = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+    assigned_to_user = relationship(
+        "User", back_populates="complaints", foreign_keys=[assigned_to], lazy="selectin"
+    )
+    predictions = relationship(
+        "Prediction",
+        back_populates="complaint",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )

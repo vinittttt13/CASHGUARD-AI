@@ -22,7 +22,9 @@ def test_mask_iban():
 
 
 def test_mask_crypto_wallet():
-    text = "Fraudulent funds sent to 0x71C66332C779Ea1990c8854876E762E4018789C1 on-chain."
+    text = (
+        "Fraudulent funds sent to 0x71C66332C779Ea1990c8854876E762E4018789C1 on-chain."
+    )
     masked = mask_text(text)
     assert "***WALLET***" in masked
     assert "0x71C66332C779Ea1990c8854876E762E4018789C1" not in masked

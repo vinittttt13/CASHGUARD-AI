@@ -29,6 +29,7 @@ async def lifespan(app: FastAPI):
 
     # Start WebSocket PubSub for cross-pod broadcast
     from app.api.v1.websocket import manager as ws_manager
+
     await ws_manager.start_pubsub()
     logger.info("WebSocket PubSub relay started.")
 
@@ -79,9 +80,7 @@ async def rate_limit_middleware(request: Request, call_next):
             try:
                 allowed = limiter.limiter.hit(item, client_ip, scope)
             except Exception as exc:  # noqa: BLE001 — storage backend hiccup
-                logger.warning(
-                    "Rate limiter storage error; allowing request: %s", exc
-                )
+                logger.warning("Rate limiter storage error; allowing request: %s", exc)
                 break
             if not allowed:
                 return JSONResponse(
@@ -90,6 +89,7 @@ async def rate_limit_middleware(request: Request, call_next):
                 )
 
     return await call_next(request)
+
 
 # CORS — explicit origins only. No wildcard (incompatible with
 # allow_credentials=True anyway). A non-development environment MUST set
@@ -129,9 +129,7 @@ from fastapi.encoders import jsonable_encoder
 
 
 @app.exception_handler(RequestValidationError)
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-):
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=422,
         content={"detail": jsonable_encoder(exc.errors())},

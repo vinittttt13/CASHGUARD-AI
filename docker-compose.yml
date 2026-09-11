@@ -96,7 +96,11 @@ services:
     depends_on:
       - backend
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      # node:18-alpine has no curl; wget is available (busybox) and is what
+      # the image's own Dockerfile HEALTHCHECK already uses — this override
+      # had drifted from that and always reported unhealthy despite the app
+      # serving requests fine.
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3

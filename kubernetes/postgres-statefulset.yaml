@@ -1,3 +1,8 @@
+# No PodDisruptionBudget here deliberately: with replicas=1, a PDB (even
+# minAvailable: 0 / maxUnavailable: 0-style) would block *all* voluntary node
+# drains until this pod is manually rescheduled — worse for operability than
+# the brief downtime a single-instance Postgres already implies. Add one only
+# after this becomes a real multi-replica (e.g. Patroni-managed) setup.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -13,10 +18,20 @@ spec:
       labels:
         app: postgres
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: postgres
           # PostGIS dropped in MT-07 — see docs/adr/0001-postgis.md
           image: postgres:15
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
           ports:
             - containerPort: 5432
           env:
@@ -40,6 +55,23 @@ spec:
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          livenessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "$(POSTGRES_USER)", "-d", "$(POSTGRES_DB)"]
+            initialDelaySeconds: 5
+            periodSeconds: 10
   volumeClaimTemplates:
     - metadata:
         name: postgres-data

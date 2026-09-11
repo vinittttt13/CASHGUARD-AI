@@ -50,9 +50,7 @@ def evaluate_classification_metrics(
     f1_weighted = float(
         f1_score(y_true_arr, y_pred_arr, average="weighted", zero_division=0)
     )
-    f1_macro = float(
-        f1_score(y_true_arr, y_pred_arr, average="macro", zero_division=0)
-    )
+    f1_macro = float(f1_score(y_true_arr, y_pred_arr, average="macro", zero_division=0))
 
     roc_auc: Optional[float] = None
     if y_prob is not None:
@@ -123,7 +121,11 @@ def cross_validate_classifier(
     y_arr = np.asarray(y)
 
     # Adjust folds if dataset has fewer samples than cv
-    min_class_samples = np.min(np.bincount(y_arr)) if np.issubdtype(y_arr.dtype, np.integer) else len(y_arr)
+    min_class_samples = (
+        np.min(np.bincount(y_arr))
+        if np.issubdtype(y_arr.dtype, np.integer)
+        else len(y_arr)
+    )
     actual_cv = max(2, min(cv, min_class_samples))
 
     skf = StratifiedKFold(n_splits=actual_cv, shuffle=True, random_state=42)

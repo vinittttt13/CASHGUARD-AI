@@ -100,7 +100,6 @@ async def get_nearby_locations(
     return _geo_service.find_within_radius(lat, lng, radius_km)
 
 
-
 @router.get("/{location_id}")
 async def get_location(
     location_id: UUID,

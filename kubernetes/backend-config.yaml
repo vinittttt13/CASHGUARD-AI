@@ -1,0 +1,28 @@
+# Non-sensitive backend runtime config (app/core/config.py:Settings).
+# DATABASE_URL, REDIS_URL, and SECRET_KEY are real secrets — they live in the
+# `backend-secrets` Secret (see docs/DEVOPS_DEPLOYMENT_GUIDE.md), not here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+data:
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  ENVIRONMENT: "production"
+  # Non-development ENVIRONMENT requires this to be set explicitly — the app
+  # refuses to start otherwise (app/main.py). Replace with your real
+  # frontend origin(s); JSON list, matching pydantic-settings' parsing of
+  # List[str] env vars.
+  CORS_ORIGINS: '["https://cashguard.example.com"]'
+  LOG_LEVEL: "INFO"
+  MODEL_VERSION: "1.0.0"
+  # "" = load model artifacts from local disk inside the image;
+  # "s3://bucket/prefix" = load from object storage instead.
+  MODEL_STORE_URI: ""
+  GEOCODING_TIMEOUT: "10"
+  MAX_PREDICTION_RADIUS_KM: "50.0"
+  DB_POOL_SIZE: "50"
+  DB_MAX_OVERFLOW: "20"
+  DB_POOL_RECYCLE: "3600"
+  DB_POOL_TIMEOUT: "30"

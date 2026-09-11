@@ -81,7 +81,10 @@ class CircuitBreaker:
         with self.lock:
             self.failure_count += 1
             self.last_failure_time = time.time()
-            if self.state == "HALF_OPEN" or self.failure_count >= self.failure_threshold:
+            if (
+                self.state == "HALF_OPEN"
+                or self.failure_count >= self.failure_threshold
+            ):
                 self.state = "OPEN"
                 logger.warning(
                     "Circuit breaker '%s' tripped to OPEN (failures: %d/%d)",
@@ -131,6 +134,7 @@ def with_circuit_breaker(
 
     def decorator(func: Callable) -> Callable:
         if inspect.iscoroutinefunction(func):
+
             @wraps(func)
             async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return await cb.async_call(func, *args, **kwargs)
@@ -138,6 +142,7 @@ def with_circuit_breaker(
             async_wrapper.circuit_breaker = cb
             return async_wrapper
         else:
+
             @wraps(func)
             def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
                 return cb.call(func, *args, **kwargs)

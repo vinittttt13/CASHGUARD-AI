@@ -7,9 +7,7 @@ from sklearn.model_selection import cross_val_score
 class RiskLevelClassifier:
     def __init__(self):
         self.model = RandomForestClassifier(
-            n_estimators=200,
-            class_weight='balanced',
-            random_state=42
+            n_estimators=200, class_weight="balanced", random_state=42
         )
         self.classes_ = None
 
@@ -27,13 +25,13 @@ class RiskLevelClassifier:
         return results
 
     def cross_validate(self, X, y, cv=5):
-        scores = cross_val_score(self.model, X, y, cv=cv, scoring='accuracy')
+        scores = cross_val_score(self.model, X, y, cv=cv, scoring="accuracy")
         return np.mean(scores)
 
     def save(self, path):
-        joblib.dump({'model': self.model, 'classes_': self.classes_}, path)
+        joblib.dump({"model": self.model, "classes_": self.classes_}, path)
 
     def load(self, path):
         data = joblib.load(path)
-        self.model = data['model']
-        self.classes_ = data.get('classes_')
+        self.model = data["model"]
+        self.classes_ = data.get("classes_")

@@ -32,11 +32,15 @@ class WebSocketManager:
     async def connect(self, websocket: WebSocket, user_id: str) -> None:
         await websocket.accept()
         self.active_connections[user_id] = websocket
-        logger.info("WS connected: %s (total: %d)", user_id, len(self.active_connections))
+        logger.info(
+            "WS connected: %s (total: %d)", user_id, len(self.active_connections)
+        )
 
     def disconnect(self, websocket: WebSocket, user_id: str) -> None:
         self.active_connections.pop(user_id, None)
-        logger.info("WS disconnected: %s (total: %d)", user_id, len(self.active_connections))
+        logger.info(
+            "WS disconnected: %s (total: %d)", user_id, len(self.active_connections)
+        )
 
     # ------------------------------------------------------------------
     # Local-only broadcast (to connections on this pod)
@@ -65,13 +69,17 @@ class WebSocketManager:
         redis = get_redis()
         if redis is not None:
             try:
-                await redis.publish(CHANNEL_LIVE_ALERTS, json.dumps(message_dict, default=str))
+                await redis.publish(
+                    CHANNEL_LIVE_ALERTS, json.dumps(message_dict, default=str)
+                )
                 # _listen_pubsub will relay the message back to local connections,
                 # so we do NOT need to call _local_broadcast here — it would cause
                 # duplicate deliveries.
                 return
             except Exception as exc:
-                logger.warning("Redis publish failed, falling back to local broadcast: %s", exc)
+                logger.warning(
+                    "Redis publish failed, falling back to local broadcast: %s", exc
+                )
 
         # Fallback: local-only
         await self._local_broadcast(message_dict)
@@ -95,7 +103,9 @@ class WebSocketManager:
 
         redis = get_redis()
         if redis is None:
-            logger.warning("Redis unavailable — PubSub relay disabled; broadcasts will be local-only.")
+            logger.warning(
+                "Redis unavailable — PubSub relay disabled; broadcasts will be local-only."
+            )
             return
 
         try:
@@ -125,7 +135,10 @@ class WebSocketManager:
                 if self._pubsub is None:
                     self._pubsub = redis.pubsub()
                     await self._pubsub.subscribe(CHANNEL_LIVE_ALERTS)
-                    logger.info("Redis PubSub connected/re-subscribed to %s", CHANNEL_LIVE_ALERTS)
+                    logger.info(
+                        "Redis PubSub connected/re-subscribed to %s",
+                        CHANNEL_LIVE_ALERTS,
+                    )
 
                 backoff = 1.0
 
@@ -148,7 +161,6 @@ class WebSocketManager:
                 self._pubsub = None
                 await asyncio.sleep(backoff)
                 backoff = min(backoff * 2, max_backoff)
-
 
     async def stop_pubsub(self) -> None:
         """Cleanly unsubscribe and cancel the listener task."""

@@ -1,16 +1,19 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
 import { getToken } from '@/lib/auth';
+import { getRuntimeEnv } from '@/lib/runtime-env';
 
 const WS_PATH = '/api/v1/ws/live-feed';
 
-// NEXT_PUBLIC_WS_URL is documented (README, .env.example) as the backend
-// *origin* — e.g. "ws://localhost:8000" — matching how NEXT_PUBLIC_API_URL
-// is used as a base for arbitrary paths elsewhere. Always append the fixed
-// WS path; never return the env var (or a fallback origin) verbatim.
+// NEXT_PUBLIC_WS_URL (via getRuntimeEnv — see lib/runtime-env.ts for why) is
+// documented (README, .env.example) as the backend *origin* — e.g.
+// "ws://localhost:8000" — matching how NEXT_PUBLIC_API_URL is used as a base
+// for arbitrary paths elsewhere. Always append the fixed WS path; never
+// return the env var (or a fallback origin) verbatim.
 const getWsUrl = (): string => {
-  if (process.env.NEXT_PUBLIC_WS_URL) {
-    return `${process.env.NEXT_PUBLIC_WS_URL.replace(/\/+$/, '')}${WS_PATH}`;
+  const configured = getRuntimeEnv('NEXT_PUBLIC_WS_URL', '');
+  if (configured) {
+    return `${configured.replace(/\/+$/, '')}${WS_PATH}`;
   }
   if (typeof window !== 'undefined') {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';

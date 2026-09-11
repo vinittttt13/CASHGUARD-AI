@@ -87,9 +87,7 @@ async def refresh_token_endpoint(
     # Rotation: burn the presented refresh token so it cannot be replayed.
     old_jti = payload.get("jti")
     if old_jti:
-        await revoke_token(
-            old_jti, ttl_days=settings.refresh_token_expire_days
-        )
+        await revoke_token(old_jti, ttl_days=settings.refresh_token_expire_days)
 
     access_token_expires = timedelta(minutes=settings.access_token_expire_minutes)
     new_access_token = create_access_token(
@@ -124,9 +122,7 @@ async def logout(
             token, settings.secret_key, algorithms=[settings.algorithm]
         )
         jti = payload.get("jti")
-        if jti and await revoke_token(
-            jti, ttl_days=settings.refresh_token_expire_days
-        ):
+        if jti and await revoke_token(jti, ttl_days=settings.refresh_token_expire_days):
             revoked += 1
     except Exception:
         pass  # Token was valid enough for get_current_user; best-effort

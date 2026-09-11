@@ -120,4 +120,3 @@ async def get_fraud_rings(
     db: AsyncSession = Depends(get_db),
 ):
     return await _intel_service.get_fraud_rings(db=db, days=days)
-

@@ -56,8 +56,16 @@ class IntelligenceService:
             {
                 "id": str(a.id),
                 "title": a.title,
-                "priority": a.priority.value if hasattr(a.priority, "value") else str(a.priority),
-                "alert_type": a.alert_type.value if hasattr(a.alert_type, "value") else str(a.alert_type),
+                "priority": (
+                    a.priority.value
+                    if hasattr(a.priority, "value")
+                    else str(a.priority)
+                ),
+                "alert_type": (
+                    a.alert_type.value
+                    if hasattr(a.alert_type, "value")
+                    else str(a.alert_type)
+                ),
                 "created_at": a.created_at.isoformat() if a.created_at else None,
             }
             for a in active_alerts
@@ -204,10 +212,12 @@ class IntelligenceService:
         last_date = datetime.utcnow()
         for i in range(1, 8):
             f_date = (last_date + timedelta(days=i)).strftime("%Y-%m-%d")
-            forecast.append({
-                "date": f_date,
-                "predicted_count": round(max(0.0, mean_val), 1),
-            })
+            forecast.append(
+                {
+                    "date": f_date,
+                    "predicted_count": round(max(0.0, mean_val), 1),
+                }
+            )
 
         return {
             "period_days": days,
@@ -262,7 +272,9 @@ class IntelligenceService:
         writer.writerow(["Generated At", report["generated_at"]])
         writer.writerow(["Period (Days)", report["period_days"]])
         writer.writerow(["Total Complaints", report["total_complaints"]])
-        writer.writerow(["Total Defrauded (INR)", f"{report['total_defrauded_inr']:.2f}"])
+        writer.writerow(
+            ["Total Defrauded (INR)", f"{report['total_defrauded_inr']:.2f}"]
+        )
         writer.writerow([])
 
         # 2. State-wise breakdown
@@ -293,7 +305,9 @@ class IntelligenceService:
 
         return output.getvalue()
 
-    async def get_fraud_rings(self, db: AsyncSession, days: int = 30) -> List[Dict[str, Any]]:
+    async def get_fraud_rings(
+        self, db: AsyncSession, days: int = 30
+    ) -> List[Dict[str, Any]]:
         """Fetch recent complaints and run graph analytics to identify fraud rings."""
         from app.ml.graph_analytics import FraudRingDetector
 
@@ -320,4 +334,3 @@ class IntelligenceService:
 
         detector = FraudRingDetector(min_ring_size=3)
         return detector.detect_rings(complaint_dicts)
-

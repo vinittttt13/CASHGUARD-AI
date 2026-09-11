@@ -7,9 +7,7 @@ from app.models.intelligence_alert import AlertPriority, AlertType, Intelligence
 
 
 class AlertService:
-    async def evaluate_and_create_alerts(
-        self, prediction_data: dict, db: AsyncSession
-    ):
+    async def evaluate_and_create_alerts(self, prediction_data: dict, db: AsyncSession):
         confidence = prediction_data.get("confidence_score", 0)
         risk_level = prediction_data.get("risk_level", "low")
 

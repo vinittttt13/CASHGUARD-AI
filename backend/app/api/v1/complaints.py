@@ -104,9 +104,7 @@ async def get_complaint_stats(
         return getattr(k, "value", k)
 
     return {
-        "by_category": {
-            _key(k): v for k, v in category_result.all() if k is not None
-        },
+        "by_category": {_key(k): v for k, v in category_result.all() if k is not None},
         "by_state": {_key(k): v for k, v in state_result.all() if k is not None},
         "by_status": {_key(k): v for k, v in status_result.all() if k is not None},
     }
@@ -118,9 +116,7 @@ async def get_complaint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Complaint).where(Complaint.id == complaint_id)
-    )
+    result = await db.execute(select(Complaint).where(Complaint.id == complaint_id))
     complaint = result.scalar_one_or_none()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
@@ -139,9 +135,7 @@ async def update_complaint(
     current_user: User = Depends(require_role("analyst", "admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Complaint).where(Complaint.id == complaint_id)
-    )
+    result = await db.execute(select(Complaint).where(Complaint.id == complaint_id))
     complaint = result.scalar_one_or_none()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")
@@ -161,9 +155,7 @@ async def delete_complaint(
     current_user: User = Depends(require_role("admin")),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Complaint).where(Complaint.id == complaint_id)
-    )
+    result = await db.execute(select(Complaint).where(Complaint.id == complaint_id))
     complaint = result.scalar_one_or_none()
     if not complaint:
         raise HTTPException(status_code=404, detail="Complaint not found")

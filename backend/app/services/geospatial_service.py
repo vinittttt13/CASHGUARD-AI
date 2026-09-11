@@ -30,15 +30,20 @@ class GeospatialService:
         return cls._instance
 
     def __init__(self) -> None:
-        if not hasattr(self, 'ball_tree'):
+        if not hasattr(self, "ball_tree"):
             self.ball_tree: Optional[BallTree] = None
             self.locations: List[Dict[str, Any]] = []
             self._last_load: float = 0.0
 
-    async def load_atm_locations(self, db: AsyncSession, ttl_seconds: float = 300.0) -> int:
+    async def load_atm_locations(
+        self, db: AsyncSession, ttl_seconds: float = 300.0
+    ) -> int:
         """Fetch active withdrawal locations; rebuild BallTree only if stale (>ttl)."""
         now = time.time()
-        if self.ball_tree is not None and (now - getattr(self, '_last_load', 0)) < ttl_seconds:
+        if (
+            self.ball_tree is not None
+            and (now - getattr(self, "_last_load", 0)) < ttl_seconds
+        ):
             return len(self.locations)
 
         result = await db.execute(
@@ -55,7 +60,11 @@ class GeospatialService:
                 "state": r.state,
                 "latitude": float(r.latitude),
                 "longitude": float(r.longitude),
-                "location_type": r.location_type.value if hasattr(r.location_type, "value") else str(r.location_type),
+                "location_type": (
+                    r.location_type.value
+                    if hasattr(r.location_type, "value")
+                    else str(r.location_type)
+                ),
                 "risk_score": float(r.risk_score or 0.0),
                 "incident_count": int(r.incident_count or 0),
             }
@@ -64,10 +73,15 @@ class GeospatialService:
         ]
 
         if self.locations:
-            coords = np.array([[loc["latitude"], loc["longitude"]] for loc in self.locations])
+            coords = np.array(
+                [[loc["latitude"], loc["longitude"]] for loc in self.locations]
+            )
             rad_coords = np.radians(coords)
             self.ball_tree = BallTree(rad_coords, metric="haversine")
-            logger.info("Loaded %d withdrawal locations into BallTree index.", len(self.locations))
+            logger.info(
+                "Loaded %d withdrawal locations into BallTree index.",
+                len(self.locations),
+            )
         else:
             self.ball_tree = None
 
@@ -88,7 +102,9 @@ class GeospatialService:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         return R * c
 
-    def find_nearest_atms(self, lat: float, lng: float, k: int = 10) -> List[Dict[str, Any]]:
+    def find_nearest_atms(
+        self, lat: float, lng: float, k: int = 10
+    ) -> List[Dict[str, Any]]:
         """Find the k nearest withdrawal locations using the geodesic index."""
         if self.ball_tree is None or not self.locations:
             return []
@@ -130,21 +146,33 @@ class GeospatialService:
         """Generate weighted heatmap points from location or prediction objects."""
         points = []
         for item in locations:
-            lat = getattr(item, "latitude", None) or (item.get("latitude") if isinstance(item, dict) else None)
-            lng = getattr(item, "longitude", None) or (item.get("longitude") if isinstance(item, dict) else None)
-            weight = getattr(item, "risk_score", None) or (item.get("risk_score") if isinstance(item, dict) else None)
+            lat = getattr(item, "latitude", None) or (
+                item.get("latitude") if isinstance(item, dict) else None
+            )
+            lng = getattr(item, "longitude", None) or (
+                item.get("longitude") if isinstance(item, dict) else None
+            )
+            weight = getattr(item, "risk_score", None) or (
+                item.get("risk_score") if isinstance(item, dict) else None
+            )
             if weight is None:
-                weight = getattr(item, "confidence_score", None) or (item.get("confidence_score") if isinstance(item, dict) else None)
+                weight = getattr(item, "confidence_score", None) or (
+                    item.get("confidence_score") if isinstance(item, dict) else None
+                )
 
             if lat is not None and lng is not None:
-                points.append({
-                    "lat": float(lat),
-                    "lng": float(lng),
-                    "weight": round(float(weight or 0.5), 3),
-                })
+                points.append(
+                    {
+                        "lat": float(lat),
+                        "lng": float(lng),
+                        "weight": round(float(weight or 0.5), 3),
+                    }
+                )
         return points
 
-    def calculate_risk_score(self, location: Dict[str, Any], recent_incidents: int) -> float:
+    def calculate_risk_score(
+        self, location: Dict[str, Any], recent_incidents: int
+    ) -> float:
         """Compute an incident-calibrated risk score between 0.0 and 1.0."""
         base_score = float(location.get("risk_score") or 0.1)
         incident_boost = min(0.6, recent_incidents * 0.05)

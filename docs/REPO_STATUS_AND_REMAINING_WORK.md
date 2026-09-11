@@ -1,9 +1,13 @@
 # CASHGUARD-AI — Repo Status & Remaining Work
 
-> **Date:** 2026-09-11
+> **Date:** 2026-09-11 (updated same day — see §0)
 > **Scope:** Whole-repository quality/completeness audit — not "can it run" (see [`PROJECT_RUN_OBSTACLES.md`](PROJECT_RUN_OBSTACLES.md) for that, which is fully resolved as of today).
-> **Method:** Fresh read of current source, cross-checked line-by-line against the prior audit at [`REPO_ANALYSIS_AND_IMPROVEMENTS.md`](REPO_ANALYSIS_AND_IMPROVEMENTS.md) (2026-09-10, commit `98e2536`). Every claim below was re-verified against the tree as of commit `90051ce`, not copied forward.
-> **Status:** Analysis only — nothing in this document has been fixed. Use it as the punch list for what's next.
+> **Method:** Fresh read of current source, cross-checked line-by-line against the prior audit at [`REPO_ANALYSIS_AND_IMPROVEMENTS.md`](REPO_ANALYSIS_AND_IMPROVEMENTS.md) (2026-09-10, commit `98e2536`). Every claim below was re-verified against the tree, not copied forward.
+> **Status:** The Kubernetes/deployment section (§2.1, formerly the main open item) has since been fixed in a follow-up stabilization pass — see [`PROJECT_COMPLETION_REPORT.md`](../PROJECT_COMPLETION_REPORT.md) for the full account. This file is kept as the historical audit; §0 below summarizes what changed.
+
+## 0. What changed since this audit was written
+
+K1–K6 (the Kubernetes section, §2.1) are now fixed: a genuine runtime-config injection makes the frontend image portable across environments without a rebuild, the missing ConfigMap/Secret manifests were added, image references corrected, and postgres/redis hardened to match backend/migrate. Also fixed in the same pass, found during re-verification rather than pre-existing in this audit: 3 backend dependency CVEs (unconstrained ones — `starlette`/`pytest` majors remain genuinely blocked by upstream pins), `black` formatting normalized repo-wide (removing the `continue-on-error` in CI), a CodeQL workflow added, and a real `docker-compose.yml` frontend healthcheck bug (wrong tool + Docker's auto-`HOSTNAME` binding quirk) that made the frontend container permanently report "unhealthy" despite working correctly. Full details, evidence, and verification steps are in `PROJECT_COMPLETION_REPORT.md`. The rest of this document (§2.2 onward) is unchanged and still accurate.
 
 ---
 
@@ -21,7 +25,7 @@ What's left clusters almost entirely in **one place: the Kubernetes / production
 | Database / migrations | 🟢 Solid | `create_all` removed outside tests, dedicated migration Job, indexes added, PostGIS decision documented |
 | ML pipeline | 🟡 Mostly real | Real DB-backed training exists; Prophet/CmdStan gap and dataset versioning (DVC) still open |
 | Frontend | 🟢 Solid | Dead code gone, real auth wiring, tests exist; today's WS/map/UUID bugs also fixed |
-| **Kubernetes / prod deploy** | 🔴 **Not deployable as-is** | Frontend `NEXT_PUBLIC_*` build-arg gap reproduced in k8s; missing ConfigMaps/Secrets; `:latest` images; postgres/redis under-hardened |
+| **Kubernetes / prod deploy** | 🟢 Fixed (see §0) | Runtime-config injection + missing ConfigMap/Secret manifests + postgres/redis hardening all addressed in a follow-up pass |
 | CI/CD | 🟢 Mostly solid | Lint/type-check/test/build/scan all wired for both frontend and backend; frontend Docker publish step has the same build-arg gap as k8s |
 | Testing | 🟡 Partial | Frontend and backend both have real tests now; several pages/paths still untested; unit tests still don't hit real Postgres |
 | Docs | 🟢 Solid | Sprawl archived, README accurate, CHANGELOG maintained |
@@ -31,9 +35,9 @@ What's left clusters almost entirely in **one place: the Kubernetes / production
 
 ## 2. Still Open — by area
 
-### 2.1 Kubernetes / production deployment — 🔴 the main remaining gap
+### 2.1 Kubernetes / production deployment — 🟢 fixed (see §0 and `PROJECT_COMPLETION_REPORT.md`)
 
-This is the one area nobody has actually exercised end-to-end. Everything here was either never addressed or is a fresh consequence of today's (correct) local fix.
+This section is kept verbatim as the historical record of what was found. All six items (K1–K6) below were fixed in the same-day follow-up pass.
 
 | # | Severity | Evidence | Finding |
 |---|---|---|---|

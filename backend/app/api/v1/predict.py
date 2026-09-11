@@ -77,7 +77,9 @@ async def predict(
             svc.run_inference, complaint, cached_shap
         )
     except CircuitBreakerOpenException as cbe:
-        logger.warning("Prediction circuit breaker is OPEN: %s. Using heuristic fallback.", cbe)
+        logger.warning(
+            "Prediction circuit breaker is OPEN: %s. Using heuristic fallback.", cbe
+        )
         prediction_data = svc.heuristic_fallback(complaint)
     except Exception as exc:
         logger.warning("ML inference failed, falling back to heuristic: %s", exc)
@@ -85,7 +87,6 @@ async def predict(
 
     if prediction_data.get("feature_importance") and not cached_shap:
         await cache_set(shap_cache_key, prediction_data["feature_importance"], ttl=3600)
-
 
     new_prediction = Prediction(
         id=uuid.uuid4(),
@@ -143,9 +144,7 @@ async def get_prediction(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(Prediction).where(Prediction.id == prediction_id)
-    )
+    result = await db.execute(select(Prediction).where(Prediction.id == prediction_id))
     prediction = result.scalar_one_or_none()
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")

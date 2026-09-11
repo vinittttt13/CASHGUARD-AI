@@ -83,12 +83,8 @@ async def test_get_me_unauthenticated(async_client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_get_me_authenticated(
-    async_client: AsyncClient, auth_headers: dict
-):
-    response = await async_client.get(
-        "/api/v1/auth/me", headers=auth_headers
-    )
+async def test_get_me_authenticated(async_client: AsyncClient, auth_headers: dict):
+    response = await async_client.get("/api/v1/auth/me", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == "testuser@example.com"
@@ -102,9 +98,7 @@ async def test_get_me_authenticated(
 
 @pytest.mark.asyncio
 async def test_logout(async_client: AsyncClient, auth_headers: dict):
-    response = await async_client.post(
-        "/api/v1/auth/logout", headers=auth_headers
-    )
+    response = await async_client.post("/api/v1/auth/logout", headers=auth_headers)
     assert response.status_code == 200
     data = response.json()
     assert data["message"] == "Successfully logged out"
@@ -125,8 +119,9 @@ def revocation_store():
     async def _is_revoked(jti: str) -> bool:
         return jti in store
 
-    with patch("app.api.v1.auth.revoke_token", new=_revoke), patch(
-        "app.core.security.is_token_revoked", new=_is_revoked
+    with (
+        patch("app.api.v1.auth.revoke_token", new=_revoke),
+        patch("app.core.security.is_token_revoked", new=_is_revoked),
     ):
         yield store
 
@@ -378,7 +373,9 @@ def test_websocket_authenticated(test_user):
     from app.main import app
 
     client = TestClient(app)
-    token = create_access_token(data={"sub": test_user.email, "role": test_user.role.value})
+    token = create_access_token(
+        data={"sub": test_user.email, "role": test_user.role.value}
+    )
     with client.websocket_connect(f"/api/v1/ws/live-feed?token={token}") as ws:
         msg = ws.receive_json()
         assert msg["type"] == "initial_state"
@@ -543,7 +540,6 @@ async def test_intelligence_export_csv(
     assert "55000.00" in content
 
 
-
 @pytest.mark.asyncio
 async def test_intelligence_fraud_rings_api(
     async_client: AsyncClient, auth_headers: dict, db_session
@@ -579,16 +575,15 @@ async def test_intelligence_fraud_rings_api(
     rings = response.json()
     assert len(rings) >= 1
     target_ring = next(
-        (r for r in rings if any("7777" in s for s in r.get("suspect_identifiers", [])) or "HDFC" in r.get("shared_banks", [])),
+        (
+            r
+            for r in rings
+            if any("7777" in s for s in r.get("suspect_identifiers", []))
+            or "HDFC" in r.get("shared_banks", [])
+        ),
         None,
     )
     assert target_ring is not None
     assert target_ring["member_count"] == 3
     assert target_ring["total_defrauded_inr"] == 180000.0
     assert target_ring["risk_score"] >= 0.75
-
-
-
-
-
-

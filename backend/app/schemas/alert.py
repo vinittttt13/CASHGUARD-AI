@@ -20,8 +20,10 @@ class AlertBase(BaseModel):
     is_active: bool = True
     is_acknowledged: bool = False
 
+
 class AlertCreate(AlertBase):
     expires_at: Optional[datetime] = None
+
 
 class AlertResponse(AlertBase):
     id: UUID
@@ -31,9 +33,11 @@ class AlertResponse(AlertBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class AlertListResponse(BaseModel):
     items: List[AlertResponse]
     total: int
+
 
 class IntelligenceReport(BaseModel):
     report_id: UUID
