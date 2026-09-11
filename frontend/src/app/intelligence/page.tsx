@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, RefreshCw } from "lucide-react";
+import { Download, RefreshCw, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,9 +14,11 @@ import { HotspotGrid } from "@/components/intelligence/hotspot-grid";
 import { TrendChart } from "@/components/intelligence/trend-chart";
 import { StateBreakdown } from "@/components/intelligence/state-breakdown";
 import { FraudRingGraph } from "@/components/intelligence/fraud-ring-graph";
+import { CaseDossierModal } from "@/components/intelligence/case-dossier-modal";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
 
 import { useApiResource } from "@/hooks/useApiResource";
+import { useState } from "react";
 import {
   getFraudRings,
   getIntelligenceReport,
@@ -28,6 +30,7 @@ import { formatCurrency } from "@/lib/utils";
 const DAYS = 7;
 
 export default function IntelligenceReportPage() {
+  const [dossierOpen, setDossierOpen] = useState(false);
   const report = useApiResource(() => getIntelligenceReport(DAYS), []);
   const trends = useApiResource(() => getTrends(30), []);
   const fraudRings = useApiResource(() => getFraudRings(30), []);
@@ -66,6 +69,9 @@ export default function IntelligenceReportPage() {
             <a href={intelligenceReportExportUrl(DAYS)} download>
               <Download className="h-4 w-4" /> Export CSV
             </a>
+          </Button>
+          <Button variant="default" size="sm" className="gap-2" onClick={() => setDossierOpen(true)}>
+            <FileText className="h-4 w-4" /> Generate Police Dossier
           </Button>
         </div>
       </div>
@@ -189,6 +195,13 @@ export default function IntelligenceReportPage() {
           )}
         </CardContent>
       </Card>
+
+      <CaseDossierModal
+        open={dossierOpen}
+        onClose={() => setDossierOpen(false)}
+        report={report.data}
+        fraudRings={fraudRings.data ?? []}
+      />
     </div>
   );
 }

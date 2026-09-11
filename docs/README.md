@@ -4,6 +4,20 @@ Cybercrime Predictive Analytics Framework (CPAF): a platform for anticipating,
 detecting and mitigating cyber-enabled financial fraud (vishing, phishing, ATM
 skimming, UPI fraud, fraudulent cash withdrawals).
 
+## Quick Start
+
+### 🚀 1-Minute Live Demo Setup
+
+Run the automated demo quickstart:
+
+```bash
+python scripts/demo_quickstart.py --simulate-incident
+# or on Windows
+scripts/demo_quickstart.bat --simulate-incident
+```
+
+This validates the environment, verifies/pre-trains ML artifacts (`xgboost_aml.pkl`), seeds the database (`seed_db.py`), and injects a live simulated fraud alert via Redis so the frontend dashboards chime immediately. See `README.md` for the full walkthrough.
+
 ## Start here
 
 | | |
