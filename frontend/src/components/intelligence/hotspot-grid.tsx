@@ -41,7 +41,7 @@ export function HotspotGrid({ hotspots = [] }: { hotspots?: ActiveHotspot[] }) {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
-                {h.incident_count} incidents
+                {h.incident_count} {h.incident_count === 1 ? 'incident' : 'incidents'}
               </span>
             </div>
             <div className="w-full bg-muted rounded-full h-1.5">

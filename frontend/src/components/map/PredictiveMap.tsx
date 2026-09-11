@@ -8,6 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { ATMMarker } from "./ATMMarker";
 import { GeofenceZone } from "./GeofenceZone";
+import { useTheme } from "next-themes";
 import { formatConfidence } from "@/lib/utils";
 import { useApiResource } from "@/hooks/useApiResource";
 import { getHeatmapData, getHotspots } from "@/lib/api";
@@ -102,6 +103,7 @@ export default function PredictiveMap({
 }: PredictiveMapProps) {
   const heatmap = useApiResource(getHeatmapData, []);
   const hotspots = useApiResource(getHotspots, []);
+  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -172,8 +174,11 @@ export default function PredictiveMap({
         <MapEventsHandler onClick={onAreaClick} />
         <MapResizeHandler />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution={theme === "dark" ? '&copy; <a href="https://carto.com/">CARTO</a>' : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}
+          url={theme === "dark"
+            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
         />
 
         <BoundsFitter bounds={bounds} />
@@ -236,8 +241,12 @@ export default function PredictiveMap({
         </LayersControl>
       </MapContainer>
 
+      <style jsx global>{`
+        .dark .leaflet-tile-pane { filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7); }
+      `}</style>
+
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 z-[400] bg-white p-3 rounded-md shadow-md border text-xs">
+      <div className="absolute bottom-6 left-6 z-[400] bg-white dark:bg-slate-900 p-3 rounded-md shadow-md border text-xs">
         <div className="font-semibold mb-2">Prediction Confidence</div>
         <div className="flex items-center gap-2 mb-1">
           <div className="w-3 h-3 rounded-full bg-red-600 opacity-60"></div>

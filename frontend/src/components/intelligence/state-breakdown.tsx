@@ -39,7 +39,7 @@ export function StateBreakdown({
     <ResponsiveContainer width="100%" height="100%">
       <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-        <XAxis dataKey="state" tick={{ fontSize: 12 }} />
+        <XAxis dataKey="state" tick={{ fontSize: 12 }} interval={0} angle={-35} textAnchor="end" height={60} />
         <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
         <Tooltip formatter={(value) => [`${value} incidents`, "Count"]} />
         <Bar dataKey="incidents" radius={[4, 4, 0, 0]}>

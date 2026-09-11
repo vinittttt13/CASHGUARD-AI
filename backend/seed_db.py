@@ -248,9 +248,9 @@ async def seed():
                 id=uuid.uuid4(),
                 title=random.choice(
                     [
-                        "Hotspot Detected in Central Delhi",
-                        "Pattern Change in Mumbai Suburbs",
-                        "High Risk Location: ATM Cluster",
+                        "Hotspot Detected in Coimbatore / Tiruppur Corridor",
+                        "Pattern Change in Chennai Suburbs",
+                        "High Risk Location: ATM Cluster in Bengaluru",
                         "Temporal Spike in Phishing Cases",
                         "New Vishing Campaign Detected",
                         "ATM Fraud Surge in Bangalore",
@@ -286,3 +286,4 @@ async def seed():
 
 if __name__ == "__main__":
     asyncio.run(seed())
+

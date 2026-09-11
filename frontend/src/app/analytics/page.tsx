@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
         </span>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
         <Card className="col-span-2">
           <CardHeader>
             <CardTitle>Crime Volume Time Series</CardTitle>

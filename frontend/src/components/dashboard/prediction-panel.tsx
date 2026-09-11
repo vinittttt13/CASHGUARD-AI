@@ -103,7 +103,7 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
       </div>
 
       <div className="p-4 border-t bg-muted/20 grid grid-cols-2 gap-3">
-        <button className="flex items-center justify-center gap-2 px-4 py-2 bg-white border shadow-sm rounded-md text-sm font-medium hover:bg-gray-50 transition-colors">
+        <button className="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground shadow-sm rounded-md text-sm font-medium hover:bg-primary/90 transition-colors">
           <Map className="w-4 h-4" />
           View on Map
         </button>
