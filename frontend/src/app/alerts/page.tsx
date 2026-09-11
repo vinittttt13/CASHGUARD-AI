@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CheckCircle, Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { AlertCenter } from "@/components/alerts/AlertCenter";
 import { useToast } from "@/hooks/use-toast";
 import { useApiResource } from "@/hooks/useApiResource";
 import { acknowledgeAlert, getAlerts } from "@/lib/api";
+import { useAppStore } from "@/store/useAppStore";
 
 function SummaryCard({
   title,
@@ -41,6 +42,12 @@ export default function AlertsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { data, loading, refetch } = useApiResource(getAlerts, []);
+  const clearUnread = useAppStore((s) => s.clearUnread);
+
+  // Clear the unread notification badge when this page is visited
+  useEffect(() => {
+    clearUnread();
+  }, [clearUnread]);
 
   const items = data?.items ?? [];
   const count = (p: string) => items.filter((a) => a.priority === p).length;

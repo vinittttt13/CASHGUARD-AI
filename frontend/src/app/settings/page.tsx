@@ -3,8 +3,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, Copy, Check } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,33 +18,73 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { useAppStore } from "@/store/useAppStore";
+import { RoleGuard } from "@/components/shared/RoleGuard";
 
-const passwordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string()
-}).refine((data) => data.newPassword === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
+
+const MOCK_API_KEY = "cgai_sk_prod_f4k3k3y_d0n0tus31npr0d";
 
 export default function SettingsPage() {
   const { setTheme, theme } = useTheme();
   const { toast } = useToast();
+  const currentUser = useAppStore((s) => s.currentUser);
+  const [copied, setCopied] = useState(false);
+  const [notifyAlerts, setNotifyAlerts] = useState(true);
+  const [notifyReport, setNotifyReport] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    reset
+    formState: { errors, isSubmitting },
+    reset,
   } = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
   });
 
-  const onPasswordChange = (data: PasswordFormValues) => {
+  const handleSaveProfile = async () => {
+    setSavingProfile(true);
+    // Simulate API call — real: PATCH /api/v1/auth/me
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    setSavingProfile(false);
+    toast({
+      title: "Profile saved",
+      description: "Your profile information has been updated.",
+    });
+  };
+
+  const handleCopyKey = async () => {
+    try {
+      await navigator.clipboard.writeText(MOCK_API_KEY);
+      setCopied(true);
+      toast({ title: "API key copied to clipboard" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({
+        title: "Copy failed",
+        description: "Please copy the key manually.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const onPasswordChange = async (_data: PasswordFormValues) => {
+    // Simulate API call — real: POST /api/v1/auth/change-password
+    await new Promise((resolve) => setTimeout(resolve, 800));
     toast({
       title: "Password Updated",
       description: "Your password has been changed successfully.",
@@ -67,30 +108,53 @@ export default function SettingsPage() {
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
         </TabsList>
-        
+
+        {/* Profile Tab */}
         <TabsContent value="profile" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
-              <CardDescription>
-                Update your account profile details.
-              </CardDescription>
+              <CardDescription>Update your account profile details.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+                  {currentUser?.email?.slice(0, 2).toUpperCase() ?? "AG"}
+                </div>
+                <div>
+                  <p className="font-medium">{currentUser?.email ?? "agent@agency.gov"}</p>
+                  <Badge variant="secondary" className="capitalize">
+                    {currentUser?.role ?? "analyst"}
+                  </Badge>
+                </div>
+              </div>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" defaultValue="Agent Smith" />
+                <Label htmlFor="name">Display Name</Label>
+                <Input
+                  id="name"
+                  defaultValue=""
+                  placeholder="Enter your display name"
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" defaultValue="agent.smith@agency.gov" disabled />
-                <p className="text-xs text-muted-foreground">Email cannot be changed.</p>
+                <Input
+                  id="email"
+                  defaultValue={currentUser?.email ?? ""}
+                  disabled
+                />
+                <p className="text-xs text-muted-foreground">
+                  Email cannot be changed.
+                </p>
               </div>
-              <Button>Save Changes</Button>
+              <Button onClick={handleSaveProfile} disabled={savingProfile}>
+                {savingProfile ? "Saving..." : "Save Changes"}
+              </Button>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Appearance Tab */}
         <TabsContent value="appearance" className="mt-6">
           <Card>
             <CardHeader>
@@ -109,9 +173,11 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Sun className="h-4 w-4" />
-                  <Switch 
-                    checked={theme === 'dark'} 
-                    onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+                  <Switch
+                    checked={theme === "dark"}
+                    onCheckedChange={(checked) =>
+                      setTheme(checked ? "dark" : "light")
+                    }
                   />
                   <Moon className="h-4 w-4" />
                 </div>
@@ -120,6 +186,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
 
+        {/* Notifications Tab */}
         <TabsContent value="notifications" className="mt-6">
           <Card>
             <CardHeader>
@@ -133,10 +200,20 @@ export default function SettingsPage() {
                 <div className="space-y-0.5">
                   <Label className="text-base">Critical Alerts</Label>
                   <p className="text-sm text-muted-foreground">
-                    Receive push notifications for critical threat predictions.
+                    Receive notifications for critical threat predictions.
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={notifyAlerts}
+                  onCheckedChange={(v) => {
+                    setNotifyAlerts(v);
+                    toast({
+                      title: v
+                        ? "Critical alert notifications enabled"
+                        : "Critical alert notifications disabled",
+                    });
+                  }}
+                />
               </div>
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="space-y-0.5">
@@ -145,12 +222,23 @@ export default function SettingsPage() {
                     Receive an email summary of the daily intelligence report.
                   </p>
                 </div>
-                <Switch defaultChecked />
+                <Switch
+                  checked={notifyReport}
+                  onCheckedChange={(v) => {
+                    setNotifyReport(v);
+                    toast({
+                      title: v
+                        ? "Daily report emails enabled"
+                        : "Daily report emails disabled",
+                    });
+                  }}
+                />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Security Tab */}
         <TabsContent value="security" className="mt-6">
           <div className="grid gap-6">
             <Card>
@@ -161,45 +249,110 @@ export default function SettingsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit(onPasswordChange)} className="space-y-4">
+                <form
+                  onSubmit={handleSubmit(onPasswordChange)}
+                  className="space-y-4"
+                >
                   <div className="space-y-2">
                     <Label htmlFor="currentPassword">Current Password</Label>
-                    <Input id="currentPassword" type="password" {...register("currentPassword")} />
-                    {errors.currentPassword && <p className="text-sm text-destructive">{errors.currentPassword.message}</p>}
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      {...register("currentPassword")}
+                    />
+                    {errors.currentPassword && (
+                      <p className="text-sm text-destructive">
+                        {errors.currentPassword.message}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="newPassword">New Password</Label>
-                    <Input id="newPassword" type="password" {...register("newPassword")} />
-                    {errors.newPassword && <p className="text-sm text-destructive">{errors.newPassword.message}</p>}
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      {...register("newPassword")}
+                    />
+                    {errors.newPassword && (
+                      <p className="text-sm text-destructive">
+                        {errors.newPassword.message}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                    <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
-                    {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>}
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      {...register("confirmPassword")}
+                    />
+                    {errors.confirmPassword && (
+                      <p className="text-sm text-destructive">
+                        {errors.confirmPassword.message}
+                      </p>
+                    )}
                   </div>
-                  <Button type="submit">Update Password</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? "Updating..." : "Update Password"}
+                  </Button>
                 </form>
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>API Keys</CardTitle>
-                <CardDescription>
-                  Manage keys for external integration.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Primary Key</Label>
-                  <div className="flex gap-2">
-                    <Input readOnly value="sk_test_51Nx...v9Lm" className="font-mono text-sm" />
-                    <Button variant="secondary">Copy</Button>
+            {/* API Keys — Admin only via RoleGuard */}
+            <RoleGuard
+              allow="admin"
+              fallback={
+                <Card className="opacity-60">
+                  <CardHeader>
+                    <CardTitle>API Keys</CardTitle>
+                    <CardDescription>
+                      Admin access required to manage API keys.
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              }
+            >
+              <Card>
+                <CardHeader>
+                  <CardTitle>API Keys</CardTitle>
+                  <CardDescription>
+                    Manage keys for external integration.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Primary Key</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={MOCK_API_KEY}
+                        className="font-mono text-sm"
+                        type="password"
+                      />
+                      <Button
+                        variant="secondary"
+                        className="gap-2 shrink-0"
+                        onClick={handleCopyKey}
+                      >
+                        {copied ? (
+                          <>
+                            <Check className="h-4 w-4 text-green-500" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                <Button variant="outline">Generate New Key</Button>
-              </CardContent>
-            </Card>
+                  <Button variant="outline">Generate New Key</Button>
+                </CardContent>
+              </Card>
+            </RoleGuard>
           </div>
         </TabsContent>
       </Tabs>
