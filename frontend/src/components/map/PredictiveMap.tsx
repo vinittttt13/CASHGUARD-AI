@@ -72,6 +72,26 @@ function MapEventsHandler({ onClick }: { onClick?: (lat: number, lng: number) =>
   return null;
 }
 
+// Leaflet measures its container once at init. Inside a scrollable dashboard
+// layout the container can still be settling (fonts, sibling cards, grid
+// reflow) at that point, so tiles never get requested for the area the
+// container later grows into — it just renders blank/grey there. Re-measure
+// whenever the container's actual size changes, and once shortly after mount.
+function MapResizeHandler() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const observer = new ResizeObserver(() => map.invalidateSize());
+    observer.observe(container);
+    const timeout = setTimeout(() => map.invalidateSize(), 250);
+    return () => {
+      observer.disconnect();
+      clearTimeout(timeout);
+    };
+  }, [map]);
+  return null;
+}
+
 export default function PredictiveMap({
   center = [20.5937, 78.9629],
   zoom = 5,
@@ -150,6 +170,7 @@ export default function PredictiveMap({
         className="w-full h-full"
       >
         <MapEventsHandler onClick={onAreaClick} />
+        <MapResizeHandler />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

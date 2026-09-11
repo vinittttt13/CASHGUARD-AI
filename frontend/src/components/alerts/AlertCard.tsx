@@ -62,9 +62,6 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
               <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider", getBadgeStyle())}>
                 {alert.priority}
               </span>
-              <span className="text-xs text-muted-foreground border px-1.5 py-0.5 rounded bg-white">
-                {alert.id}
-              </span>
             </div>
             
             <p className="text-sm text-gray-600 mt-1">{alert.description}</p>
@@ -92,7 +89,7 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
         {alert.acknowledged ? (
           <div className="flex items-center gap-1.5 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-md border border-green-100">
             <CheckCircle2 className="w-4 h-4" />
-            <span className="font-medium">Ack&apos;d by {alert.acknowledgedBy}</span>
+            <span className="font-medium">Acknowledged</span>
           </div>
         ) : (
           <button 
