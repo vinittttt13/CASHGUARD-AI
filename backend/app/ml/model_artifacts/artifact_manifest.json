@@ -5,8 +5,8 @@
     "rf_risk.pkl",
     "kmeans_hotspot.pkl"
   ],
-  "version": "v20260911.1804",
-  "last_trained": "2026-09-11T18:04:40.213528",
+  "version": "v20260911.1813",
+  "last_trained": "2026-09-11T18:13:55.326390",
   "source": "synthetic",
-  "sample_size": 3000
+  "sample_size": 5000
 }
