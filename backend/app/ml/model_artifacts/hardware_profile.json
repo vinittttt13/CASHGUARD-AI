@@ -8,7 +8,7 @@
       "vendor": "NVIDIA",
       "driver_version": "616.64",
       "vram_mb": 4096,
-      "vram_free_mb": 3610,
+      "vram_free_mb": 3560,
       "compute_capability": "7.5",
       "cuda_cores": 896,
       "cuda_available": true
