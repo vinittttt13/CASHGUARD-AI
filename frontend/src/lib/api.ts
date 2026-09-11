@@ -314,6 +314,7 @@ export interface ModelStatus {
       feature_importances: Record<string, number>;
       status: string;
     };
+  };
   hardware?: {
     os?: string;
     cpu_count?: number;
