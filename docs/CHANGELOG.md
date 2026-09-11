@@ -2,6 +2,48 @@
 
 All notable changes to CASHGUARD-AI. Newest first.
 
+## [Unreleased] — AML transaction detection: complete the feature end-to-end
+
+### Added
+- Trained a real `xgboost_aml.pkl` model artifact from the actual dataset
+  (`dataset/HI-Small_Trans.csv`) — the endpoint now serves genuine XGBoost
+  predictions instead of only the heuristic fallback. Not committed to git
+  (matches the existing convention for all other model artifacts; the
+  metrics file is committed instead). See `docs/AML_FEATURE_REPORT.md` for
+  the honest, freshly-measured metrics (ROC-AUC 0.9847, recall 89.98%,
+  precision 45.68%) and full reproduction instructions.
+- Frontend integration: `frontend/src/components/analytics/aml-transaction-panel.tsx`,
+  wired into the Analytics page as a new "AML Transaction Risk Analysis"
+  card (not a new route). Form → API → risk badge, with an explicit,
+  never-mislabeled model-source indicator (real model vs. heuristic
+  fallback) and an expandable section stating the precision/recall
+  tradeoff in plain language.
+- `backend/tests/test_train_aml.py` (11 tests) — `train_aml.py` coverage
+  0% → 99%, using small synthetic fixtures rather than the real 475MB
+  dataset.
+- `backend/tests/test_aml_api.py` (9 tests) — HTTP-level coverage of
+  `POST /api/v1/predict/aml-transaction` that the pre-existing
+  `test_aml_xgboost.py` (model/service layer only) didn't have: auth,
+  validation errors, boundary values, and an explicit proof the endpoint
+  never reports `"xgboost_aml"` when a result actually came from the
+  heuristic fallback.
+- `frontend/src/components/analytics/__tests__/aml-transaction-panel.test.tsx`
+  (7 tests) and one new Playwright e2e test in `frontend/e2e/dashboard.spec.ts`
+  driving the full real workflow against a live `docker compose` stack.
+- `docs/AML_FEATURE_REPORT.md` (new) and a new §5.3 in
+  `docs/BACKEND_API_REFERENCE.md` documenting the endpoint contract.
+
+### Fixed
+- `backend/app/ml/train_aml.py` used `Any` in a type annotation without
+  importing it — masked at runtime by `from __future__ import annotations`
+  but a real `ruff` F821 failure. Added the import.
+- `frontend/src/components/analytics/aml-transaction-panel.tsx` had two
+  unescaped-entity ESLint errors (`react/no-unescaped-entities`) that
+  `next build`'s lint pass catches but bare `next lint` didn't surface
+  locally — would have broken the Docker frontend build. Fixed.
+- Reformatted 11 files (mine and the original AML commit's) with
+  `black`/`ruff --fix` to match the rest of the backend.
+
 ## [Unreleased] — test coverage: every previously-0%-covered module
 
 ### Added

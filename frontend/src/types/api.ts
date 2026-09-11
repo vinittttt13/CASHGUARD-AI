@@ -79,6 +79,34 @@ export interface PredictionResponse {
   created_at: string;
 }
 
+export interface AmlTransactionRequest {
+  timestamp?: string | null;
+  from_bank?: string | null;
+  from_account?: string | null;
+  to_bank?: string | null;
+  to_account?: string | null;
+  amount_paid: number;
+  amount_received?: number | null;
+  payment_currency?: string | null;
+  receiving_currency?: string | null;
+  payment_format?: string | null;
+}
+
+export interface AmlTopFactor {
+  factor: string;
+  weight: number;
+}
+
+export interface AmlTransactionResponse {
+  is_laundering: number;
+  laundering_probability: number;
+  risk_level: RiskLevel;
+  decision_threshold: number;
+  top_factors: AmlTopFactor[];
+  model_name: string;
+  model_version: string;
+}
+
 export interface Alert {
   id: string;
   title: string;

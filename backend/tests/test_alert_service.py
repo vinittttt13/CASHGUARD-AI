@@ -148,7 +148,9 @@ async def test_acknowledge_alert_returns_none_for_unknown_id(service, db_session
 
 
 @pytest.mark.asyncio
-async def test_expire_old_alerts_deactivates_only_stale_active_alerts(service, db_session):
+async def test_expire_old_alerts_deactivates_only_stale_active_alerts(
+    service, db_session
+):
     stale = IntelligenceAlert(
         id=uuid.uuid4(),
         title="Stale",

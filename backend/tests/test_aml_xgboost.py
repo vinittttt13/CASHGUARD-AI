@@ -18,9 +18,9 @@ import numpy as np
 import pandas as pd
 
 from app.ml.aml_xgboost_model import (
+    PAYMENT_FORMAT_MAP,
     AmlFeatureTransformer,
     AmlLaunderingClassifier,
-    PAYMENT_FORMAT_MAP,
 )
 from app.ml.model_registry import ModelRegistry
 from app.services.prediction_service import PredictionService
@@ -28,7 +28,11 @@ from app.services.prediction_service import PredictionService
 
 def _create_sample_aml_df(n: int = 100) -> pd.DataFrame:
     np.random.seed(42)
-    timestamps = pd.date_range("2023-01-01", periods=n, freq="h").strftime("%Y/%m/%d %H:%M").tolist()
+    timestamps = (
+        pd.date_range("2023-01-01", periods=n, freq="h")
+        .strftime("%Y/%m/%d %H:%M")
+        .tolist()
+    )
     banks = ["012", "020", "110", "3208", "9999"]
     accounts = [f"ACC_{i}" for i in range(20)]
     formats = list(PAYMENT_FORMAT_MAP.keys())
@@ -45,7 +49,7 @@ def _create_sample_aml_df(n: int = 100) -> pd.DataFrame:
         "Amount Paid": np.random.exponential(5000, n).round(2),
         "Payment Currency": np.random.choice(currencies, n),
         "Payment Format": np.random.choice(formats, n),
-        "Is Laundering": np.random.binomial(1, 0.15, n)
+        "Is Laundering": np.random.binomial(1, 0.15, n),
     }
     return pd.DataFrame(data)
 
@@ -75,18 +79,22 @@ class TestAmlXGBoost(unittest.TestCase):
         transformer.fit(self.df)
 
         # Create new unseen transaction with unknown bank, unknown currency, etc.
-        unseen_tx = pd.DataFrame([{
-            "Timestamp": "2025-05-10 14:30",
-            "From Bank": "UNKNOWN_BANK_999",
-            "Account": "UNKNOWN_ACCT_888",
-            "To Bank": "NEW_BANK_777",
-            "Account.1": "NEW_ACCT_666",
-            "Amount Received": 99999.0,
-            "Receiving Currency": "Martian Dollar",
-            "Amount Paid": 99999.0,
-            "Payment Currency": "Martian Dollar",
-            "Payment Format": "UnknownFormat"
-        }])
+        unseen_tx = pd.DataFrame(
+            [
+                {
+                    "Timestamp": "2025-05-10 14:30",
+                    "From Bank": "UNKNOWN_BANK_999",
+                    "Account": "UNKNOWN_ACCT_888",
+                    "To Bank": "NEW_BANK_777",
+                    "Account.1": "NEW_ACCT_666",
+                    "Amount Received": 99999.0,
+                    "Receiving Currency": "Martian Dollar",
+                    "Amount Paid": 99999.0,
+                    "Payment Currency": "Martian Dollar",
+                    "Payment Format": "UnknownFormat",
+                }
+            ]
+        )
 
         X_unseen = transformer.transform(unseen_tx)
         self.assertEqual(X_unseen.shape, (1, len(transformer.feature_columns)))
@@ -160,7 +168,7 @@ class TestAmlXGBoost(unittest.TestCase):
             "Amount Received": 75000.0,
             "Payment Currency": "Euro",
             "Receiving Currency": "Euro",
-            "Payment Format": "Wire"
+            "Payment Format": "Wire",
         }
 
         res = clf.score_transaction(tx)
@@ -186,7 +194,7 @@ class TestAmlXGBoost(unittest.TestCase):
         sample_tx = {
             "amount_paid": 50000.0,
             "payment_format": "Cash",
-            "payment_currency": "US Dollar"
+            "payment_currency": "US Dollar",
         }
         scored = svc.score_aml_transaction(sample_tx)
         self.assertEqual(scored["model_name"], "xgboost_aml")

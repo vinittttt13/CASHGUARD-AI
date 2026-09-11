@@ -368,13 +368,15 @@ class PredictionService:
                 res["model_version"] = version
                 return res
             except Exception as exc:
-                logger.warning("AML XGBoost scoring failed: %s. Using heuristic fallback.", exc)
+                logger.warning(
+                    "AML XGBoost scoring failed: %s. Using heuristic fallback.", exc
+                )
 
         # Fallback heuristic
         amount = float(tx_data.get("amount_paid") or 0.0)
         pmt_fmt = str(tx_data.get("payment_format") or "Cash")
         is_cashout = pmt_fmt in ("Cash", "Cheque", "Wire", "Bitcoin")
-        
+
         prob = 0.10
         if amount > 100000:
             prob += 0.35
@@ -384,7 +386,11 @@ class PredictionService:
             prob += 0.25
 
         prob = min(0.95, prob)
-        risk = "critical" if prob >= 0.8 else "high" if prob >= 0.5 else "medium" if prob >= 0.2 else "low"
+        risk = (
+            "critical"
+            if prob >= 0.8
+            else "high" if prob >= 0.5 else "medium" if prob >= 0.2 else "low"
+        )
 
         return {
             "is_laundering": int(prob >= 0.5),
@@ -393,9 +399,8 @@ class PredictionService:
             "decision_threshold": 0.5,
             "top_factors": [
                 {"factor": "amount_paid", "weight": 0.45},
-                {"factor": "payment_format", "weight": 0.35}
+                {"factor": "payment_format", "weight": 0.35},
             ],
             "model_name": "heuristic_aml_fallback",
-            "model_version": "v1.0-fallback"
+            "model_version": "v1.0-fallback",
         }
-

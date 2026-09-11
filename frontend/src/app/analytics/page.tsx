@@ -8,6 +8,7 @@ import { GeographicDistribution } from "@/components/analytics/geographic-distri
 import { ConfidenceGauge } from "@/components/analytics/confidence-gauge";
 import { FeatureImportanceRadar } from "@/components/analytics/feature-importance-radar";
 import { HotspotTable } from "@/components/analytics/hotspot-table";
+import { AmlTransactionPanel } from "@/components/analytics/aml-transaction-panel";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
 
 import { useApiResource } from "@/hooks/useApiResource";
@@ -181,6 +182,15 @@ export default function AnalyticsPage() {
             ) : (
               <HotspotTable hotspots={hotspots.data ?? []} />
             )}
+          </CardContent>
+        </Card>
+
+        <Card className="col-span-full">
+          <CardHeader>
+            <CardTitle>AML Transaction Risk Analysis</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <AmlTransactionPanel />
           </CardContent>
         </Card>
       </div>

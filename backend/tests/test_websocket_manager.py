@@ -236,5 +236,7 @@ class TestListenPubsub:
         caught by the method's own try/except and ends the loop cleanly —
         it must NOT propagate out of _listen_pubsub itself."""
         with patch("app.core.redis_client.get_redis", return_value=None):
-            with patch("asyncio.sleep", new=AsyncMock(side_effect=asyncio.CancelledError())):
+            with patch(
+                "asyncio.sleep", new=AsyncMock(side_effect=asyncio.CancelledError())
+            ):
                 await asyncio.wait_for(manager._listen_pubsub(), timeout=1)

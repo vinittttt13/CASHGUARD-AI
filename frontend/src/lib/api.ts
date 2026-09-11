@@ -10,6 +10,8 @@ import { getRuntimeEnv } from './runtime-env';
 import type {
   Alert,
   AlertListResponse,
+  AmlTransactionRequest,
+  AmlTransactionResponse,
   Complaint,
   ComplaintListResponse,
   HeatmapPoint,
@@ -164,6 +166,14 @@ export const getPrediction = async (
   predictionId: string,
 ): Promise<PredictionResponse> => {
   const { data } = await api.get(`/api/v1/predict/${predictionId}`);
+  return data;
+};
+
+// AML transaction risk scoring
+export const predictAmlTransaction = async (
+  tx: AmlTransactionRequest,
+): Promise<AmlTransactionResponse> => {
+  const { data } = await api.post('/api/v1/predict/aml-transaction', tx);
   return data;
 };
 
