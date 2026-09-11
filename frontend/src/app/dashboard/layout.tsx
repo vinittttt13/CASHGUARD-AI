@@ -3,28 +3,30 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { 
-  LayoutDashboard, 
-  Map as MapIcon, 
-  BarChart3, 
-  Bell, 
-  FileText, 
-  Settings, 
+import {
+  LayoutDashboard,
+  BarChart3,
+  Bell,
+  FileText,
+  Settings,
   LogOut,
   Menu,
-  ShieldAlert
+  ShieldAlert,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { isAuthenticated as checkAuth, clearAuth } from "@/lib/auth";
+import { Badge } from "@/components/ui/badge";
+import { isAuthenticated as checkAuth, clearAuth, getUserFromToken } from "@/lib/auth";
 import { logoutUser } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
+import { useAppStore } from "@/store/useAppStore";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/alerts", label: "Alerts", icon: Bell },
+  { href: "/alerts", label: "Alerts", icon: Bell, badge: true },
   { href: "/intelligence", label: "Intelligence", icon: FileText },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -37,6 +39,10 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
+  const setCurrentUser = useAppStore((s) => s.setCurrentUser);
+  const currentUser = useAppStore((s) => s.currentUser);
+  const unreadAlertCount = useAppStore((s) => s.unreadAlertCount);
+  const clearUnread = useAppStore((s) => s.clearUnread);
 
   useEffect(() => {
     if (!checkAuth()) {
@@ -44,23 +50,71 @@ export default function DashboardLayout({
       return;
     }
     setAuthorized(true);
-  }, [router]);
+    const user = getUserFromToken();
+    if (user) {
+      setCurrentUser({ email: user.email, role: user.role });
+    }
+  }, [router, setCurrentUser]);
 
-  // Live alert feed — the purpose-built hook targets NEXT_PUBLIC_WS_URL +
-  // /api/v1/ws/live-feed?token=<jwt> and no-ops until a token exists.
+  // Clear unread badge whenever user navigates to /alerts
+  useEffect(() => {
+    if (pathname === "/alerts") {
+      clearUnread();
+    }
+  }, [pathname, clearUnread]);
+
+  // Live alert feed via WebSocket
   useWebSocket();
 
   const handleLogout = async () => {
     try {
       await logoutUser();
     } catch {
-      // best-effort server-side revocation; proceed regardless
+      // best-effort server-side revocation
     }
     clearAuth();
+    setCurrentUser(null);
     router.replace("/login");
   };
 
   if (!authorized) return null;
+
+  const userInitials = currentUser?.email
+    ? currentUser.email.slice(0, 2).toUpperCase()
+    : "AG";
+  const userEmail = currentUser?.email ?? "Agent";
+  const userRole = currentUser?.role ?? "analyst";
+
+  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
+    <>
+      {navItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = pathname === item.href;
+        const showBadge = item.badge && unreadAlertCount > 0;
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary",
+              mobile
+                ? "mx-[-0.65rem] rounded-xl text-base"
+                : "text-sm font-medium",
+              isActive ? "bg-muted text-primary" : "text-muted-foreground"
+            )}
+          >
+            <Icon className={cn("h-4 w-4", mobile && "h-5 w-5")} />
+            {item.label}
+            {showBadge && (
+              <span className="ml-auto min-w-[20px] h-5 flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground px-1.5 leading-none">
+                {unreadAlertCount > 99 ? "99+" : unreadAlertCount}
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </>
+  );
 
   return (
     <div className="flex min-h-screen bg-muted/20">
@@ -69,29 +123,32 @@ export default function DashboardLayout({
         <div className="flex h-14 items-center border-b px-4 lg:h-[60px]">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
             <ShieldAlert className="h-6 w-6 text-primary" />
-            <span className="">Predictive Analytics</span>
+            <span>CashGuard AI</span>
           </Link>
         </div>
         <div className="flex-1 overflow-auto py-2">
           <nav className="grid items-start px-2 text-sm font-medium">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary ${
-                    pathname === item.href ? "bg-muted text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
+            <NavLinks />
           </nav>
         </div>
-        <div className="mt-auto p-4">
+        {/* User info at bottom */}
+        <div className="border-t p-4 space-y-3">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm font-medium truncate">{userEmail}</span>
+              <Badge
+                variant="secondary"
+                className="w-fit text-[10px] px-1.5 py-0 capitalize"
+              >
+                {userRole}
+              </Badge>
+            </div>
+          </div>
           <Button variant="outline" className="w-full gap-2" onClick={handleLogout}>
             <LogOut className="h-4 w-4" />
             Logout
@@ -112,42 +169,70 @@ export default function DashboardLayout({
             </SheetTrigger>
             <SheetContent side="left" className="flex flex-col">
               <nav className="grid gap-2 text-lg font-medium">
-                <Link href="/dashboard" className="flex items-center gap-2 text-lg font-semibold mb-4">
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-2 text-lg font-semibold mb-4"
+                >
                   <ShieldAlert className="h-6 w-6 text-primary" />
-                  <span>Analytics Portal</span>
+                  <span>CashGuard AI</span>
                 </Link>
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground ${
-                        pathname === item.href ? "bg-muted text-foreground" : "text-muted-foreground"
-                      }`}
-                    >
-                      <Icon className="h-5 w-5" />
-                      {item.label}
-                    </Link>
-                  );
-                })}
+                <NavLinks mobile />
               </nav>
-              <div className="mt-auto">
-                <Button variant="outline" className="w-full gap-2" onClick={handleLogout}>
+              <div className="mt-auto space-y-3">
+                <div className="flex items-center gap-3 p-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                      {userInitials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{userEmail}</span>
+                    <Badge
+                      variant="secondary"
+                      className="w-fit text-[10px] px-1.5 py-0 capitalize"
+                    >
+                      {userRole}
+                    </Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={handleLogout}
+                >
                   <LogOut className="h-4 w-4" />
                   Logout
                 </Button>
               </div>
             </SheetContent>
           </Sheet>
+
           <div className="w-full flex-1">
             <h1 className="text-lg font-semibold md:text-xl">
-              {navItems.find((item) => item.href === pathname)?.label || "Dashboard"}
+              {navItems.find((item) => item.href === pathname)?.label ||
+                "Dashboard"}
             </h1>
           </div>
-          <Avatar>
-            <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-            <AvatarFallback>AG</AvatarFallback>
+
+          {/* Notification Bell in header */}
+          <Link
+            href="/alerts"
+            className="relative p-2 rounded-md hover:bg-muted transition-colors"
+            aria-label={`Alerts${unreadAlertCount > 0 ? ` (${unreadAlertCount} unread)` : ""}`}
+          >
+            <Bell className="h-5 w-5" />
+            {unreadAlertCount > 0 && (
+              <span className="absolute top-1 right-1 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground px-1 leading-none">
+                {unreadAlertCount > 99 ? "99+" : unreadAlertCount}
+              </span>
+            )}
+          </Link>
+
+          {/* Avatar */}
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+              {userInitials}
+            </AvatarFallback>
           </Avatar>
         </header>
 
