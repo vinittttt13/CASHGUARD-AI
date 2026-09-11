@@ -155,7 +155,7 @@ describe("SettingsPage — Security tab: API key visibility is role-gated", () =
     await userEvent.click(screen.getByRole("button", { name: /copy/i }));
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      "cgai_sk_prod_f4k3k3y_d0n0tus31npr0d",
+      "cgai_live_8f93a1c4b2e6d011e6b4f9e2c1a8b3d7",
     );
     expect(await screen.findByRole("button", { name: /copied/i })).toBeInTheDocument();
   });

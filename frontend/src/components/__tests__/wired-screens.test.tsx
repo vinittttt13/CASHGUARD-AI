@@ -76,9 +76,9 @@ describe("StatsOverview", () => {
     await waitFor(() => expect(screen.getByText("10")).toBeInTheDocument()); // total complaints
     expect(screen.getByText("3")).toBeInTheDocument(); // high-risk hotspots
     expect(screen.getByText(/1 unacknowledged/)).toBeInTheDocument();
-    // "Active Alerts" card shows the total (2)
+    // "Active Threats" / "Active Alerts" card shows the total (2)
     expect(
-      screen.getByText("Active Alerts").closest("div")?.parentElement,
+      screen.getByText(/Active (Alerts|Threats)/i).closest("div")?.parentElement,
     ).toHaveTextContent("2");
   });
 
@@ -128,7 +128,7 @@ describe("ComplaintFeed", () => {
     api.getComplaints.mockResolvedValue({ total: 0, items: [] });
     render(<ComplaintFeed />);
     await waitFor(() =>
-      expect(screen.getByText(/No complaints yet/i)).toBeInTheDocument(),
+      expect(screen.getByText(/No complaints (recorded )?yet/i)).toBeInTheDocument(),
     );
   });
 });

@@ -72,7 +72,7 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
         (c.city ?? "").toLowerCase().includes(q) ||
         (c.state ?? "").toLowerCase().includes(q),
     );
-  }, [items, search]);
+  }, [data, search]);
 
   const handleStatusChange = async (c: Complaint, status: ComplaintStatus) => {
     setUpdatingId(c.id);

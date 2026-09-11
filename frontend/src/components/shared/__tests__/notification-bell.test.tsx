@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest";
 import { useAppStore } from "@/store/useAppStore";
 
 describe("NotificationBell / Store", () => {

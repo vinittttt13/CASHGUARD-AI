@@ -104,7 +104,7 @@ export const useWebSocket = (customToken?: string) => {
         reconnectTimeoutRef.current = setTimeout(connect, 3000);
       }
     }
-  }, [customToken, addAlert, updatePredictionStatus, setConnected]);
+  }, [customToken, addAlert, updatePredictionStatus, setConnected, soundEnabled, toast]);
 
   useEffect(() => {
     isUnmounted.current = false;
