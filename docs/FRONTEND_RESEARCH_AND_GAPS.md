@@ -74,6 +74,7 @@ I4C/MHA public documentation on NCRP/CFCFRMS/CCTNS, Microsoft Fabric fraud
 detection reference architecture, Splunk App for Fraud Analytics
 documentation.
 
-See also: [`USP_ANALYSIS.md`](./USP_ANALYSIS.md),
+See also: [`FRONTEND_USP_AND_FEASIBILITY_MICROTASKS.md`](./FRONTEND_USP_AND_FEASIBILITY_MICROTASKS.md),
+[`USP_ANALYSIS.md`](./USP_ANALYSIS.md),
 [`FEASIBILITY_ANALYSIS.md`](./FEASIBILITY_ANALYSIS.md),
 [`PROJECT_STATUS_AND_GAPS.md`](./PROJECT_STATUS_AND_GAPS.md).
