@@ -15,6 +15,8 @@ from app.core.security import get_current_user, require_role
 from app.models.prediction import Prediction
 from app.models.user import User
 from app.schemas.prediction import (
+    AmlTransactionRequest,
+    AmlTransactionResponse,
     BatchPredictionRequest,
     BatchPredictionResponse,
     PredictionRequest,
@@ -149,3 +151,15 @@ async def get_prediction(
     if not prediction:
         raise HTTPException(status_code=404, detail="Prediction not found")
     return prediction
+
+
+@router.post("/aml-transaction", response_model=AmlTransactionResponse)
+async def predict_aml_transaction(
+    tx_request: AmlTransactionRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Real-time transaction laundering risk scoring powered by XGBoost."""
+    svc = _get_prediction_service()
+    result = svc.score_aml_transaction(tx_request.model_dump())
+    return result
+
