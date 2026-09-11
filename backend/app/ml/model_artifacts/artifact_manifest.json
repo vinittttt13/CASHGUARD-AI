@@ -5,11 +5,11 @@
     "rf_risk.pkl",
     "xgboost_aml.pkl"
   ],
-  "generated": "2026-09-11T18:47:26.260395",
+  "generated": "2026-09-11T18:54:43.293854",
   "synthetic_only": true,
   "hardware": {
     "os": "Windows 10 (AMD64)",
-    "cpu_count": 12,
+    "cpu_count": 8,
     "gpus": [
       {
         "index": 0,
@@ -17,17 +17,10 @@
         "vendor": "NVIDIA",
         "driver_version": "616.64",
         "vram_mb": 4096,
-        "vram_free_mb": 2385,
+        "vram_free_mb": 3673,
         "compute_capability": "7.5",
         "cuda_cores": 896,
         "cuda_available": true
-      },
-      {
-        "name": "AMD Radeon(TM) Graphics",
-        "vendor": "AMD",
-        "driver_version": "31.0.21924.61",
-        "vram_mb": 1024,
-        "rocm_available": false
       }
     ],
     "xgboost_device": "cuda",

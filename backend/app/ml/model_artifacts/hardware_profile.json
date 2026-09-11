@@ -1,6 +1,6 @@
 {
   "os": "Windows 10 (AMD64)",
-  "cpu_count": 12,
+  "cpu_count": 8,
   "gpus": [
     {
       "index": 0,
@@ -8,21 +8,14 @@
       "vendor": "NVIDIA",
       "driver_version": "616.64",
       "vram_mb": 4096,
-      "vram_free_mb": 2385,
+      "vram_free_mb": 3673,
       "compute_capability": "7.5",
       "cuda_cores": 896,
       "cuda_available": true
-    },
-    {
-      "name": "AMD Radeon(TM) Graphics",
-      "vendor": "AMD",
-      "driver_version": "31.0.21924.61",
-      "vram_mb": 1024,
-      "rocm_available": false
     }
   ],
   "has_nvidia": true,
-  "has_amd": true,
+  "has_amd": false,
   "cuda_available": true,
   "rocm_available": false,
   "primary_gpu": "NVIDIA GeForce GTX 1650"
