@@ -6,7 +6,12 @@ asyncpg==0.29.0
 pydantic==2.7.4
 pydantic-settings==2.3.4
 python-jose[cryptography]==3.4.0
-passlib[bcrypt]==1.7.4
+passlib==1.7.4
+# app/core/security.py imports bcrypt directly (passlib's bcrypt wrapper
+# mishandles bcrypt>=4.0's 72-byte limit). `pip wheel --no-deps` in the
+# Dockerfile won't pull this in as just a `passlib[bcrypt]` extra, so it
+# must be its own top-level pin.
+bcrypt==4.0.1
 python-multipart==0.0.32
 redis==5.0.7
 hiredis==2.3.2
