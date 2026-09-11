@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T18:28:12.551579",
+  "generated_at": "2026-09-11T18:47:26.259392",
   "synthetic_synthesis": true,
   "samples_complaints": 5000,
   "samples_aml": 10000,
@@ -19,7 +19,7 @@
         "vendor": "NVIDIA",
         "driver_version": "616.64",
         "vram_mb": 4096,
-        "vram_free_mb": 2317,
+        "vram_free_mb": 2385,
         "compute_capability": "7.5",
         "cuda_cores": 896,
         "cuda_available": true
