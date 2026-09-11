@@ -1,5 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useAppStore } from '@/store/useAppStore';
+import { useToast } from '@/hooks/use-toast';
+import { playAlertChime } from '@/lib/sound';
 import { getToken } from '@/lib/auth';
 import { getRuntimeEnv } from '@/lib/runtime-env';
 
@@ -30,6 +32,8 @@ export const useWebSocket = (customToken?: string) => {
   const isUnmounted = useRef<boolean>(false);
 
   const addAlert = useAppStore((state: any) => state.addAlert);
+  const soundEnabled = useAppStore((state: any) => state.soundEnabled);
+  const { toast } = useToast();
   const updatePredictionStatus = useAppStore((state: any) => state.updatePredictionStatus);
   const setConnected = useAppStore((state: any) => state.setSocketConnected);
 
@@ -62,7 +66,13 @@ export const useWebSocket = (customToken?: string) => {
 
           if (type === 'new_alert') {
             addAlert(data);
-          } else if (type === 'prediction_update') {
+            if (soundEnabled) playAlertChime(data.priority || 'high');
+            toast({
+              title: `Alert: ${data.title || 'New Threat'}`,
+              description: data.predicted_location ? `Predicted: ${data.predicted_location}` : data.description || '',
+              variant: data.priority === 'critical' ? 'destructive' : 'default',
+            });
+          } else if (type === 'PREDICTION' || type === 'prediction_update') {
             updatePredictionStatus(data);
           }
         } catch {

@@ -46,6 +46,18 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 
 ## Quick Start
 
+### 🚀 1-Minute Live Demo Setup
+
+Run the automated demo quickstart:
+
+```bash
+python scripts/demo_quickstart.py --simulate-incident
+# Windows
+scripts/demo_quickstart.bat --simulate-incident
+```
+
+This validates dependencies, verifies/pre-trains ML artifacts (`backend/app/ml/model_artifacts/`), seeds DB via `seed_db.py`, and publishes a live alert to Redis so the intelligence dashboard chimes. See `docs/README.md` for the presentation walkthrough.
+
 1. Copy `.env.example` to `.env` and adjust variables if needed.
    ```bash
    cp .env.example .env

@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from uuid import UUID
 
@@ -95,7 +96,9 @@ async def get_intelligence_report(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    return await _intel_service.generate_report(db=db, days=days)
+    report = await _intel_service.generate_report(db=db, days=days)
+    report["investigation_reference_number"] = f"CPAF/INT/{datetime.utcnow().year}/{str(random.randint(10000, 99999)).zfill(5)}"
+    return report
 
 
 @router.get("/report/export")

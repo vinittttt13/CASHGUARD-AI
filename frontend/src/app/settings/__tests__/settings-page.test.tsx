@@ -136,6 +136,18 @@ describe("SettingsPage — Security tab: API key visibility is role-gated", () =
     ).not.toBeInTheDocument();
   });
 
+  it("Generate New Key updates the key and triggers a toast", async () => {
+    render(<SettingsPage />);
+    await userEvent.click(screen.getByRole("tab", { name: "Security" }));
+
+    const oldInput = screen.getByDisplayValue("cgai_live_8f93a1c4b2e6d011e6b4f9e2c1a8b3d7");
+    await userEvent.click(screen.getByRole("button", { name: /Generate New Key/i }));
+
+    await waitFor(() =>
+      expect(screen.getByDisplayValue(/cgai_live_/)).toBeInTheDocument(),
+    );
+  });
+
   it("copy button writes the key to the clipboard", async () => {
     render(<SettingsPage />);
     await userEvent.click(screen.getByRole("tab", { name: "Security" }));

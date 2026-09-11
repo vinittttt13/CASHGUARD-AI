@@ -36,7 +36,7 @@ const passwordSchema = z
 
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
-const MOCK_API_KEY = "cgai_sk_prod_f4k3k3y_d0n0tus31npr0d";
+const INITIAL_KEY = "cgai_live_8f93a1c4b2e6d011e6b4f9e2c1a8b3d7";
 
 export default function SettingsPage() {
   const { setTheme, theme } = useTheme();
@@ -46,6 +46,7 @@ export default function SettingsPage() {
   const [notifyAlerts, setNotifyAlerts] = useState(true);
   const [notifyReport, setNotifyReport] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
+  const [apiKey, setApiKey] = useState(INITIAL_KEY);
 
   const {
     register,
@@ -67,9 +68,19 @@ export default function SettingsPage() {
     });
   };
 
+  const handleGenerateKey = () => {
+    const newKey = 'cgai_live_' + Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0')).join('');
+    setApiKey(newKey);
+    toast({
+      title: "New API Key Generated",
+      description: "Your previous key has been revoked.",
+    });
+  };
+
   const handleCopyKey = async () => {
     try {
-      await navigator.clipboard.writeText(MOCK_API_KEY);
+      await navigator.clipboard.writeText(apiKey);
       setCopied(true);
       toast({ title: "API key copied to clipboard" });
       setTimeout(() => setCopied(false), 2000);
@@ -326,7 +337,7 @@ export default function SettingsPage() {
                     <div className="flex gap-2">
                       <Input
                         readOnly
-                        value={MOCK_API_KEY}
+                        value={apiKey}
                         className="font-mono text-sm"
                         type="password"
                       />
@@ -349,7 +360,7 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                   </div>
-                  <Button variant="outline">Generate New Key</Button>
+                  <Button variant="outline" onClick={handleGenerateKey}>Generate New Key</Button>
                 </CardContent>
               </Card>
             </RoleGuard>

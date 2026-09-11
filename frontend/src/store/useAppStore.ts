@@ -33,6 +33,13 @@ interface AppState {
   // WebSocket connection state
   socketConnected: boolean;
   setSocketConnected: (connected: boolean) => void;
+
+  // Sound preferences
+  soundEnabled: boolean;
+  setSoundEnabled: (enabled: boolean) => void;
+
+  unreadCount: number;
+  markAllRead: () => void;
 }
 
 export const useAppStore = create<AppState>()(
@@ -47,8 +54,9 @@ export const useAppStore = create<AppState>()(
       unreadAlertCount: 0,
       addAlert: (alert) =>
         set((state) => ({
-          alerts: [alert, ...state.alerts].slice(0, 100), // cap at 100
+          alerts: [alert, ...state.alerts].slice(0, 100),
           unreadAlertCount: state.unreadAlertCount + 1,
+          unreadCount: state.unreadCount + 1,
         })),
       clearUnread: () => set({ unreadAlertCount: 0 }),
       clearAlerts: () => set({ alerts: [], unreadAlertCount: 0 }),
@@ -66,6 +74,13 @@ export const useAppStore = create<AppState>()(
       // WebSocket
       socketConnected: false,
       setSocketConnected: (connected) => set({ socketConnected: connected }),
+
+      // Sound / notification preferences
+      soundEnabled: true,
+      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+
+      unreadCount: 0,
+      markAllRead: () => set({ unreadCount: 0 }),
     }),
     {
       name: "cgai-store",

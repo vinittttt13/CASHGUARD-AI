@@ -52,12 +52,7 @@ export function AmlTransactionPanel() {
   const { toast } = useToast();
   const [result, setResult] = useState<AmlTransactionResponse | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  const formMethods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       amount_paid: 0,
@@ -65,6 +60,7 @@ export function AmlTransactionPanel() {
       payment_currency: "US Dollar",
     },
   });
+  const { register, handleSubmit, reset: resetForm, setValue, formState: { errors, isSubmitting } } = formMethods;
 
   const onSubmit = async (data: FormValues) => {
     try {
@@ -86,11 +82,46 @@ export function AmlTransactionPanel() {
     }
   };
 
+  const SCENARIOS = [
+    {
+      label: "🔴 Scenario 1: ATM Smurfing / High-Risk Cash Out",
+      values: { amount_paid: 485000, payment_format: "Cash", payment_currency: "Rupee", from_bank: "Unknown Bank", to_bank: "State Bank of India" },
+    },
+    {
+      label: "🟠 Scenario 2: Cross-Border Crypto Laundering",
+      values: { amount_paid: 1250000, payment_format: "Bitcoin", payment_currency: "Bitcoin", from_bank: "Offshore Bank Ltd", to_bank: "Local Exchange" },
+    },
+    {
+      label: "🟢 Scenario 3: Normal Corporate Payroll (Low Risk)",
+      values: { amount_paid: 45000, payment_format: "ACH", payment_currency: "Rupee", from_bank: "HDFC Bank", to_bank: "ICICI Bank" },
+    },
+  ];
+
+  const loadScenario = (scenario: typeof SCENARIOS[0]) => {
+    setValue("amount_paid", scenario.values.amount_paid);
+    setValue("payment_format", scenario.values.payment_format);
+    setValue("payment_currency", scenario.values.payment_currency);
+    setValue("from_bank", scenario.values.from_bank);
+    setValue("to_bank", scenario.values.to_bank);
+    setResult(null);
+    toast({ title: "Scenario loaded", description: scenario.label });
+  };
+
   const isHeuristic = result?.model_name === "heuristic_aml_fallback";
 
   return (
     <div className="grid gap-6 md:grid-cols-5">
       <form onSubmit={handleSubmit(onSubmit)} className="md:col-span-3 space-y-4">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-xs">Quick Test Scenario</Badge>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {SCENARIOS.map((s) => (
+            <Button key={s.label} type="button" variant="outline" size="sm" onClick={() => loadScenario(s)}>
+              {s.label}
+            </Button>
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="amount_paid">Amount Paid</Label>
@@ -150,7 +181,7 @@ export function AmlTransactionPanel() {
             type="button"
             variant="outline"
             onClick={() => {
-              reset();
+              resetForm();
               setResult(null);
             }}
           >

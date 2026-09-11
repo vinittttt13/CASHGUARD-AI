@@ -85,7 +85,7 @@ CASHGUARD-AI shifts law enforcement from **reactive case logging to proactive, p
 
 ## 💻 Tech Stack Summary
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Recharts, React-Leaflet, Zustand, TanStack Query.
+- **Frontend**: Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Recharts, React-Leaflet, Zustand, custom hook data fetching (`useApiResource` & SWR).
 - **Backend**: FastAPI, Uvicorn, Python 3.11+, Pydantic v2, SQLAlchemy 2.0 (async), Alembic, SlowAPI (rate limiting), structlog.
 - **Machine Learning & NLP**: XGBoost, scikit-learn, Prophet, SHAP, NetworkX, spaCy (`en_core_web_sm`).
 - **Data & Caching**: PostgreSQL 15, Redis 7 (caching, session state, real-time message brokering).
