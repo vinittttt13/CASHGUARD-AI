@@ -50,7 +50,7 @@ describe("AmlTransactionPanel", () => {
     expect(screen.getByText(/xgboost_aml/)).toBeInTheDocument();
     // Never labeled as a fallback when the real model produced the result.
     expect(screen.queryByText(/Heuristic fallback/i)).not.toBeInTheDocument();
-    expect(screen.getByText("is_cashout_format")).toBeInTheDocument();
+    expect(screen.getByText("is cashout format")).toBeInTheDocument();
   });
 
   it("clearly labels a heuristic-fallback result — never disguises it as XGBoost", async () => {

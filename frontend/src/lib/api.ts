@@ -145,6 +145,14 @@ export const createComplaint = async (
   return data;
 };
 
+export const updateComplaint = async (
+  id: string,
+  update: { status?: Complaint['status']; assigned_to?: string },
+): Promise<Complaint> => {
+  const { data } = await api.put(`/api/v1/complaints/${id}`, update);
+  return data;
+};
+
 export const getComplaintStats = async (): Promise<StatsAggregate> => {
   const { data } = await api.get('/api/v1/complaints/stats/aggregate');
   return data;
@@ -237,8 +245,24 @@ export const getTrends = async (days = 30): Promise<TrendsResponse> => {
   return data;
 };
 
-export const intelligenceReportExportUrl = (days = 7): string =>
-  `${API_URL}/api/v1/intelligence/report/export?days=${days}`;
+// Authenticated CSV download — the export endpoint requires a Bearer token,
+// so a plain <a href> navigation (no Authorization header) would 401.
+export const exportIntelligenceReport = async (days = 7): Promise<void> => {
+  const response = await api.get('/api/v1/intelligence/report/export', {
+    params: { days },
+    responseType: 'blob',
+  });
+  const url = window.URL.createObjectURL(new Blob([response.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `CPAF-Intelligence-Report-${new Date()
+    .toISOString()
+    .slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
 
 export const getFraudRings = async (days = 30): Promise<FraudRing[]> => {
   const { data } = await api.get('/api/v1/intelligence/fraud-rings', {

@@ -1,6 +1,6 @@
 "use client";
 
-import { Download, RefreshCw, FileText } from "lucide-react";
+import { Download, Loader2, RefreshCw, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,17 +20,20 @@ import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useState } from "react";
 import {
+  exportIntelligenceReport,
   getFraudRings,
   getIntelligenceReport,
   getTrends,
-  intelligenceReportExportUrl,
 } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 const DAYS = 7;
 
 export default function IntelligenceReportPage() {
+  const { toast } = useToast();
   const [dossierOpen, setDossierOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const report = useApiResource(() => getIntelligenceReport(DAYS), []);
   const trends = useApiResource(() => getTrends(30), []);
   const fraudRings = useApiResource(() => getFraudRings(30), []);
@@ -65,10 +68,35 @@ export default function IntelligenceReportPage() {
           >
             <RefreshCw className="h-4 w-4" /> Refresh
           </Button>
-          <Button size="sm" className="gap-2" asChild>
-            <a href={intelligenceReportExportUrl(DAYS)} download>
-              <Download className="h-4 w-4" /> Export CSV
-            </a>
+          <Button
+            size="sm"
+            className="gap-2"
+            disabled={exporting}
+            onClick={async () => {
+              setExporting(true);
+              try {
+                await exportIntelligenceReport(DAYS);
+                toast({
+                  title: "Report exported",
+                  description: "The CSV download has started.",
+                });
+              } catch {
+                toast({
+                  variant: "destructive",
+                  title: "Export failed",
+                  description: "Could not generate the report. Please try again.",
+                });
+              } finally {
+                setExporting(false);
+              }
+            }}
+          >
+            {exporting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4" />
+            )}
+            Export CSV
           </Button>
           <Button variant="default" size="sm" className="gap-2" onClick={() => setDossierOpen(true)}>
             <FileText className="h-4 w-4" /> Generate Police Dossier

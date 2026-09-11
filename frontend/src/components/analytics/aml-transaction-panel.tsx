@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { predictAmlTransaction } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { StatutoryNoticeButton } from "./statutory-notice-modal";
 import type { AmlTransactionResponse, RiskLevel } from "@/types";
 
 const PAYMENT_FORMATS = ["Cash", "Cheque", "ACH", "Credit Card", "Wire", "Bitcoin", "Reinvestment"];
@@ -51,6 +52,7 @@ const selectClass =
 export function AmlTransactionPanel() {
   const { toast } = useToast();
   const [result, setResult] = useState<AmlTransactionResponse | null>(null);
+  const [lastSubmitted, setLastSubmitted] = useState<FormValues | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,6 +75,7 @@ export function AmlTransactionPanel() {
         to_bank: data.to_bank || undefined,
       });
       setResult(res);
+      setLastSubmitted(data);
     } catch {
       toast({
         title: "AML analysis failed",
@@ -230,14 +233,36 @@ export function AmlTransactionPanel() {
                 <div className="text-xs font-medium text-muted-foreground mb-1">
                   Top contributing factors
                 </div>
-                <ul className="space-y-1">
-                  {result.top_factors.slice(0, 5).map((f) => (
-                    <li key={f.factor} className="text-xs flex justify-between">
-                      <span>{f.factor}</span>
-                      <span className="text-muted-foreground">{(f.weight * 100).toFixed(1)}%</span>
-                    </li>
-                  ))}
+                <ul className="space-y-1.5">
+                  {result.top_factors.slice(0, 5).map((f) => {
+                    const topWeight = result.top_factors[0].weight || 1;
+                    const pct = (f.weight / topWeight) * 100;
+                    return (
+                      <li key={f.factor} className="text-xs">
+                        <div className="flex justify-between mb-0.5">
+                          <span className="truncate pr-2">{f.factor.replace(/_/g, " ")}</span>
+                          <span className="text-muted-foreground shrink-0">
+                            {(f.weight * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-primary transition-all duration-500"
+                            style={{ width: `${Math.min(Math.max(pct, 4), 100)}%` }}
+                          />
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
+                <p className="text-xs text-muted-foreground mt-2 italic">
+                  Alert driven primarily by:{" "}
+                  {result.top_factors
+                    .slice(0, 2)
+                    .map((f) => f.factor.replace(/_/g, " "))
+                    .join(", then ")}
+                  .
+                </p>
               </div>
             )}
 
@@ -261,6 +286,20 @@ export function AmlTransactionPanel() {
                   it flags turn out to be false positives — treat a &ldquo;flagged&rdquo; result as
                   a signal for human review, not a final verdict.
                 </p>
+              </div>
+            )}
+
+            {result.is_laundering === 1 && lastSubmitted && (
+              <div className="pt-2 border-t">
+                <StatutoryNoticeButton
+                  transaction={{
+                    ...result,
+                    amount_paid: lastSubmitted.amount_paid,
+                    payment_currency: lastSubmitted.payment_currency,
+                    from_bank: lastSubmitted.from_bank,
+                    to_bank: lastSubmitted.to_bank,
+                  }}
+                />
               </div>
             )}
           </div>
