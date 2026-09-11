@@ -99,6 +99,7 @@ class TrainModelResponse(BaseModel):
     sample_size: int
     models_trained: List[str]
     metrics: Dict[str, Any]
+    hardware: Optional[Dict[str, Any]] = None
     timestamp: str
 
 
@@ -108,4 +109,5 @@ class ModelStatusResponse(BaseModel):
     artifacts_dir: str
     manifest: Optional[Dict[str, Any]] = None
     metrics: Optional[Dict[str, Any]] = None
+    hardware: Optional[Dict[str, Any]] = None
 

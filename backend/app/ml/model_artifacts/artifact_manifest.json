@@ -1,12 +1,36 @@
 {
   "artifacts": [
-    "xgboost_aml.pkl",
+    "kmeans_hotspot.pkl",
     "xgboost_location.pkl",
     "rf_risk.pkl",
-    "kmeans_hotspot.pkl"
+    "xgboost_aml.pkl"
   ],
-  "version": "v20260911.1813",
-  "last_trained": "2026-09-11T18:13:55.326390",
-  "source": "synthetic",
-  "sample_size": 5000
+  "generated": "2026-09-11T18:28:12.551579",
+  "synthetic_only": true,
+  "hardware": {
+    "os": "Windows 10 (AMD64)",
+    "cpu_count": 12,
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA GeForce GTX 1650",
+        "vendor": "NVIDIA",
+        "driver_version": "616.64",
+        "vram_mb": 4096,
+        "vram_free_mb": 2317,
+        "compute_capability": "7.5",
+        "cuda_cores": 896,
+        "cuda_available": true
+      },
+      {
+        "name": "AMD Radeon(TM) Graphics",
+        "vendor": "AMD",
+        "driver_version": "31.0.21924.61",
+        "vram_mb": 1024,
+        "rocm_available": false
+      }
+    ],
+    "xgboost_device": "cuda",
+    "xgboost_tree_method": "hist"
+  }
 }

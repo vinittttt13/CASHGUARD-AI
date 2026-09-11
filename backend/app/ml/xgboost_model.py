@@ -5,7 +5,9 @@ from sklearn.preprocessing import LabelEncoder
 
 
 class CashoutLocationPredictor:
-    def __init__(self):
+    def __init__(self, device: str = "cpu", tree_method: str = "hist"):
+        self.device = device
+        self.tree_method = tree_method
         self.model = xgb.XGBClassifier(
             n_estimators=100,
             max_depth=5,
@@ -13,6 +15,8 @@ class CashoutLocationPredictor:
             subsample=0.8,
             objective="multi:softprob",
             eval_metric="mlogloss",
+            tree_method=self.tree_method,
+            device=self.device,
         )
         self.feature_names = None
         self.label_encoder = LabelEncoder()

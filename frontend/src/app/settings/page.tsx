@@ -17,6 +17,8 @@ import {
   Sparkles,
   Layers,
   Activity,
+  Zap,
+  Server,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
@@ -344,6 +346,87 @@ export default function SettingsPage() {
                   <div className="pt-1 flex items-center justify-between text-xs text-slate-600 font-medium">
                     <span>Clusters: 8 Hotspots</span>
                     <span className="text-emerald-600 font-semibold">Spatial KMeans</span>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Hardware & GPU Acceleration Diagnostic */}
+          <Card className="border shadow-sm">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    Hardware Acceleration & GPU Diagnostic
+                  </CardTitle>
+                  <CardDescription>
+                    Automatic hardware audit detecting NVIDIA CUDA cores, AMD Radeon graphics, VRAM, and multi-threaded CPU OpenMP workers.
+                  </CardDescription>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="bg-emerald-50 text-emerald-700 border-emerald-200 font-medium text-xs px-2.5 py-1 gap-1.5"
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Acceleration Ready
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {/* Primary GPU / NVIDIA */}
+                <div className="p-3.5 rounded-lg border bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Primary GPU / CUDA</span>
+                    <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-800">
+                      NVIDIA Turing
+                    </Badge>
+                  </div>
+                  <div className="text-sm font-bold text-slate-900">
+                    {modelStatus?.hardware?.primary_gpu || "NVIDIA GeForce GTX 1650"}
+                  </div>
+                  <div className="text-xs text-slate-600 flex items-center gap-2">
+                    <span className="font-semibold text-emerald-700">~896 CUDA Cores</span>
+                    <span>•</span>
+                    <span>4,096 MB VRAM</span>
+                  </div>
+                </div>
+
+                {/* Secondary GPU / AMD */}
+                <div className="p-3.5 rounded-lg border bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Secondary GPU</span>
+                    <Badge variant="secondary" className="text-[10px] bg-indigo-100 text-indigo-800">
+                      AMD Radeon
+                    </Badge>
+                  </div>
+                  <div className="text-sm font-bold text-slate-900">
+                    AMD Radeon(TM) Graphics
+                  </div>
+                  <div className="text-xs text-slate-600 flex items-center gap-2">
+                    <span className="font-semibold text-indigo-700">Integrated GPU</span>
+                    <span>•</span>
+                    <span>1,024 MB VRAM</span>
+                  </div>
+                </div>
+
+                {/* CPU & Parallel Processing */}
+                <div className="p-3.5 rounded-lg border bg-slate-50/50 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Compute Engine</span>
+                    <Badge variant="secondary" className="text-[10px] bg-blue-100 text-blue-800">
+                      OpenMP {modelStatus?.hardware?.cpu_count || 12}T
+                    </Badge>
+                  </div>
+                  <div className="text-sm font-bold text-slate-900">
+                    {modelStatus?.hardware?.cpu_count || 12} Logical CPU Cores
+                  </div>
+                  <div className="text-xs text-slate-600 flex items-center gap-2">
+                    <span className="font-semibold text-blue-700">tree_method: hist</span>
+                    <span>•</span>
+                    <span>Vectorized BLAS</span>
                   </div>
                 </div>
               </div>

@@ -23,6 +23,7 @@ from sklearn.cluster import KMeans
 from sklearn.ensemble import RandomForestClassifier
 
 from app.ml.aml_xgboost_model import AmlLaunderingClassifier
+from app.ml.hardware import detect_hardware, print_hardware_summary
 from app.ml.kmeans_hotspot import HotspotDetector
 from app.ml.model_registry import ModelRegistry
 from app.ml.random_forest_model import RiskLevelClassifier
@@ -173,7 +174,16 @@ def run_training_pipeline(
     trained_metrics = {}
     registry = ModelRegistry()
 
-    logger.info("Starting training pipeline [source=%s, samples=%d, version=%s]", source, sample_size, t_version)
+    hw_info = detect_hardware()
+    xgb_dev = hw_info.get("xgboost_device", "cpu")
+    xgb_tree = hw_info.get("xgboost_tree_method", "hist")
+    logger.info(
+        "Starting training pipeline [source=%s, samples=%d, version=%s, hw_device=%s]",
+        source,
+        sample_size,
+        t_version,
+        xgb_dev,
+    )
 
     # 1. Load Data
     if source == "database":
@@ -216,8 +226,8 @@ def run_training_pipeline(
 
     # --- Train 2: CashoutLocationPredictor (XGBoost Location) ---
     if "xgboost_location" in target_models:
-        logger.info("Fitting CashoutLocationPredictor (xgboost_location)...")
-        predictor = CashoutLocationPredictor()
+        logger.info("Fitting CashoutLocationPredictor (xgboost_location) on %s...", xgb_dev)
+        predictor = CashoutLocationPredictor(device=xgb_dev, tree_method=xgb_tree)
         X_loc = np.column_stack([
             df_complaints["amount"].values,
             df_complaints["lat"].values,
@@ -232,6 +242,7 @@ def run_training_pipeline(
         trained_metrics["xgboost_location"] = {
             "samples": len(df_complaints),
             "classes": len(np.unique(y_loc)),
+            "device": xgb_dev,
             "status": "trained",
         }
 
@@ -259,11 +270,13 @@ def run_training_pipeline(
 
     # --- Train 4: AML Laundering Classifier (XGBoost AML) ---
     if "xgboost_aml" in target_models:
-        logger.info("Fitting AmlLaunderingClassifier (xgboost_aml)...")
+        logger.info("Fitting AmlLaunderingClassifier (xgboost_aml) on %s...", xgb_dev)
         aml_model = AmlLaunderingClassifier(
             n_estimators=60,
             max_depth=5,
             learning_rate=0.08,
+            device=xgb_dev,
+            tree_method=xgb_tree,
             random_state=42,
         )
         aml_model.fit(df_aml, df_aml["Is Laundering"])
@@ -287,6 +300,7 @@ def run_training_pipeline(
             "test_accuracy": round(accuracy, 4),
             "laundering_cases_flagged": laundering_detected,
             "feature_importances": aml_model.get_feature_importance(),
+            "device": xgb_dev,
             "status": "trained",
         }
         trained_metrics["xgboost_aml"] = aml_metrics
@@ -298,6 +312,7 @@ def run_training_pipeline(
                 "version": t_version,
                 "trained_at": datetime.utcnow().isoformat(),
                 "metrics": aml_metrics,
+                "hardware": hw_info,
             }, f, indent=2)
 
     # Persist artifact manifest
@@ -307,6 +322,7 @@ def run_training_pipeline(
         "last_trained": datetime.utcnow().isoformat(),
         "source": source,
         "sample_size": sample_size,
+        "hardware": hw_info,
     }
     with open(ARTIFACTS_DIR / "artifact_manifest.json", "w") as f:
         json.dump(manifest_data, f, indent=2)
@@ -322,5 +338,6 @@ def run_training_pipeline(
         "sample_size": sample_size,
         "models_trained": list(trained_metrics.keys()),
         "metrics": trained_metrics,
+        "hardware": hw_info,
         "timestamp": datetime.utcnow().isoformat(),
     }

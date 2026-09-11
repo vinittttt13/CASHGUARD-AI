@@ -285,6 +285,8 @@ class AmlLaunderingClassifier:
         decision_threshold: float = 0.5,
         early_stopping_rounds: int = 25,
         random_state: int = 42,
+        device: str = "cpu",
+        tree_method: str = "hist",
     ):
         self.n_estimators = n_estimators
         self.max_depth = max_depth
@@ -295,6 +297,8 @@ class AmlLaunderingClassifier:
         self.decision_threshold = decision_threshold
         self.early_stopping_rounds = early_stopping_rounds
         self.random_state = random_state
+        self.device = device
+        self.tree_method = tree_method
 
         self.transformer = AmlFeatureTransformer()
         self.model = xgb.XGBClassifier(
@@ -308,6 +312,8 @@ class AmlLaunderingClassifier:
             eval_metric=["logloss", "aucpr"],
             random_state=self.random_state,
             early_stopping_rounds=self.early_stopping_rounds,
+            tree_method=self.tree_method,
+            device=self.device,
         )
         self.feature_names: List[str] = []
         self.classes_ = np.array([0, 1])

@@ -314,6 +314,25 @@ export interface ModelStatus {
       feature_importances: Record<string, number>;
       status: string;
     };
+  hardware?: {
+    os?: string;
+    cpu_count?: number;
+    gpus?: Array<{
+      name?: string;
+      vendor?: string;
+      vram_mb?: number;
+      cuda_cores?: number;
+      compute_capability?: string;
+      driver_version?: string;
+      cuda_available?: boolean;
+    }>;
+    has_nvidia?: boolean;
+    has_amd?: boolean;
+    cuda_available?: boolean;
+    primary_gpu?: string;
+    xgboost_device?: string;
+    xgboost_tree_method?: string;
+    n_jobs?: number;
   };
 }
 
@@ -332,6 +351,7 @@ export interface TrainModelResult {
   sample_size: number;
   models_trained: string[];
   metrics: Record<string, any>;
+  hardware?: Record<string, any>;
   timestamp: string;
 }
 

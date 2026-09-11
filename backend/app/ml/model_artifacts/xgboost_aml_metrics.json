@@ -1,38 +1,38 @@
 {
-  "model": "xgboost_aml",
-  "version": "v20260911.1813",
-  "trained_at": "2026-09-11T18:13:55.325088",
-  "metrics": {
-    "version": "v20260911.1813",
-    "training_samples": 5000,
-    "test_accuracy": 0.864,
-    "laundering_cases_flagged": 329,
-    "feature_importances": {
-      "amount_diff": 0.35348848430223534,
-      "amount_received": 0.12843484021367088,
-      "is_cashout_format": 0.1106259479164393,
-      "amount_paid": 0.09155392140476945,
-      "payment_format_code": 0.0580821648485033,
-      "amount_log": 0.0567519009011362,
-      "amount_inr": 0.02500295145444818,
-      "is_same_bank": 0.024341418111286785,
-      "receiving_curr_code": 0.023957560463633103,
-      "amount_inr_log": 0.022581682198016997,
-      "payment_curr_code": 0.02173334416796792,
-      "to_acct_freq": 0.021259721922941704,
-      "from_acct_freq": 0.01744857475958773,
-      "from_bank_freq": 0.016508875845231603,
-      "to_bank_freq": 0.016218139281596895,
-      "is_cross_currency": 0.012010472208534574,
-      "hour": 0.0,
-      "day_of_week": 0.0,
-      "is_weekend": 0.0,
-      "is_night": 0.0,
-      "hour_sin": 0.0,
-      "hour_cos": 0.0,
-      "is_round_amount": 0.0,
-      "is_same_account": 0.0
-    },
-    "status": "trained"
+  "generated_at": "2026-09-11T18:28:12.551579",
+  "synthetic_synthesis": true,
+  "samples_complaints": 5000,
+  "samples_aml": 10000,
+  "models": [
+    "kmeans_hotspot",
+    "xgboost_location",
+    "rf_risk",
+    "xgboost_aml"
+  ],
+  "hardware": {
+    "os": "Windows 10 (AMD64)",
+    "cpu_count": 12,
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA GeForce GTX 1650",
+        "vendor": "NVIDIA",
+        "driver_version": "616.64",
+        "vram_mb": 4096,
+        "vram_free_mb": 2317,
+        "compute_capability": "7.5",
+        "cuda_cores": 896,
+        "cuda_available": true
+      },
+      {
+        "name": "AMD Radeon(TM) Graphics",
+        "vendor": "AMD",
+        "driver_version": "31.0.21924.61",
+        "vram_mb": 1024,
+        "rocm_available": false
+      }
+    ],
+    "xgboost_device": "cuda",
+    "xgboost_tree_method": "hist"
   }
 }

@@ -174,12 +174,16 @@ async def get_model_status(
         except Exception:
             pass
 
+    from app.ml.hardware import detect_hardware
+    hardware_info = detect_hardware()
+
     return {
         "loaded_models": versions,
         "total_loaded": len(versions),
         "artifacts_dir": registry.artifacts_dir,
         "manifest": manifest,
         "metrics": metrics,
+        "hardware": hardware_info,
     }
 
 
