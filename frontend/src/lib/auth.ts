@@ -73,35 +73,3 @@ export const getUserRole = (): 'admin' | 'analyst' | null => {
 };
 
 export const isAdmin = (): boolean => getUserRole() === 'admin';
-
-export interface JwtUser {
-  sub: string;
-  email: string;
-  role: "admin" | "analyst";
-  exp: number;
-}
-
-/**
- * Decode the stored JWT and return typed user fields.
- * Returns null if no token or decode fails.
- */
-export const getUserFromToken = (): JwtUser | null => {
-  const token = getToken();
-  if (!token) return null;
-  const decoded = decodeToken(token);
-  if (!decoded) return null;
-  return {
-    sub: decoded.sub ?? "",
-    email: decoded.email ?? decoded.sub ?? "Unknown",
-    role: decoded.role ?? "analyst",
-    exp: decoded.exp ?? 0,
-  };
-};
-
-/** Returns the role from the JWT or null if unauthenticated. */
-export const getUserRole = (): "admin" | "analyst" | null => {
-  return getUserFromToken()?.role ?? null;
-};
-
-/** Convenience helper: true only when the user is an admin. */
-export const isAdmin = (): boolean => getUserRole() === "admin";
