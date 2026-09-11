@@ -19,6 +19,7 @@ import type {
   StatsAggregate,
   TrendsResponse,
   WithdrawalLocation,
+  FraudRing,
 } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -227,6 +228,14 @@ export const getTrends = async (days = 30): Promise<TrendsResponse> => {
 
 export const intelligenceReportExportUrl = (days = 7): string =>
   `${API_URL}/api/v1/intelligence/report/export?days=${days}`;
+
+export const getFraudRings = async (days = 30): Promise<FraudRing[]> => {
+  const { data } = await api.get('/api/v1/intelligence/fraud-rings', {
+    params: { days },
+  });
+  return data;
+};
+
 
 // Health
 export const healthCheck = async () => {

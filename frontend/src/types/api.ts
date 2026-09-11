@@ -165,3 +165,20 @@ export interface WithdrawalLocation {
   is_active: boolean;
   distance_km?: number;
 }
+
+export interface FraudRing {
+  ring_id: string;
+  member_count: number;
+  complaint_count: number;
+  complaint_ids: string[];
+  suspect_identifiers: string[];
+  shared_banks: string[];
+  shared_locations: string[];
+  total_defrauded_inr: number;
+  total_amount_lost: number;
+  risk_score: number;
+  confidence_score: number;
+  coordination_type: string;
+  pattern: string;
+}
+
