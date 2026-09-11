@@ -14,10 +14,11 @@ const nextConfig = {
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
   },
   async rewrites() {
+    const backendTarget = process.env.INTERNAL_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
     return [
       {
         source: '/api/v1/:path*',
-        destination: process.env.INTERNAL_BACKEND_URL || 'http://backend:8000/api/v1/:path*',
+        destination: `${backendTarget}/api/v1/:path*`,
       },
     ];
   },
