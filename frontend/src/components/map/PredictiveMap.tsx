@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css";
 import { HeatmapLayer } from "./HeatmapLayer";
 import { ATMMarker } from "./ATMMarker";
 import { GeofenceZone } from "./GeofenceZone";
-import { useTheme } from "next-themes";
+import { Compass } from "lucide-react";
 import { formatConfidence } from "@/lib/utils";
 import { useApiResource } from "@/hooks/useApiResource";
 import { getHeatmapData, getHotspots } from "@/lib/api";
@@ -54,11 +54,17 @@ interface PredictiveMapProps {
   onAreaClick?: (lat: number, lng: number) => void;
 }
 
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [8.0, 68.0],
+  [37.0, 97.5],
+];
+const INDIA_CENTER: [number, number] = [22.5, 78.9];
+
 function BoundsFitter({ bounds }: { bounds: L.LatLngBoundsExpression | null }) {
   const map = useMap();
   useEffect(() => {
     if (bounds) {
-      map.fitBounds(bounds, { padding: [50, 50] });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 8 });
     }
   }, [map, bounds]);
   return null;
@@ -84,7 +90,10 @@ function MapResizeHandler() {
     const container = map.getContainer();
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(container);
-    const timeout = setTimeout(() => map.invalidateSize(), 250);
+    const timeout = setTimeout(() => {
+      map.invalidateSize();
+      map.setView(INDIA_CENTER, 5);
+    }, 250);
     return () => {
       observer.disconnect();
       clearTimeout(timeout);
@@ -93,8 +102,29 @@ function MapResizeHandler() {
   return null;
 }
 
+function IndiaResetControl() {
+  const map = useMap();
+  return (
+    <div className="absolute top-4 right-14 z-[400]">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          map.setView(INDIA_CENTER, 5);
+        }}
+        className="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-md shadow-md border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
+        title="Reset Map to India View"
+      >
+        <Compass className="w-3.5 h-3.5 text-blue-600" />
+        <span>India View</span>
+      </button>
+    </div>
+  );
+}
+
 export default function PredictiveMap({
-  center = [20.5937, 78.9629],
+  center = INDIA_CENTER,
   zoom = 5,
   predictions,
   alerts = [],
@@ -103,7 +133,6 @@ export default function PredictiveMap({
 }: PredictiveMapProps) {
   const heatmap = useApiResource(getHeatmapData, []);
   const hotspots = useApiResource(getHotspots, []);
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -147,9 +176,13 @@ export default function PredictiveMap({
   }, [atmsProp, hotspots.data]);
 
   const bounds = useMemo(() => {
-    if (predictionPoints.length === 0) return null;
-    const lats = predictionPoints.map((p) => p.lat);
-    const lngs = predictionPoints.map((p) => p.lng);
+    // Filter points strictly to India's geographical boundaries
+    const valid = predictionPoints.filter(
+      (p) => p.lat >= 8.0 && p.lat <= 37.0 && p.lng >= 68.0 && p.lng <= 97.5
+    );
+    if (valid.length === 0) return null;
+    const lats = valid.map((p) => p.lat);
+    const lngs = valid.map((p) => p.lng);
     return L.latLngBounds(
       [Math.min(...lats), Math.min(...lngs)],
       [Math.max(...lats), Math.max(...lngs)],
@@ -165,20 +198,24 @@ export default function PredictiveMap({
   };
 
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-sm border">
+    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-sm border border-slate-200">
       <MapContainer
         center={center}
         zoom={zoom}
+        minZoom={4}
+        maxZoom={18}
+        maxBounds={[
+          [5.0, 65.0],
+          [38.5, 100.0],
+        ]}
         className="w-full h-full"
       >
+        <IndiaResetControl />
         <MapEventsHandler onClick={onAreaClick} />
         <MapResizeHandler />
         <TileLayer
-          attribution={theme === "dark" ? '&copy; <a href="https://carto.com/">CARTO</a>' : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}
-          url={theme === "dark"
-            ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          }
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
 
         <BoundsFitter bounds={bounds} />
@@ -241,24 +278,20 @@ export default function PredictiveMap({
         </LayersControl>
       </MapContainer>
 
-      <style jsx global>{`
-        .dark .leaflet-tile-pane { filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7); }
-      `}</style>
-
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 z-[400] bg-white dark:bg-slate-900 p-3 rounded-md shadow-md border text-xs">
-        <div className="font-semibold mb-2">Prediction Confidence</div>
+      <div className="absolute bottom-6 left-6 z-[400] bg-white p-3 rounded-lg shadow-md border border-slate-200 text-xs">
+        <div className="font-semibold text-slate-900 mb-2">Prediction Confidence</div>
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-red-600 opacity-60"></div>
-          <span>High (&gt; 80%)</span>
+          <div className="w-3 h-3 rounded-full bg-red-600 opacity-80"></div>
+          <span className="text-slate-700">High (&gt; 80%)</span>
         </div>
         <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-amber-500 opacity-60"></div>
-          <span>Medium (50-80%)</span>
+          <div className="w-3 h-3 rounded-full bg-amber-500 opacity-80"></div>
+          <span className="text-slate-700">Medium (50-80%)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-green-600 opacity-60"></div>
-          <span>Low (&lt; 50%)</span>
+          <div className="w-3 h-3 rounded-full bg-emerald-600 opacity-80"></div>
+          <span className="text-slate-700">Low (&lt; 50%)</span>
         </div>
       </div>
     </div>
