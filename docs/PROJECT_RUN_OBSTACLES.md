@@ -1,43 +1,51 @@
 # CASHGUARD-AI — Obstacles to Running the Project
 
-> **Date:** 2026-09-11
+> **Date:** 2026-09-11 (updated same day after fixes applied)
 > **Scope:** Everything that currently blocks or degrades a local run (Docker Compose path and manual/native path), verified by direct inspection of this checkout on `E:\SIH\CASHGUARD-AI`.
-> **Status:** Analysis only — nothing below has been fixed or executed yet.
+> **Status:** ✅ All items below have been executed/fixed and re-verified — `docker compose up --build` now brings the full stack up healthy end-to-end (`postgres`, `redis`, `migrate`, `backend`, `frontend`), and `/health/ready` reports `database: ok`, `redis: ok`.
 > **Note:** A broader quality/architecture audit already exists at [`docs/REPO_ANALYSIS_AND_IMPROVEMENTS.md`](REPO_ANALYSIS_AND_IMPROVEMENTS.md) (dated 2026-09-10, commit `98e2536`). Most of the items it flagged as blocking (missing `.dockerignore`, mock frontend login, no `output: 'standalone'`, bare `train.py` imports, no frontend CI job) have since been fixed in later commits (`7c48e08`, `79081b2`). This document re-verifies the *current* state and focuses narrowly on what stops the app from actually starting and running today.
 
 ---
 
-## 1. Blocking — will prevent `docker compose up` from working as-is
+## 1. Blocking — prevented `docker compose up` from working as-is (FIXED)
 
-### 1.1 Port 5432 is already occupied by a native PostgreSQL install
-- **Evidence:** `netstat -ano` shows `0.0.0.0:5432 LISTENING` owned by PID 7736 (a native Windows Postgres service), independent of Docker.
-- **Effect:** `docker-compose.yml` maps the `postgres` container to host port `5432:5432`. With a native Postgres already bound to that port, the container's port publish will fail (`port is already allocated`), so `docker compose up` cannot start the `postgres` service, which cascades to `migrate`, `backend`, and everything that depends on them.
-- **Also relevant:** the local `.env` / `.env.example` set `DATABASE_URL=...@localhost:5432/...` for **manual** (non-Docker) backend runs — if the backend is run manually with this `.env`, it will silently connect to the *native* Postgres instance instead of the Dockerized one, not the intended `cpaf_db`/`cpaf_user` database (unless that native instance happens to have been provisioned identically).
-- **Fix direction (not applied):** stop/reconfigure the native Postgres service before running Compose, or remap the compose port (e.g. `5433:5432`) and adjust `DATABASE_URL` accordingly, or do all DB work inside the Compose network only.
+### 1.1 Port 5432 is already occupied by a native PostgreSQL install — ✅ Fixed
+- **Evidence:** `netstat -ano` showed `0.0.0.0:5432 LISTENING` owned by PID 7736 (a native Windows Postgres service), independent of Docker.
+- **Effect:** `docker-compose.yml` mapped the `postgres` container to host port `5432:5432`. With a native Postgres already bound to that port, the container's port publish would fail (`port is already allocated`).
+- **Fix applied:** `docker-compose.yml` now publishes the `postgres` container on a configurable host port, `${POSTGRES_HOST_PORT:-5433}:5432` (services inside the Compose network still reach it at `postgres:5432`, unaffected). Added `POSTGRES_HOST_PORT=5433` to `.env.example` and the local `.env`, and documented it in the README env-var table. The native Postgres on 5432 was left untouched.
+- **Verified:** `docker compose ps` shows `cpaf_postgres ... 0.0.0.0:5433->5432/tcp`, healthy, with no port conflict.
 
-### 1.2 Docker Desktop engine is not currently running
-- **Evidence:** `docker ps` failed with `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ... The system cannot find the file specified.` Docker CLI (`29.7.2`) and Compose (`v5.5.1`) are installed, but the daemon/engine itself is not up.
-- **Effect:** Any `docker compose ...` command will fail immediately with a daemon-connection error, before even reaching the port-conflict issue above.
-- **Fix direction (not applied):** start Docker Desktop and wait for the engine to report healthy before running Compose.
+### 1.2 Docker Desktop engine was not running — ✅ Fixed
+- **Evidence:** `docker ps` failed with `failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine ...`. Docker CLI (`29.7.2`) and Compose (`v5.5.1`) were installed, but the daemon/engine itself was not up.
+- **Fix applied:** launched `Docker Desktop.exe` and waited for the engine to come up.
+- **Verified:** `docker ps` now succeeds; full stack built and started.
+
+### 1.3 Frontend Docker build failed — newly discovered, ✅ Fixed
+Not in the original write-up; surfaced only once the port/engine issues above were cleared and a real `docker compose up --build` was run:
+- **`frontend/src/lib/auth.ts` redeclared every export twice** (`JwtUser`, `getUserFromToken`, `getUserRole`, `isAdmin` each defined once with single-quote style, once with double-quote style/JSDoc) — a bad merge artifact from the latest pulled commits. Next's build failed with `isAdmin` redefined. **Fix:** removed the duplicate second block, keeping one clean definition of each export.
+- **`frontend/src/app/settings/page.tsx` contained 3 bytes of invalid UTF-8** (`0x97`, a Windows-1252 em dash) at three spots in comments, which made webpack refuse to read the file (`stream did not contain valid UTF-8`). **Fix:** replaced the 3 bytes with a proper UTF-8 em dash (`—`); file now parses cleanly.
+- **Verified:** `docker compose up --build` completes; frontend image builds and the container serves `200` on `http://localhost:3000`.
 
 ---
 
-## 2. Blocking — will prevent the manual/local (non-Docker) backend from working correctly
+## 2. Blocking — prevented the manual/local (non-Docker) backend from working correctly
 
-### 2.1 `backend/venv` is Python 3.10, but the project targets/expects 3.11
-- **Evidence:** `backend/venv/Scripts/python.exe --version` → `Python 3.10.11`. Both Dockerfile stages (`FROM python:3.11-slim`) and all three CI jobs (`python-version: "3.11"`) pin `3.11`. `pyproject.toml` targets `py310`/`py311` (dev-machine compromise), and README's *Manual Setup* section doesn't pin a version at all.
-- **Effect:** Basic tests pass under 3.10 today, but this is a latent version-drift risk — any 3.11-only syntax/behavior added to the app (or a dependency that only ships 3.11 wheels) will work in Docker/CI and silently fail locally, or vice versa.
-- **Fix direction (not applied):** recreate `backend/venv` with a 3.11 interpreter, or explicitly document 3.10 as the supported local version everywhere (README, pyproject).
+### 2.1 `backend/venv` is Python 3.10, but the project targets/expects 3.11 — ⚠️ Not changed (needs a decision)
+- **Evidence:** `backend/venv/Scripts/python.exe --version` → `Python 3.10.11`. Both Dockerfile stages (`FROM python:3.11-slim`) and all three CI jobs (`python-version: "3.11"`) pin `3.11`. `pyproject.toml` targets `py310`/`py311`, and README's *Manual Setup* section doesn't pin a version at all.
+- **Why not fixed automatically:** no Python 3.11 interpreter is installed on this machine (`py -3.11` → "No suitable Python runtime found"). Recreating the venv on 3.11 requires installing a new Python version system-wide first — a larger, more disruptive change than fits an in-place fix, so it was left for an explicit decision rather than silently installing a new interpreter.
+- **Current state:** basic tests pass under 3.10 today; this is a latent drift risk, not an active failure.
+- **Suggested next step:** install Python 3.11 (e.g. via `winget install Python.Python.3.11` or python.org) and recreate `backend/venv`, or explicitly document 3.10 as the supported local version everywhere.
 
-### 2.2 spaCy's `en_core_web_sm` model is not installed in the local venv
-- **Evidence:** `python -m spacy validate` inside `backend/venv` reports **"No pipeline packages found in your current environment."** The Docker image bakes it in explicitly (`backend/Dockerfile:35`, `RUN python -m spacy download en_core_web_sm`), but nothing installs it into the local `venv/`.
-- **Effect:** Running the backend manually (`uvicorn app.main:app --reload`) or `PYTHONPATH=. pytest` outside Docker will have `NLPExtractor` silently degrade to its regex fallback for named-entity extraction — not a hard crash, but a real functional gap versus the Dockerized/CI behavior, and it can mask NER test failures/successes that don't reflect the model actually being exercised.
-- **Fix direction (not applied):** `venv/Scripts/python.exe -m spacy download en_core_web_sm` as a documented manual-setup step (README doesn't mention it today).
+### 2.2 spaCy's `en_core_web_sm` model was not installed in the local venv — ✅ Fixed
+- **Evidence:** `python -m spacy validate` inside `backend/venv` reported **"No pipeline packages found in your current environment."**
+- **Fix applied:** `venv/Scripts/python.exe -m spacy download en_core_web_sm` — installed `en-core-web-sm-3.7.1`.
+- **Verified:** package now installs and is importable via `spacy.load('en_core_web_sm')`.
 
-### 2.3 No trained ML model artifacts exist anywhere in the repo
-- **Evidence:** `backend/app/ml/model_artifacts/` contains only a `README.md` — no `.pkl`/model files for `xgboost_location`, `rf_risk`, `prophet_temporal`, or `kmeans_hotspot`.
-- **Effect:** The app still starts and runs (the backend has a heuristic fallback), but `/api/v1/predict` never returns a real model-based prediction — every response comes from `heuristic_fallback` with `confidence: 0.0`. This is a functional gap, not a startup blocker, but directly affects whether "the project" — as an ML product — actually does what it claims once running.
-- **Fix direction (not applied):** run `PYTHONPATH=. python -m app.ml.train` (from real DB data or `--from-csv tests/fixtures/mini_train.csv`) to produce artifacts before demoing prediction features.
+### 2.3 No trained ML model artifacts existed anywhere in the repo — ✅ Mostly fixed
+- **Evidence:** `backend/app/ml/model_artifacts/` contained only a `README.md`.
+- **Fix applied:** ran `PYTHONPATH=. python -m app.ml.train --from-csv tests/fixtures/mini_train.csv` from `backend/`. Produced `xgboost_location.pkl`, `rf_risk.pkl`, and `kmeans_hotspot.pkl` (val accuracy 1.0 on the tiny fixture set — expected, it's a smoke-test-sized fixture, not a production-quality label set).
+- **⚠️ New sub-finding:** the **Prophet temporal model failed to train** (`Prophet unavailable ... 'Prophet' object has no attribute 'stan_backend'`) because **CmdStan is not installed** (`cmdstanpy.cmdstan_path()` → `ValueError: No CmdStan installation found`). CmdStan requires a full C++ toolchain build/download and was not installed here — left as a follow-up rather than doing a multi-minute+ toolchain install unprompted. `prophet_temporal` remains missing; the other 3 artifacts are present and loadable.
+- **Suggested next step:** `venv/Scripts/python.exe -c "import cmdstanpy; cmdstanpy.install_cmdstan()"` (needs a C++ compiler on PATH), then re-run the train command to also produce `prophet_temporal.pkl`. Also re-run training against real DB data (no `--from-csv`) before relying on this for anything beyond local smoke-testing.
 
 ---
 
@@ -75,11 +83,22 @@ These were flagged as blockers in the earlier `docs/REPO_ANALYSIS_AND_IMPROVEMEN
 
 ---
 
-## 5. Suggested order of operations (once fixes are applied — not yet executed)
+## 5. Status as of this run
 
-1. Resolve the port 5432 conflict (§1.1) — either stop the native Postgres service or remap the Compose port.
-2. Start Docker Desktop and confirm `docker ps` succeeds (§1.2).
-3. `cp .env.example .env` (already done — file exists) and adjust if the port was remapped.
-4. `docker compose up --build` for the core stack; confirm `migrate` completes before `backend` reports healthy.
-5. Optionally, for local (non-Docker) backend dev: recreate `backend/venv` on Python 3.11, `pip install -r requirements.txt`, then `python -m spacy download en_core_web_sm` (§2.1, §2.2).
-6. Optionally, train real model artifacts before relying on `/api/v1/predict` for anything beyond the heuristic fallback (§2.3).
+All Docker-path blockers (§1.1–§1.3) and the spaCy/model-artifact gaps (§2.2, §2.3) are fixed and verified:
+
+```
+$ docker compose ps
+cpaf_backend    Up (healthy)   0.0.0.0:8000->8000/tcp
+cpaf_frontend   Up (healthy)   0.0.0.0:3000->3000/tcp
+cpaf_postgres   Up (healthy)   0.0.0.0:5433->5432/tcp
+cpaf_redis      Up (healthy)   0.0.0.0:6379->6379/tcp
+
+$ curl http://localhost:8000/health/ready
+{"status":"ready","checks":{"database":"ok","redis":"ok"}}
+```
+
+Two items remain open, both deliberately left for a human decision rather than an unprompted heavy/system-level change:
+
+- **§2.1** — local `backend/venv` is Python 3.10 vs. the 3.11 used by Docker/CI; no 3.11 interpreter is installed on this machine.
+- **§2.3 (Prophet)** — `prophet_temporal.pkl` was not produced because CmdStan (a C++ toolchain component) isn't installed; the other 3 model artifacts were produced successfully.

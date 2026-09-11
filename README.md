@@ -103,6 +103,7 @@ Key endpoints (all under `/api/v1` except health):
 | `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
 | `SECRET_KEY` | JWT secret | `your-secret` |
 | `NEXT_PUBLIC_API_URL` | Frontend API URL | `http://localhost:8000` |
+| `POSTGRES_HOST_PORT` | Host-side port for the `postgres` container (Docker Compose only). Change this if 5432 is already taken by a native/local Postgres install — services inside Compose always reach Postgres at `postgres:5432` regardless. | `5433` |
 
 ## Model Training
 

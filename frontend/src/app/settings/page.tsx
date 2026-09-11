@@ -58,7 +58,7 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async () => {
     setSavingProfile(true);
-    // Simulate API call — real: PATCH /api/v1/auth/me
+    // Simulate API call â€” real: PATCH /api/v1/auth/me
     await new Promise((resolve) => setTimeout(resolve, 800));
     setSavingProfile(false);
     toast({
@@ -83,7 +83,7 @@ export default function SettingsPage() {
   };
 
   const onPasswordChange = async (_data: PasswordFormValues) => {
-    // Simulate API call — real: POST /api/v1/auth/change-password
+    // Simulate API call â€” real: POST /api/v1/auth/change-password
     await new Promise((resolve) => setTimeout(resolve, 800));
     toast({
       title: "Password Updated",
@@ -299,7 +299,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* API Keys — Admin only via RoleGuard */}
+            {/* API Keys â€” Admin only via RoleGuard */}
             <RoleGuard
               allow="admin"
               fallback={
