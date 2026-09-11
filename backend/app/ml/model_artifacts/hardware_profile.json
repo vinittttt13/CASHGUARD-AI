@@ -1,0 +1,22 @@
+{
+  "os": "Windows 10 (AMD64)",
+  "cpu_count": 8,
+  "gpus": [
+    {
+      "index": 0,
+      "name": "NVIDIA GeForce GTX 1650",
+      "vendor": "NVIDIA",
+      "driver_version": "616.64",
+      "vram_mb": 4096,
+      "vram_free_mb": 3560,
+      "compute_capability": "7.5",
+      "cuda_cores": 896,
+      "cuda_available": true
+    }
+  ],
+  "has_nvidia": true,
+  "has_amd": false,
+  "cuda_available": true,
+  "rocm_available": false,
+  "primary_gpu": "NVIDIA GeForce GTX 1650"
+}

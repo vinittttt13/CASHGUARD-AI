@@ -5,6 +5,8 @@
 CPAF is a robust system designed to ingest, process, and analyze cybercrime data to provide actionable intelligence and predictive insights.
 
 ### 📚 Detailed Documentation Suite
+- 🚀 **[End-to-End Walkthrough & ML Training Runbook](docs/SYSTEM_WALKTHROUGH_AND_TRAINING.md)** *(Start Here)*
+- 🎯 **[Where ML Models Are Used on the Site](docs/ML_MODEL_USAGE_GUIDE.md)** *(Interactive Testing Guide)*
 - 🏛️ **[System Architecture](docs/SYSTEM_ARCHITECTURE.md)**
 - 🤖 **[Machine Learning Pipeline & Models](docs/ML_PIPELINE_AND_MODELS.md)**
 - 🔌 **[Backend & REST/WebSocket API Reference](docs/BACKEND_API_REFERENCE.md)**
@@ -15,8 +17,23 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 - 💳 **[IBM AML Dataset Integration & 40GB ETL Pipeline](docs/IBM_AML_DATASET_INTEGRATION.md)**
 - 📋 **[Technical Audit Reports & Master Roadmap](docs/reports/README.md)**
 - 🎨 **[Frontend System Creation & Engineering Guide](docs/FRONTEND_SYSTEM_CREATION_GUIDE.md)**
-- 🤖 **[MCP Server Setup Guide (Approach 1)](docs/MCP_SERVER_SETUP.md)**
 - 🕵️ **[AML Transaction Detection Feature Report](docs/AML_FEATURE_REPORT.md)**
+
+### ⚡ 1-Click Machine Learning Model Training
+Automatically detects **NVIDIA CUDA** GPUs & cores, **AMD Radeon** graphics, or **CPU OpenMP** multi-threading:
+```bash
+# Windows (Double-click or run):
+train_models.bat
+
+# PowerShell:
+.\scripts\train_models.ps1
+
+# Linux / macOS:
+./scripts/train_models.sh
+
+# Inside Docker:
+docker exec cpaf_backend python scripts/train_synthetic_models.py
+```
 
 
 

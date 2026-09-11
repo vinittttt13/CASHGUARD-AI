@@ -36,6 +36,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 from app.ml.aml_xgboost_model import AmlLaunderingClassifier
+from app.ml.hardware import detect_hardware, print_hardware_summary
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
@@ -162,6 +163,8 @@ def train_aml_model(
     test_size: float = 0.15,
     val_size: float = 0.15,
     random_state: int = 42,
+    device: str = "cpu",
+    tree_method: str = "hist",
 ) -> Tuple[AmlLaunderingClassifier, Dict[str, Any]]:
     """
     Executes leak-free train/val/test splitting, training, and evaluation.
@@ -221,6 +224,8 @@ def train_aml_model(
         decision_threshold=0.5,
         early_stopping_rounds=25,
         random_state=random_state,
+        device=device,
+        tree_method=tree_method,
     )
 
     t0 = time.time()
@@ -257,6 +262,8 @@ def train_aml_model(
         "recall": round(rec, 4),
         "f1_score": round(f1, 4),
         "confusion_matrix": cm,
+        "device": device,
+        "tree_method": tree_method,
         "top_features": {k: round(v, 4) for k, v in list(top_features.items())[:10]},
     }
 
@@ -281,7 +288,20 @@ def main(argv=None) -> int:
     parser.add_argument(
         "--model-version", type=str, default="v1.0", help="Model version tag"
     )
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="auto",
+        help="Device to train on ('cuda', 'cpu', or 'auto')",
+    )
     args = parser.parse_args(argv)
+
+    hw = detect_hardware()
+    print_hardware_summary(hw)
+
+    device = hw["xgboost_device"] if args.device == "auto" else args.device
+    tree_method = hw["xgboost_tree_method"]
+    logger.info("Using device acceleration: %s (tree_method=%s)", device, tree_method)
 
     csv_path = Path(args.csv)
     if not csv_path.exists():
@@ -291,7 +311,8 @@ def main(argv=None) -> int:
         return 1
 
     df = load_aml_dataset(csv_path, max_rows=args.max_rows)
-    classifier, metrics = train_aml_model(df)
+    classifier, metrics = train_aml_model(df, device=device, tree_method=tree_method)
+    metrics["hardware"] = hw
 
     logger.info("=" * 60)
     logger.info("AML XGBoost Holdout Test Results:")

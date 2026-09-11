@@ -3,6 +3,29 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
+vi.mock("@/lib/api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/api")>();
+  return {
+    ...actual,
+    getModelStatus: vi.fn().mockResolvedValue({
+      status: "ready",
+      models_loaded: 3,
+      loaded_models: {
+        xgboost: { loaded: true, path: "/mock/xgboost.pkl", version: "v1.0" },
+        autoencoder: { loaded: true, path: "/mock/autoencoder.pt", version: "v1.0" },
+        isolation_forest: { loaded: true, path: "/mock/isolation_forest.pkl", version: "v1.0" },
+      },
+      total_loaded: 3,
+      artifacts_dir: "backend/app/ml/model_artifacts",
+    }),
+    trainModels: vi.fn().mockResolvedValue({
+      status: "success",
+      version: "v1.1",
+      duration_seconds: 4.2,
+      metrics: {},
+    }),
+  };
+});
 
 import SettingsPage from "@/app/settings/page";
 import { useAppStore } from "@/store/useAppStore";

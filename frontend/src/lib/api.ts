@@ -25,7 +25,16 @@ import type {
   FraudRing,
 } from '@/types';
 
-const API_URL = getRuntimeEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8000');
+const getBaseApiUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      return '';
+    }
+  }
+  return getRuntimeEnv('NEXT_PUBLIC_API_URL', 'http://localhost:8000');
+};
+
+export const API_URL = getBaseApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
@@ -36,6 +45,9 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+      config.baseURL = '';
+    }
     const token = getToken();
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -278,4 +290,84 @@ export const healthCheck = async () => {
   return data;
 };
 
+// Machine Learning Model Operations
+export interface ModelStatus {
+  loaded_models: Record<string, string>;
+  total_loaded: number;
+  artifacts_dir: string;
+  manifest?: {
+    artifacts: string[];
+    version: string;
+    last_trained: string;
+    source: string;
+    sample_size: number;
+  };
+  metrics?: {
+    model: string;
+    version: string;
+    trained_at: string;
+    metrics: {
+      version: string;
+      training_samples: number;
+      test_accuracy: number;
+      laundering_cases_flagged: number;
+      feature_importances: Record<string, number>;
+      status: string;
+    };
+  };
+  hardware?: {
+    os?: string;
+    cpu_count?: number;
+    gpus?: Array<{
+      name?: string;
+      vendor?: string;
+      vram_mb?: number;
+      cuda_cores?: number;
+      compute_capability?: string;
+      driver_version?: string;
+      cuda_available?: boolean;
+    }>;
+    has_nvidia?: boolean;
+    has_amd?: boolean;
+    cuda_available?: boolean;
+    primary_gpu?: string;
+    xgboost_device?: string;
+    xgboost_tree_method?: string;
+    n_jobs?: number;
+  };
+}
+
+export interface TrainModelOptions {
+  source?: 'synthetic' | 'database';
+  sample_size?: number;
+  models?: string[];
+  version?: string;
+}
+
+export interface TrainModelResult {
+  status: string;
+  version: string;
+  duration_seconds: number;
+  source: string;
+  sample_size: number;
+  models_trained: string[];
+  metrics: Record<string, any>;
+  hardware?: Record<string, any>;
+  timestamp: string;
+}
+
+export const getModelStatus = async (): Promise<ModelStatus> => {
+  const { data } = await api.get<ModelStatus>('/api/v1/predict/model-status');
+  return data;
+};
+
+export const trainModels = async (options?: TrainModelOptions): Promise<TrainModelResult> => {
+  const { data } = await api.post<TrainModelResult>('/api/v1/predict/train', options || {
+    source: 'synthetic',
+    sample_size: 10000,
+  });
+  return data;
+};
+
 export default api;
+

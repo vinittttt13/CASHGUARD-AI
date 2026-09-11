@@ -107,9 +107,16 @@ class ModelRegistry:
             for f in os.listdir(target_dir):
                 if f.endswith(".pkl"):
                     name = f.replace(".pkl", "")
-                    data = joblib.load(os.path.join(target_dir, f))
-                    self._models[name] = data["model"]
-                    self._versions[name] = data["version"]
+                    try:
+                        data = joblib.load(os.path.join(target_dir, f))
+                        if isinstance(data, dict) and "model" in data:
+                            self._models[name] = data["model"]
+                            self._versions[name] = data.get("version", "v1.0")
+                        else:
+                            self._models[name] = data
+                            self._versions[name] = "v1.0"
+                    except Exception as exc:
+                        logger.warning("Failed loading model artifact %s: %s", f, exc)
 
     # ------------------------------------------------------------------
     # Object-store persistence (S3 today; local paths / file:// always work)

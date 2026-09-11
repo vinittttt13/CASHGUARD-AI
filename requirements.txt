@@ -1,0 +1,10 @@
+# CASHGUARD-AI Root Requirements
+# Install all required libraries for running backend, ML models, and training scripts:
+#   pip install -r requirements.txt
+#
+# Hardware Acceleration Support:
+# - NVIDIA GeForce / RTX / Tesla GPUs (automatic CUDA detection and CUDA core lookup)
+# - AMD Radeon GPUs (automatic WMI/ROCm detection)
+# - Multi-core OpenMP CPU acceleration for training pipelines
+
+-r backend/requirements.txt

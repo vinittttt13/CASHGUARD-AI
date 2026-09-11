@@ -1,34 +1,64 @@
 {
-  "train_samples": 113474,
-  "val_samples": 24316,
-  "test_samples": 24317,
-  "train_duration_seconds": 8.61,
-  "roc_auc": 0.9847,
-  "pr_auc": 0.8755,
-  "accuracy": 0.9395,
-  "precision": 0.4568,
-  "recall": 0.8998,
-  "f1_score": 0.606,
-  "confusion_matrix": [
-    [
-      21713,
-      1346
+  "model": "xgboost_aml",
+  "version": "v20260911.1928",
+  "trained_at": "2026-09-11T19:28:10.302821",
+  "metrics": {
+    "version": "v20260911.1928",
+    "training_samples": 5000,
+    "test_accuracy": 0.874,
+    "laundering_cases_flagged": 337,
+    "feature_importances": {
+      "amount_diff": 0.3414169895660643,
+      "amount_paid": 0.11788610533652043,
+      "amount_received": 0.1137716562548418,
+      "is_cashout_format": 0.09916217018611036,
+      "payment_format_code": 0.058384188335168015,
+      "amount_log": 0.05400385783059324,
+      "to_acct_freq": 0.02813378574513531,
+      "amount_inr_log": 0.027922381105679756,
+      "is_same_bank": 0.021701310133114132,
+      "from_bank_freq": 0.021570777821877662,
+      "amount_inr": 0.021219246385887913,
+      "to_bank_freq": 0.021205418108106843,
+      "from_acct_freq": 0.019535864044947514,
+      "receiving_curr_code": 0.01934142624039333,
+      "payment_curr_code": 0.019294003294231418,
+      "is_cross_currency": 0.015450819611327996,
+      "hour": 0.0,
+      "day_of_week": 0.0,
+      "is_weekend": 0.0,
+      "is_night": 0.0,
+      "hour_sin": 0.0,
+      "hour_cos": 0.0,
+      "is_round_amount": 0.0,
+      "is_same_account": 0.0
+    },
+    "device": "cuda",
+    "status": "trained"
+  },
+  "hardware": {
+    "os": "Windows 10 (AMD64)",
+    "cpu_count": 8,
+    "gpus": [
+      {
+        "index": 0,
+        "name": "NVIDIA GeForce GTX 1650",
+        "vendor": "NVIDIA",
+        "driver_version": "616.64",
+        "vram_mb": 4096,
+        "vram_free_mb": 3377,
+        "compute_capability": "7.5",
+        "cuda_cores": 896,
+        "cuda_available": true
+      }
     ],
-    [
-      126,
-      1132
-    ]
-  ],
-  "top_features": {
-    "is_cashout_format": 0.3703,
-    "payment_format_code": 0.3271,
-    "is_cross_currency": 0.0486,
-    "amount_diff": 0.0426,
-    "is_same_account": 0.0331,
-    "from_bank_freq": 0.0281,
-    "to_acct_freq": 0.0244,
-    "from_acct_freq": 0.0223,
-    "amount_inr_log": 0.0202,
-    "amount_inr": 0.012
+    "has_nvidia": true,
+    "has_amd": false,
+    "cuda_available": true,
+    "rocm_available": false,
+    "primary_gpu": "NVIDIA GeForce GTX 1650",
+    "xgboost_device": "cuda",
+    "xgboost_tree_method": "hist",
+    "n_jobs": 8
   }
 }
