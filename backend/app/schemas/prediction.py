@@ -59,3 +59,27 @@ class HotspotResponse(BaseModel):
     risk_level: RiskLevel
     complaint_count: int
     active_alerts: int
+
+
+class AmlTransactionRequest(BaseModel):
+    timestamp: Optional[str] = None
+    from_bank: Optional[str] = None
+    from_account: Optional[str] = None
+    to_bank: Optional[str] = None
+    to_account: Optional[str] = None
+    amount_paid: float
+    amount_received: Optional[float] = None
+    payment_currency: Optional[str] = "US Dollar"
+    receiving_currency: Optional[str] = "US Dollar"
+    payment_format: Optional[str] = "Cash"
+
+
+class AmlTransactionResponse(BaseModel):
+    is_laundering: int
+    laundering_probability: float
+    risk_level: str
+    decision_threshold: float
+    top_factors: List[Dict[str, Any]]
+    model_name: str = "xgboost_aml"
+    model_version: str = "v1.0"
+

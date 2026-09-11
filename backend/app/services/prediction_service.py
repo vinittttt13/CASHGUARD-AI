@@ -349,3 +349,53 @@ class PredictionService:
                 "total_predictions_30d": int(row[1]),
                 "high_confidence_predictions": int(row[2]),
             }
+
+    # ------------------------------------------------------------------
+    # AML Transaction Laundering Scoring (XGBoost)
+    # ------------------------------------------------------------------
+
+    def score_aml_transaction(self, tx_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Score an AML transaction for laundering risk using xgboost_aml model.
+
+        Falls back to rule-based heuristic if model is not loaded.
+        """
+        aml_model = self.registry.get("xgboost_aml")
+        if aml_model is not None:
+            try:
+                version = self.registry.get_version("xgboost_aml") or "v1.0"
+                res = aml_model.score_transaction(tx_data)
+                res["model_name"] = "xgboost_aml"
+                res["model_version"] = version
+                return res
+            except Exception as exc:
+                logger.warning("AML XGBoost scoring failed: %s. Using heuristic fallback.", exc)
+
+        # Fallback heuristic
+        amount = float(tx_data.get("amount_paid") or 0.0)
+        pmt_fmt = str(tx_data.get("payment_format") or "Cash")
+        is_cashout = pmt_fmt in ("Cash", "Cheque", "Wire", "Bitcoin")
+        
+        prob = 0.10
+        if amount > 100000:
+            prob += 0.35
+        elif amount > 25000:
+            prob += 0.20
+        if is_cashout:
+            prob += 0.25
+
+        prob = min(0.95, prob)
+        risk = "critical" if prob >= 0.8 else "high" if prob >= 0.5 else "medium" if prob >= 0.2 else "low"
+
+        return {
+            "is_laundering": int(prob >= 0.5),
+            "laundering_probability": round(prob, 4),
+            "risk_level": risk,
+            "decision_threshold": 0.5,
+            "top_factors": [
+                {"factor": "amount_paid", "weight": 0.45},
+                {"factor": "payment_format", "weight": 0.35}
+            ],
+            "model_name": "heuristic_aml_fallback",
+            "model_version": "v1.0-fallback"
+        }
+
