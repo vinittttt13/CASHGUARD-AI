@@ -6,6 +6,7 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 
 ### 📚 Detailed Documentation Suite
 - 🚀 **[End-to-End Walkthrough & ML Training Runbook](docs/SYSTEM_WALKTHROUGH_AND_TRAINING.md)** *(Start Here)*
+- 🎯 **[Where ML Models Are Used on the Site](docs/ML_MODEL_USAGE_GUIDE.md)** *(Interactive Testing Guide)*
 - 🏛️ **[System Architecture](docs/SYSTEM_ARCHITECTURE.md)**
 - 🤖 **[Machine Learning Pipeline & Models](docs/ML_PIPELINE_AND_MODELS.md)**
 - 🔌 **[Backend & REST/WebSocket API Reference](docs/BACKEND_API_REFERENCE.md)**
