@@ -1,14 +1,41 @@
 {
-  "generated_at": "2026-09-11T18:54:43.291847",
-  "synthetic_synthesis": true,
-  "samples_complaints": 5000,
-  "samples_aml": 10000,
-  "models": [
-    "kmeans_hotspot",
-    "xgboost_location",
-    "rf_risk",
-    "xgboost_aml"
-  ],
+  "model": "xgboost_aml",
+  "version": "v20260911.1911",
+  "trained_at": "2026-09-11T19:11:43.818260",
+  "metrics": {
+    "version": "v20260911.1911",
+    "training_samples": 5000,
+    "test_accuracy": 0.885,
+    "laundering_cases_flagged": 343,
+    "feature_importances": {
+      "amount_diff": 0.3287800027902425,
+      "amount_received": 0.12719714925878828,
+      "amount_paid": 0.10520111259522541,
+      "is_cashout_format": 0.09218652752458738,
+      "amount_log": 0.06989368207515066,
+      "payment_format_code": 0.051794504041846934,
+      "is_cross_currency": 0.027531762291455916,
+      "amount_inr_log": 0.02611204853904356,
+      "receiving_curr_code": 0.02543804478879373,
+      "payment_curr_code": 0.024301399088682212,
+      "amount_inr": 0.023858586859522465,
+      "to_bank_freq": 0.02317907340479806,
+      "from_bank_freq": 0.019229092133695457,
+      "to_acct_freq": 0.019157477151397106,
+      "is_same_bank": 0.01907132981131963,
+      "from_acct_freq": 0.017068207645450702,
+      "hour": 0.0,
+      "day_of_week": 0.0,
+      "is_weekend": 0.0,
+      "is_night": 0.0,
+      "hour_sin": 0.0,
+      "hour_cos": 0.0,
+      "is_round_amount": 0.0,
+      "is_same_account": 0.0
+    },
+    "device": "cuda",
+    "status": "trained"
+  },
   "hardware": {
     "os": "Windows 10 (AMD64)",
     "cpu_count": 8,
@@ -19,13 +46,19 @@
         "vendor": "NVIDIA",
         "driver_version": "616.64",
         "vram_mb": 4096,
-        "vram_free_mb": 3673,
+        "vram_free_mb": 3586,
         "compute_capability": "7.5",
         "cuda_cores": 896,
         "cuda_available": true
       }
     ],
+    "has_nvidia": true,
+    "has_amd": false,
+    "cuda_available": true,
+    "rocm_available": false,
+    "primary_gpu": "NVIDIA GeForce GTX 1650",
     "xgboost_device": "cuda",
-    "xgboost_tree_method": "hist"
+    "xgboost_tree_method": "hist",
+    "n_jobs": 8
   }
 }

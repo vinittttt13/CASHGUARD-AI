@@ -1,12 +1,14 @@
 {
   "artifacts": [
-    "kmeans_hotspot.pkl",
+    "xgboost_aml.pkl",
     "xgboost_location.pkl",
     "rf_risk.pkl",
-    "xgboost_aml.pkl"
+    "kmeans_hotspot.pkl"
   ],
-  "generated": "2026-09-11T18:54:43.293854",
-  "synthetic_only": true,
+  "version": "v20260911.1911",
+  "last_trained": "2026-09-11T19:11:43.818260",
+  "source": "synthetic",
+  "sample_size": 5000,
   "hardware": {
     "os": "Windows 10 (AMD64)",
     "cpu_count": 8,
@@ -17,13 +19,19 @@
         "vendor": "NVIDIA",
         "driver_version": "616.64",
         "vram_mb": 4096,
-        "vram_free_mb": 3673,
+        "vram_free_mb": 3586,
         "compute_capability": "7.5",
         "cuda_cores": 896,
         "cuda_available": true
       }
     ],
+    "has_nvidia": true,
+    "has_amd": false,
+    "cuda_available": true,
+    "rocm_available": false,
+    "primary_gpu": "NVIDIA GeForce GTX 1650",
     "xgboost_device": "cuda",
-    "xgboost_tree_method": "hist"
+    "xgboost_tree_method": "hist",
+    "n_jobs": 8
   }
 }
