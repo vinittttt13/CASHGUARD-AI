@@ -21,7 +21,9 @@ from app.ml.aml_preprocessor import (
 def _raw_chunk(n=3):
     return pd.DataFrame(
         {
-            "Timestamp": ["2024/01/15 09:30", "2024/01/20 14:00", "2024/01/21 23:45"][:n],
+            "Timestamp": ["2024/01/15 09:30", "2024/01/20 14:00", "2024/01/21 23:45"][
+                :n
+            ],
             "From Bank": [101, 102, 103][:n],
             "Account": ["A1", "A2", "A3"][:n],
             "To Bank": [201, 202, 203][:n],
@@ -132,7 +134,11 @@ class TestProcessAmlDataset:
         sample_path = str(tmp_path / "sample.csv")
 
         process_aml_dataset(
-            sample_csv, out_path, chunksize=2, sample_csv_path=sample_path, sample_size=2
+            sample_csv,
+            out_path,
+            chunksize=2,
+            sample_csv_path=sample_path,
+            sample_size=2,
         )
 
         assert os.path.exists(sample_path)

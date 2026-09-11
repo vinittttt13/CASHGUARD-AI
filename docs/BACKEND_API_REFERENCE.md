@@ -217,6 +217,44 @@ CASHGUARD-AI provides a RESTful API and real-time WebSocket protocol powered by 
 - **Auth Required**: Analyst or Admin role
 - **Body**: `{"complaint_ids": ["uuid1", "uuid2"]}` (Max 100 per batch)
 
+### 5.3 AML Transaction Risk Scoring
+- **Route**: `POST /api/v1/predict/aml-transaction`
+- **Auth Required**: any authenticated user
+- **Body (`AmlTransactionRequest`)** — only `amount_paid` is required; everything else defaults sensibly:
+  ```json
+  {
+    "amount_paid": 75000.0,
+    "amount_received": 75000.0,
+    "payment_currency": "Euro",
+    "receiving_currency": "Euro",
+    "payment_format": "Wire",
+    "from_bank": "012",
+    "to_bank": "020",
+    "from_account": null,
+    "to_account": null,
+    "timestamp": null
+  }
+  ```
+- **Response `200 OK` (`AmlTransactionResponse`)**:
+  ```json
+  {
+    "is_laundering": 0,
+    "laundering_probability": 0.0573,
+    "risk_level": "low",
+    "decision_threshold": 0.5,
+    "top_factors": [
+      {"factor": "is_cashout_format", "weight": 0.3703},
+      {"factor": "payment_format_code", "weight": 0.3271}
+    ],
+    "model_name": "xgboost_aml",
+    "model_version": "v1.0"
+  }
+  ```
+- **`model_name` is always one of two values, never ambiguous**:
+  - `"xgboost_aml"` — the real trained classifier (`backend/app/ml/aml_xgboost_model.py`) produced this result.
+  - `"heuristic_aml_fallback"` — no trained artifact was loaded (see `docs/AML_FEATURE_REPORT.md` for why that happens and how to fix it); a simple 3-rule heuristic produced this result instead. The response is never labeled `"xgboost_aml"` when it wasn't.
+- See **`docs/AML_FEATURE_REPORT.md`** for the full model architecture, measured accuracy (recall/precision tradeoff), training/reproduction instructions, and frontend integration (Analytics page → "AML Transaction Risk Analysis").
+
 ---
 
 ## 6. Intelligence & Alerts Endpoints (`/api/v1/intelligence`)

@@ -162,4 +162,3 @@ async def predict_aml_transaction(
     svc = _get_prediction_service()
     result = svc.score_aml_transaction(tx_request.model_dump())
     return result
-

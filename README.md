@@ -16,6 +16,7 @@ CPAF is a robust system designed to ingest, process, and analyze cybercrime data
 - 📋 **[Technical Audit Reports & Master Roadmap](docs/reports/README.md)**
 - 🎨 **[Frontend System Creation & Engineering Guide](docs/FRONTEND_SYSTEM_CREATION_GUIDE.md)**
 - 🤖 **[MCP Server Setup Guide (Approach 1)](docs/MCP_SERVER_SETUP.md)**
+- 🕵️ **[AML Transaction Detection Feature Report](docs/AML_FEATURE_REPORT.md)**
 
 
 

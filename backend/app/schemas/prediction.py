@@ -82,4 +82,3 @@ class AmlTransactionResponse(BaseModel):
     top_factors: List[Dict[str, Any]]
     model_name: str = "xgboost_aml"
     model_version: str = "v1.0"
-

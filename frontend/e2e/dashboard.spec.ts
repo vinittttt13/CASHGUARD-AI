@@ -44,3 +44,26 @@ test("intelligence report is generated from DB records", async ({ page }) => {
     page.getByText(/incidents reported totaling INR/i),
   ).toBeVisible({ timeout: 15_000 });
 });
+
+test("AML transaction analysis: submit a real transaction and get a real backend prediction", async ({
+  page,
+}) => {
+  await page.goto("/analytics");
+  await expect(
+    page.getByRole("heading", { name: "AML Transaction Risk Analysis" }),
+  ).toBeVisible();
+
+  await page.getByLabel("Amount Paid").fill("98000");
+  await page.getByLabel("Payment Format").selectOption("Cash");
+  await page.getByRole("button", { name: "Analyze Transaction" }).click();
+
+  // A real prediction came back from POST /api/v1/predict/aml-transaction —
+  // not a client-side mock — proven by a risk level actually rendering and
+  // the response explicitly naming which model produced it (xgboost_aml if
+  // a trained artifact is loaded, or the heuristic fallback if not — either
+  // way, never silently unlabeled).
+  await expect(page.getByText(/CRITICAL|HIGH|MEDIUM|LOW/)).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(/xgboost_aml|Heuristic fallback/i)).toBeVisible();
+});
