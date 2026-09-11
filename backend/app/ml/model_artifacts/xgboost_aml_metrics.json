@@ -1,34 +1,38 @@
 {
-  "train_samples": 113474,
-  "val_samples": 24316,
-  "test_samples": 24317,
-  "train_duration_seconds": 8.61,
-  "roc_auc": 0.9847,
-  "pr_auc": 0.8755,
-  "accuracy": 0.9395,
-  "precision": 0.4568,
-  "recall": 0.8998,
-  "f1_score": 0.606,
-  "confusion_matrix": [
-    [
-      21713,
-      1346
-    ],
-    [
-      126,
-      1132
-    ]
-  ],
-  "top_features": {
-    "is_cashout_format": 0.3703,
-    "payment_format_code": 0.3271,
-    "is_cross_currency": 0.0486,
-    "amount_diff": 0.0426,
-    "is_same_account": 0.0331,
-    "from_bank_freq": 0.0281,
-    "to_acct_freq": 0.0244,
-    "from_acct_freq": 0.0223,
-    "amount_inr_log": 0.0202,
-    "amount_inr": 0.012
+  "model": "xgboost_aml",
+  "version": "v20260911.1804",
+  "trained_at": "2026-09-11T18:04:40.212961",
+  "metrics": {
+    "version": "v20260911.1804",
+    "training_samples": 3000,
+    "test_accuracy": 0.864,
+    "laundering_cases_flagged": 336,
+    "feature_importances": {
+      "amount_diff": 0.29379340294876277,
+      "amount_received": 0.13125735203484898,
+      "is_cashout_format": 0.11284450913410891,
+      "amount_paid": 0.09016433139865043,
+      "payment_format_code": 0.048528405593951655,
+      "from_acct_freq": 0.03762470467179797,
+      "amount_log": 0.03413348189790684,
+      "amount_inr": 0.03334492736778398,
+      "to_acct_freq": 0.03290166626177419,
+      "amount_inr_log": 0.030211706845551377,
+      "is_cross_currency": 0.02770316533718044,
+      "is_same_bank": 0.026693950692151937,
+      "to_bank_freq": 0.026515926523679782,
+      "payment_curr_code": 0.026286728043616814,
+      "from_bank_freq": 0.02573602956800091,
+      "receiving_curr_code": 0.02225971168023301,
+      "hour": 0.0,
+      "day_of_week": 0.0,
+      "is_weekend": 0.0,
+      "is_night": 0.0,
+      "hour_sin": 0.0,
+      "hour_cos": 0.0,
+      "is_round_amount": 0.0,
+      "is_same_account": 0.0
+    },
+    "status": "trained"
   }
 }

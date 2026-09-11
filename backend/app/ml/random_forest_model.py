@@ -15,6 +15,10 @@ class RiskLevelClassifier:
         self.model.fit(X_train, y_train)
         self.classes_ = self.model.classes_
 
+    def fit(self, X_train, y_train):
+        self.train(X_train, y_train)
+        return self
+
     def predict_risk(self, X):
         preds = self.model.predict(X)
         probs = self.model.predict_proba(X)

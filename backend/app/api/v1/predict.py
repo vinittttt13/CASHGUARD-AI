@@ -19,8 +19,11 @@ from app.schemas.prediction import (
     AmlTransactionResponse,
     BatchPredictionRequest,
     BatchPredictionResponse,
+    ModelStatusResponse,
     PredictionRequest,
     PredictionResponse,
+    TrainModelRequest,
+    TrainModelResponse,
 )
 from app.services.prediction_service import PredictionService
 from app.utils.circuit_breaker import CircuitBreaker, CircuitBreakerOpenException
@@ -140,6 +143,78 @@ async def batch_predict(
     }
 
 
+@router.get("/model-status", response_model=ModelStatusResponse)
+async def get_model_status(
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve the status and loaded versions of all ML models in ModelRegistry."""
+    import json
+    from pathlib import Path
+
+    svc = _get_prediction_service()
+    registry = svc.registry
+    versions = registry.get_all_versions()
+
+    manifest = None
+    metrics = None
+    art_dir = Path(registry.artifacts_dir)
+    manifest_file = art_dir / "artifact_manifest.json"
+    metrics_file = art_dir / "xgboost_aml_metrics.json"
+
+    if manifest_file.exists():
+        try:
+            with open(manifest_file, "r") as f:
+                manifest = json.load(f)
+        except Exception:
+            pass
+    if metrics_file.exists():
+        try:
+            with open(metrics_file, "r") as f:
+                metrics = json.load(f)
+        except Exception:
+            pass
+
+    return {
+        "loaded_models": versions,
+        "total_loaded": len(versions),
+        "artifacts_dir": registry.artifacts_dir,
+        "manifest": manifest,
+        "metrics": metrics,
+    }
+
+
+@router.post("/train", response_model=TrainModelResponse)
+async def train_models(
+    train_req: TrainModelRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Trigger on-demand training of ML models (synthetic or database data) and hot-swap."""
+    from app.ml.training_pipeline import run_training_pipeline
+
+    result = await asyncio.to_thread(
+        run_training_pipeline,
+        source=train_req.source,
+        sample_size=train_req.sample_size,
+        models=train_req.models,
+        version=train_req.version,
+    )
+    # Refresh prediction service internal cache flag
+    svc = _get_prediction_service()
+    svc._models_loaded = True
+    return result
+
+
+@router.post("/aml-transaction", response_model=AmlTransactionResponse)
+async def predict_aml_transaction(
+    tx_request: AmlTransactionRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """Real-time transaction laundering risk scoring powered by XGBoost."""
+    svc = _get_prediction_service()
+    result = svc.score_aml_transaction(tx_request.model_dump())
+    return result
+
+
 @router.get("/{prediction_id}", response_model=PredictionResponse)
 async def get_prediction(
     prediction_id: UUID,
@@ -153,12 +228,3 @@ async def get_prediction(
     return prediction
 
 
-@router.post("/aml-transaction", response_model=AmlTransactionResponse)
-async def predict_aml_transaction(
-    tx_request: AmlTransactionRequest,
-    current_user: User = Depends(get_current_user),
-):
-    """Real-time transaction laundering risk scoring powered by XGBoost."""
-    svc = _get_prediction_service()
-    result = svc.score_aml_transaction(tx_request.model_dump())
-    return result

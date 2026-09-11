@@ -36,6 +36,7 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -128,6 +129,19 @@ export default function LoginPage() {
                 "Sign In"
               )}
             </Button>
+            <div className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full text-xs text-slate-600 hover:text-slate-900 border-dashed"
+                onClick={() => {
+                  setValue("email", "admin@cpaf.gov.in");
+                  setValue("password", "admin123");
+                }}
+              >
+                Auto-Fill Demo Admin (admin@cpaf.gov.in)
+              </Button>
+            </div>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t p-4 text-center text-sm text-muted-foreground">

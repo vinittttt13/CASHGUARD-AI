@@ -62,6 +62,9 @@ services:
       - ALGORITHM=${ALGORITHM:-HS256}
       - ACCESS_TOKEN_EXPIRE_MINUTES=${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       - CORS_ORIGINS=${CORS_ORIGINS:-["http://localhost:3000"]}
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/app/ml/model_artifacts:/app/app/ml/model_artifacts
     ports:
       - "8000:8000"
     depends_on:

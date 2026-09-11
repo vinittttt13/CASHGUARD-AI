@@ -82,3 +82,30 @@ class AmlTransactionResponse(BaseModel):
     top_factors: List[Dict[str, Any]]
     model_name: str = "xgboost_aml"
     model_version: str = "v1.0"
+
+
+class TrainModelRequest(BaseModel):
+    source: str = "synthetic"  # "synthetic" | "database"
+    sample_size: int = 10000
+    models: Optional[List[str]] = None
+    version: Optional[str] = None
+
+
+class TrainModelResponse(BaseModel):
+    status: str
+    version: str
+    duration_seconds: float
+    source: str
+    sample_size: int
+    models_trained: List[str]
+    metrics: Dict[str, Any]
+    timestamp: str
+
+
+class ModelStatusResponse(BaseModel):
+    loaded_models: Dict[str, str]
+    total_loaded: int
+    artifacts_dir: str
+    manifest: Optional[Dict[str, Any]] = None
+    metrics: Optional[Dict[str, Any]] = None
+

@@ -1,0 +1,12 @@
+{
+  "artifacts": [
+    "xgboost_aml.pkl",
+    "xgboost_location.pkl",
+    "rf_risk.pkl",
+    "kmeans_hotspot.pkl"
+  ],
+  "version": "v20260911.1804",
+  "last_trained": "2026-09-11T18:04:40.213528",
+  "source": "synthetic",
+  "sample_size": 3000
+}
