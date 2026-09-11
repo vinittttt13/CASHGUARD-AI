@@ -22,7 +22,7 @@ This validates the environment, verifies/pre-trains ML artifacts (`xgboost_aml.p
 
 | | |
 |---|---|
-| **Status & plan** | [`ROADMAP.md`](./ROADMAP.md) · [`IMPLEMENTATION_PLAN_MICROTASKS.md`](./IMPLEMENTATION_PLAN_MICROTASKS.md) · [`CHANGELOG.md`](./CHANGELOG.md) |
+| **Status & plan** | [`PROJECT_STATUS_AND_GAPS.md`](./PROJECT_STATUS_AND_GAPS.md) (verified, current) · [`ROADMAP.md`](./ROADMAP.md) · [`IMPLEMENTATION_PLAN_MICROTASKS.md`](./IMPLEMENTATION_PLAN_MICROTASKS.md) · [`CHANGELOG.md`](./CHANGELOG.md) |
 | **What's in the repo & why** | [`REPO_ANALYSIS_AND_IMPROVEMENTS.md`](./REPO_ANALYSIS_AND_IMPROVEMENTS.md) |
 | **Decisions** | [`adr/`](./adr/) (ADR 0001 — drop PostGIS) |
 
