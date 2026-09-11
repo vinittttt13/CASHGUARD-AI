@@ -13,10 +13,12 @@ import {
 import { HotspotGrid } from "@/components/intelligence/hotspot-grid";
 import { TrendChart } from "@/components/intelligence/trend-chart";
 import { StateBreakdown } from "@/components/intelligence/state-breakdown";
+import { FraudRingGraph } from "@/components/intelligence/fraud-ring-graph";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
 
 import { useApiResource } from "@/hooks/useApiResource";
 import {
+  getFraudRings,
   getIntelligenceReport,
   getTrends,
   intelligenceReportExportUrl,
@@ -28,6 +30,7 @@ const DAYS = 7;
 export default function IntelligenceReportPage() {
   const report = useApiResource(() => getIntelligenceReport(DAYS), []);
   const trends = useApiResource(() => getTrends(30), []);
+  const fraudRings = useApiResource(() => getFraudRings(30), []);
   const currentDate = new Date().toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
@@ -54,6 +57,7 @@ export default function IntelligenceReportPage() {
             onClick={() => {
               report.refetch();
               trends.refetch();
+              fraudRings.refetch();
             }}
           >
             <RefreshCw className="h-4 w-4" /> Refresh
@@ -147,6 +151,24 @@ export default function IntelligenceReportPage() {
             <Loading />
           ) : (
             <HotspotGrid hotspots={report.data?.active_hotspots} />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Syndicate & Fraud Ring Network Analysis</CardTitle>
+          <CardDescription>
+            Graph co-occurrence clusters identifying coordinated mule accounts, banking nexus, and criminal rings.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {fraudRings.loading ? (
+            <Loading label="Running graph analytics on complaint networks…" />
+          ) : fraudRings.error ? (
+            <ErrorState error={fraudRings.error} onRetry={fraudRings.refetch} />
+          ) : (
+            <FraudRingGraph rings={fraudRings.data ?? []} />
           )}
         </CardContent>
       </Card>

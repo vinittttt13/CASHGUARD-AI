@@ -514,15 +514,20 @@ kubectl apply -f kubernetes/
 - [x] Dark/light theme with `next-themes`
 - [x] JWT login page with React Hook Form + Zod validation
 - [x] Dashboard layout with stats overview, prediction form, complaint feed
-- [x] `PredictionForm` — full ML prediction UI with SHAP result display
-- [x] `PredictionPanel` — result display with confidence visualization
-- [x] `RiskScoreCard` — visual risk gauge component
-- [x] `StatsOverview` — KPI metrics cards
-- [x] `ComplaintFeed` — live complaint list
-- [x] Leaflet map integration with heat layer
-- [x] Recharts analytics charts
-- [x] Zustand global state store
-- [x] Socket.IO WebSocket client for real-time alerts
+- [x] Header and Sidebar with dynamic user credentials, role badge, and active route highlighting
+- [x] Real-time Notification Bell in header and Alerts nav badge synced with live WebSocket unread count
+- [x] `AlertsPage` — full alert feed with priority filters (Critical/High/Med/Low), search, acknowledge, and bulk-acknowledge
+- [x] `AnalyticsPage` — crime volume time-series, model confidence gauge, SHAP feature importance radar, geographic distribution, and hotspot database
+- [x] `IntelligencePage` — executive summary, threat trends, state-wise breakdown, identified hotspots, interactive **Fraud Ring Network Graph**, and CSV export
+- [x] `SettingsPage` — profile management, appearance dark/light toggle, notification preference switches, password change, and RoleGuard-protected API key generator with clipboard copy
+- [x] `PredictiveMap` — dynamic React-Leaflet map with Heatmap layer, circle markers, ATM markers, geofence zones, bounds fitter, layer controls, and confidence legend
+- [x] `useWebSocket` hook with exponential backoff reconnection, live alert dispatch, and heartbeat handling
+- [x] Zustand global state store (`useAppStore`) with typed user session, persistent unread counts, alerts, and prediction status updates
+- [x] Role-Based Access Control (`RoleGuard`) component for admin vs analyst UI permissions
+- [x] Global `ErrorBoundary` in root layout and localized `ErrorState`, `Loading`, `EmptyState` fallbacks
+- [x] Shadcn/ui `Skeleton` component for consistent loading state placeholders
+- [x] Shadcn/ui `Badge` component for role tags, risk severity indicators, and alert counters
+
 
 ### ✅ Infrastructure
 - [x] Docker Compose with 6 services
@@ -550,15 +555,15 @@ kubectl apply -f kubernetes/
 - [ ] **Input validation hardening** — add schema-level validation for lat/lng ranges, amount bounds, date formats
 - [ ] **Consistent pagination** — ensure cursor-based or offset pagination is uniform across all list endpoints
 
-#### Frontend
-- [ ] **Alerts page** — `frontend/src/app/alerts/` folder exists but full page implementation needs verification
-- [ ] **Analytics page** — complete chart implementations with real API data binding (currently may use mock data)
-- [ ] **Intelligence page** — fraud ring graph visualization needs a network-graph library (D3.js or Sigma.js)
-- [ ] **Map component** — `predictive-map.tsx` is a near-empty stub (389 bytes); full Leaflet heatmap integration needed
-- [ ] **WebSocket reconnection logic** — add exponential backoff on Socket.IO disconnect
-- [ ] **React error boundaries** — add graceful UI failure handling around async sections
-- [ ] **Loading skeletons** — skeleton components for all async data sections
-- [ ] **Settings page** — user preferences (theme, notifications) not yet implemented
+#### Frontend (All Completed ✅)
+- [x] **Alerts page** — Full interactive alert feed with search, severity filter, acknowledge, bulk-acknowledge, and auto-clearing unread badge
+- [x] **Analytics page** — Complete chart implementations with live API data binding (time-series, confidence gauge, SHAP radar, geo distribution, hotspot DB)
+- [x] **Intelligence page** — Full executive summary, trends, state breakdown, and interactive **Fraud Ring Network Graph** component
+- [x] **Map component** — React-Leaflet dynamic integration with Heatmap layer, circle markers, ATM markers, geofence zones, bounds fitter, and legend
+- [x] **WebSocket reconnection logic** — Real-time live feed hook with exponential backoff with jitter and reconnection limits
+- [x] **React error boundaries** — Global ErrorBoundary in RootLayout, localized ErrorState, Loading, and EmptyState fallbacks
+- [x] **Loading skeletons** — Reusable shadcn/ui Skeleton component for consistent loading placeholders
+- [x] **Settings page** — User preferences (theme toggle, notification switches), profile details, password change, and RoleGuard-protected API key copy
 
 ### 🟡 Medium Priority
 
@@ -584,7 +589,8 @@ kubectl apply -f kubernetes/
 
 ### 🟢 Low Priority / Nice-to-Have
 
-- [ ] **Fraud ring graph visualization** — interactive network graph (D3.js/Sigma.js) for Intelligence page
+- [x] **Fraud ring graph visualization** — interactive network graph for Intelligence page
+
 - [ ] **PDF report export** — one-click analyst report generation
 - [ ] **Multi-language NLP** — Hindi/regional language complaint text processing
 - [ ] **SMS/Email alert notifications** — Twilio/SendGrid integration
