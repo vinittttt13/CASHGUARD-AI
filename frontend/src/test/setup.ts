@@ -8,6 +8,17 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
+// jsdom has no ResizeObserver — recharts' <ResponsiveContainer> (used by
+// every analytics/intelligence chart) needs one at mount time and throws
+// an uncaught ReferenceError without it.
+if (!(globalThis as any).ResizeObserver) {
+  (globalThis as any).ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}
+
 // jsdom has no WebSocket by default in some configs; provide a minimal stub.
 if (!(globalThis as any).WebSocket) {
   (globalThis as any).WebSocket = class {

@@ -2,6 +2,42 @@
 
 All notable changes to CASHGUARD-AI. Newest first.
 
+## [Unreleased] — test coverage: every previously-0%-covered module
+
+### Added
+- `backend/tests/test_alert_service.py`, `test_aml_preprocessor.py`,
+  `test_redis_client.py`, `test_websocket_manager.py` — these four modules
+  had **zero** test coverage (`app/services/alert_service.py`,
+  `app/ml/aml_preprocessor.py`, `app/core/redis_client.py` were at 0/35%,
+  `app/services/websocket_manager.py` at 25%). Backend line coverage moved
+  from 69% → 79% (149 passing tests, up from 79).
+- `backend/tests/test_prophet_model.py` — `app/ml/prophet_model.py` was
+  also at 0%; tests are written and pass, but are skipped with a clear
+  reason (`CmdStan not installed`) rather than faked, matching the
+  already-documented Prophet/CmdStan gap (`docs/PROJECT_RUN_OBSTACLES.md`).
+- `mcp/tests/` (new — the MCP tool server had no test infrastructure at
+  all: no venv, no pytest, no tests). 63 tests, 95% coverage of
+  `mcp/server.py`, run in an isolated `mcp/venv` (installing MCP's own
+  `requirements.txt` into the shared backend venv pulled in an incompatible
+  `starlette`/`pydantic` and had to be reverted — kept fully separate this
+  time). `.github/workflows/ci.yml` gained an `mcp-test` job.
+- Frontend unit tests for the three previously-untested top-level pages:
+  `src/app/analytics/__tests__/analytics-page.test.tsx`,
+  `src/app/intelligence/__tests__/intelligence-page.test.tsx`,
+  `src/app/settings/__tests__/settings-page.test.tsx` (21 new tests).
+  `src/test/setup.ts` gained a `ResizeObserver` polyfill — its absence in
+  jsdom was silently crashing every recharts-based component and would
+  have blocked any future chart test, not just these. Frontend: 47 passing
+  tests, up from 26.
+
+### Found, not fixed (out of scope for a test-suite pass — flagged for a
+follow-up)
+- `frontend/src/app/settings/page.tsx`'s "Generate New Key" button
+  (Security tab, admin-only) has no `onClick` handler at all — clicking it
+  does nothing. The API key shown is already an explicitly-labeled demo
+  value (`cgai_sk_prod_f4k3k3y_d0n0tus31npr0d`), but the button silently
+  doing nothing is a real UX gap for whoever eventually wires this up.
+
 ## [Unreleased] — stabilization pass: local run, live UI bugs, k8s portability
 
 ### Fixed
