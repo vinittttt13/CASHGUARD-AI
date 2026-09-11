@@ -9,7 +9,6 @@
     "e2e/**/*.ts"
   ],
   "project": ["src/**/*.{ts,tsx}", "e2e/**/*.ts"],
-  "ignore": ["src/components/_wip/**"],
   "ignoreExportsUsedInFile": true,
   "includeEntryExports": false,
   "ignoreDependencies": ["@vitejs/plugin-react", "@testing-library/jest-dom"],

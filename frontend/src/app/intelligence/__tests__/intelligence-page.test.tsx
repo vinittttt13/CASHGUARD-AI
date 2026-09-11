@@ -5,7 +5,7 @@ const api = vi.hoisted(() => ({
   getIntelligenceReport: vi.fn(),
   getTrends: vi.fn(),
   getFraudRings: vi.fn(),
-  intelligenceReportExportUrl: vi.fn(() => "/export.csv"),
+  exportIntelligenceReport: vi.fn(),
 }));
 vi.mock("@/lib/api", () => api);
 
@@ -113,16 +113,29 @@ describe("IntelligenceReportPage", () => {
     expect(api.getFraudRings.mock.calls.length).toBeGreaterThan(callsBefore.rings);
   });
 
-  it("export link points at the CSV export URL for the report window", async () => {
+  it("export button triggers an authenticated CSV download for the report window", async () => {
     resolveEverythingHappily();
+    api.exportIntelligenceReport.mockResolvedValue(undefined);
+    const { default: userEvent } = await import("@testing-library/user-event");
 
     render(<IntelligenceReportPage />);
     await waitFor(() => expect(screen.getByText("Executive Summary")).toBeInTheDocument());
 
-    expect(api.intelligenceReportExportUrl).toHaveBeenCalledWith(7);
-    expect(screen.getByRole("link", { name: /export csv/i })).toHaveAttribute(
-      "href",
-      "/export.csv",
-    );
+    await userEvent.click(screen.getByRole("button", { name: /export csv/i }));
+
+    await waitFor(() => expect(api.exportIntelligenceReport).toHaveBeenCalledWith(7));
+  });
+
+  it("shows an error toast when the export fails", async () => {
+    resolveEverythingHappily();
+    api.exportIntelligenceReport.mockRejectedValue(new Error("export failed"));
+    const { default: userEvent } = await import("@testing-library/user-event");
+
+    render(<IntelligenceReportPage />);
+    await waitFor(() => expect(screen.getByText("Executive Summary")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: /export csv/i }));
+
+    await waitFor(() => expect(api.exportIntelligenceReport).toHaveBeenCalled());
   });
 });

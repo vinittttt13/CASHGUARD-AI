@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCenter } from "@/components/alerts/AlertCenter";
+import { CaseQueueTable } from "@/components/alerts/CaseQueueTable";
 import { useToast } from "@/hooks/use-toast";
 import { useApiResource } from "@/hooks/useApiResource";
 import { acknowledgeAlert, getAlerts } from "@/lib/api";
@@ -123,6 +124,15 @@ export default function AlertsPage() {
         </CardHeader>
         <CardContent>
           <AlertCenter searchQuery={searchQuery} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Case Queue</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CaseQueueTable />
         </CardContent>
       </Card>
     </div>
