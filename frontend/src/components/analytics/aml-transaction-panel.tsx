@@ -13,7 +13,8 @@ import { predictAmlTransaction } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { StatutoryNoticeButton } from "./statutory-notice-modal";
-import type { AmlTransactionResponse, RiskLevel } from "@/types";
+import { RISK_META, SeverityBadge } from "@/components/shared/intel-primitives";
+import type { AmlTransactionResponse } from "@/types";
 
 const PAYMENT_FORMATS = ["Cash", "Cheque", "ACH", "Credit Card", "Wire", "Bitcoin", "Reinvestment"];
 const CURRENCIES = ["US Dollar", "Euro", "UK Pound", "Rupee", "Yen", "Bitcoin", "Yuan"];
@@ -28,13 +29,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const RISK_STYLES: Record<RiskLevel, string> = {
-  critical: "bg-red-100 text-red-800 border-red-200",
-  high: "bg-orange-100 text-orange-800 border-orange-200",
-  medium: "bg-amber-100 text-amber-800 border-amber-200",
-  low: "bg-green-100 text-green-800 border-green-200",
-};
-
 // Sourced from backend/app/ml/model_artifacts/xgboost_aml_metrics.json — a
 // real, measured evaluation on a held-out test set, not a marketing number.
 // Recall is high but precision is genuinely low: most flagged transactions
@@ -47,7 +41,7 @@ const MODEL_METRICS = {
 };
 
 const selectClass =
-  "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
+  "flex h-9 w-full rounded-md border border-input bg-surface-overlay px-3 py-1 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
 
 export function AmlTransactionPanel() {
   const { toast } = useToast();
@@ -193,23 +187,20 @@ export function AmlTransactionPanel() {
         </div>
       </form>
 
-      <div className="md:col-span-2 rounded-lg border bg-muted/20 p-4 flex flex-col">
+      <div className="md:col-span-2 flex flex-col rounded-lg border border-border bg-surface-overlay p-4">
         {!result ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center text-muted-foreground text-sm py-8">
-            <ShieldCheck className="h-10 w-10 mb-3 opacity-40" />
+          <div className="flex flex-1 flex-col items-center justify-center py-8 text-center text-sm text-muted-foreground">
+            <ShieldCheck className="mb-3 h-9 w-9 opacity-40" />
             Submit a transaction to see its AML risk assessment.
           </div>
         ) : (
           <div className="space-y-3">
-            <div
-              className={cn(
-                "rounded-md border p-3 text-center",
-                RISK_STYLES[result.risk_level],
-              )}
-            >
-              <div className="text-xs font-bold uppercase tracking-wider">Risk Level</div>
-              <div className="text-2xl font-extrabold">{result.risk_level.toUpperCase()}</div>
-              <div className="text-xs mt-1">
+            <div className={cn("rounded-md border p-3 text-center", RISK_META[result.risk_level].bg, RISK_META[result.risk_level].border)}>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Risk Level</div>
+              <div className={cn("mt-1 flex items-center justify-center", RISK_META[result.risk_level].text)}>
+                <SeverityBadge level={result.risk_level} />
+              </div>
+              <div className="mt-1.5 font-mono text-xs text-muted-foreground">
                 {result.is_laundering ? "Flagged as suspicious" : "Not flagged"} ·{" "}
                 {(result.laundering_probability * 100).toFixed(1)}% probability
               </div>
@@ -218,11 +209,11 @@ export function AmlTransactionPanel() {
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Model used</span>
               {isHeuristic ? (
-                <Badge variant="outline" className="gap-1 border-amber-300 text-amber-700">
+                <Badge variant="outline" className="gap-1 border-risk-medium/40 text-risk-medium">
                   <AlertTriangle className="h-3 w-3" /> Heuristic fallback (model unavailable)
                 </Badge>
               ) : (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="font-mono">
                   {result.model_name} · {result.model_version}
                 </Badge>
               )}

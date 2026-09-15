@@ -28,13 +28,13 @@ export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white border p-3 rounded-lg shadow-lg">
-          <p className="font-semibold text-sm mb-2">{formatDateStr(label)}</p>
+        <div className="rounded-md border border-[#1b2a38] bg-[#111a24] p-3 shadow-lg">
+          <p className="mb-2 text-xs font-semibold text-[#e6edf3]">{formatDateStr(label)}</p>
           {payload.map((entry: any, index: number) => (
-            <div key={index} className="flex items-center gap-2 text-sm">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-muted-foreground capitalize">{entry.name}:</span>
-              <span className="font-semibold">{entry.value}</span>
+            <div key={index} className="flex items-center gap-2 text-xs">
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
+              <span className="capitalize text-[#8b9aaa]">{entry.name}:</span>
+              <span className="font-mono font-semibold text-[#e6edf3]">{entry.value}</span>
             </div>
           ))}
         </div>
@@ -52,53 +52,55 @@ export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
         >
           <defs>
             <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.25}/>
+              <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
             </linearGradient>
             <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+              <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.25}/>
+              <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-          <XAxis 
-            dataKey="date" 
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1b2a38" />
+          <XAxis
+            dataKey="date"
             tickFormatter={formatDateStr}
-            tick={{ fontSize: 12, fill: '#6b7280' }}
+            tick={{ fontSize: 11, fill: '#8b9aaa' }}
             tickMargin={10}
             minTickGap={30}
+            axisLine={{ stroke: '#1b2a38' }}
+            tickLine={false}
           />
-          <YAxis 
-            tick={{ fontSize: 12, fill: '#6b7280' }}
+          <YAxis
+            tick={{ fontSize: 11, fill: '#8b9aaa' }}
             tickMargin={10}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend verticalAlign="top" height={36} iconType="circle" />
-          
+          <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 12, color: '#8b9aaa' }} />
+
           {/* Forecast Area (Confidence Interval could use area bounds if supported, but here just filling under forecast) */}
-          <Area 
-            type="monotone" 
-            dataKey="forecast" 
+          <Area
+            type="monotone"
+            dataKey="forecast"
             name="Forecast"
-            stroke="#8b5cf6" 
+            stroke="#a78bfa"
             strokeWidth={2}
             strokeDasharray="5 5"
-            fillOpacity={1} 
-            fill="url(#colorForecast)" 
+            fillOpacity={1}
+            fill="url(#colorForecast)"
           />
-          
+
           {/* Actual Line */}
-          <Area 
-            type="monotone" 
-            dataKey="actual" 
+          <Area
+            type="monotone"
+            dataKey="actual"
             name="Actual Complaints"
-            stroke="#3b82f6" 
+            stroke="#22d3ee"
             strokeWidth={2}
-            fillOpacity={1} 
-            fill="url(#colorActual)" 
-            activeDot={{ r: 6 }}
+            fillOpacity={1}
+            fill="url(#colorActual)"
+            activeDot={{ r: 5 }}
           />
         </AreaChart>
       </ResponsiveContainer>

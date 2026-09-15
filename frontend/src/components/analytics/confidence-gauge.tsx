@@ -1,8 +1,6 @@
 "use client";
 
-import React from "react";
 import { RadialBarChart, RadialBar, ResponsiveContainer, PolarAngleAxis } from "recharts";
-import { cn } from "@/lib/utils";
 
 interface ConfidenceGaugeProps {
   score: number; // 0 to 100
@@ -11,58 +9,42 @@ interface ConfidenceGaugeProps {
 
 export function ConfidenceGauge({ score, sampleSize }: ConfidenceGaugeProps) {
   const getFillColor = (s: number) => {
-    if (s >= 75) return "#16a34a"; // green
-    if (s >= 50) return "#f59e0b"; // amber
-    return "#dc2626"; // red
+    if (s >= 75) return "#22c55e"; // risk-low
+    if (s >= 50) return "#f59e0b"; // risk-medium
+    return "#ef4444"; // risk-critical
   };
 
-  const data = [
-    {
-      name: "Confidence",
-      value: score,
-      fill: getFillColor(score),
-    }
-  ];
+  const data = [{ name: "Confidence", value: score, fill: getFillColor(score) }];
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 w-full h-full relative">
+    <div className="relative flex h-full w-full flex-col items-center justify-center p-4">
       <div className="h-[200px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart 
-            cx="50%" 
-            cy="50%" 
-            innerRadius="70%" 
-            outerRadius="100%" 
-            barSize={15} 
+          <RadialBarChart
+            cx="50%"
+            cy="50%"
+            innerRadius="70%"
+            outerRadius="100%"
+            barSize={14}
             data={data}
-            startAngle={180} 
+            startAngle={180}
             endAngle={0}
           >
-            <PolarAngleAxis
-              type="number"
-              domain={[0, 100]}
-              angleAxisId={0}
-              tick={false}
-            />
-            <RadialBar
-              background={{ fill: '#f3f4f6' }}
-              dataKey="value"
-              cornerRadius={10}
-            />
+            <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
+            <RadialBar background={{ fill: "hsl(var(--surface-overlay))" }} dataKey="value" cornerRadius={10} />
           </RadialBarChart>
         </ResponsiveContainer>
       </div>
-      
-      {/* Absolute positioned text in the center of the half-circle */}
-      <div className="absolute top-[60%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center text-center">
-        <span className="text-3xl font-bold tracking-tight" style={{ color: getFillColor(score) }}>
+
+      <div className="absolute left-1/2 top-[60%] flex -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center">
+        <span className="font-mono text-2xl font-semibold tabular-nums" style={{ color: getFillColor(score) }}>
           {score.toFixed(1)}%
         </span>
-        <span className="text-sm font-medium text-muted-foreground uppercase tracking-widest mt-1">
-          Confidence
+        <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Live Confidence Score
         </span>
-        <span className="text-xs text-muted-foreground mt-2">
-          Based on {sampleSize} recent predictions
+        <span className="mt-2 text-xs text-subtle-foreground">
+          Based on {sampleSize} recent prediction{sampleSize === 1 ? "" : "s"}
         </span>
       </div>
     </div>

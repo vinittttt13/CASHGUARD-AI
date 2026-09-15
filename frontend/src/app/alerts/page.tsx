@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle, Filter, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, SectionHeader, StatusIndicator } from "@/components/shared/intel-primitives";
 import { AlertCenter } from "@/components/alerts/AlertCenter";
 import { CaseQueueTable } from "@/components/alerts/CaseQueueTable";
 import { useToast } from "@/hooks/use-toast";
@@ -12,30 +12,26 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { acknowledgeAlert, getAlerts } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 
-function SummaryCard({
-  title,
+function SummaryStat({
+  label,
   value,
-  className,
+  tone,
   loading,
 }: {
-  title: string;
+  label: string;
   value: number | string;
-  className?: string;
+  tone: string;
   loading?: boolean;
 }) {
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <div className="h-8 w-12 animate-pulse rounded bg-muted" />
-        ) : (
-          <div className={`text-2xl font-bold ${className ?? ""}`}>{value}</div>
-        )}
-      </CardContent>
-    </Card>
+    <div className="rounded-lg border border-border bg-surface p-3.5">
+      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      {loading ? (
+        <div className="mt-2 h-6 w-10 animate-pulse rounded bg-surface-overlay" />
+      ) : (
+        <div className={`mt-1 font-mono text-xl font-semibold tabular-nums ${tone}`}>{value}</div>
+      )}
+    </div>
   );
 }
 
@@ -45,7 +41,6 @@ export default function AlertsPage() {
   const { data, loading, refetch } = useApiResource(getAlerts, []);
   const clearUnread = useAppStore((s) => s.clearUnread);
 
-  // Clear the unread notification badge when this page is visited
   useEffect(() => {
     clearUnread();
   }, [clearUnread]);
@@ -68,73 +63,47 @@ export default function AlertsPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid gap-4 md:grid-cols-4">
-        <SummaryCard
-          title="Total Active Alerts"
-          value={data?.total ?? 0}
-          className="text-destructive"
-          loading={loading}
-        />
-        <SummaryCard
-          title="Critical"
-          value={count("critical")}
-          className="text-red-600"
-          loading={loading}
-        />
-        <SummaryCard
-          title="High"
-          value={count("high")}
-          className="text-orange-500"
-          loading={loading}
-        />
-        <SummaryCard
-          title="Medium"
-          value={count("medium")}
-          className="text-yellow-500"
-          loading={loading}
-        />
+    <div className="mx-auto flex max-w-[1680px] flex-col gap-5">
+      <SectionHeader
+        title="Alert Center"
+        description="Live security incident console"
+        action={<StatusIndicator state="online" label={`${data?.total ?? 0} active`} />}
+      />
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <SummaryStat label="Total Active" value={data?.total ?? 0} tone="text-foreground" loading={loading} />
+        <SummaryStat label="Critical" value={count("critical")} tone="text-risk-critical" loading={loading} />
+        <SummaryStat label="High" value={count("high")} tone="text-risk-high" loading={loading} />
+        <SummaryStat label="Medium" value={count("medium")} tone="text-risk-medium" loading={loading} />
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-1 items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <div className="relative max-w-sm flex-1">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-subtle-foreground" />
             <Input
-              placeholder="Search alerts by location or type..."
-              className="pl-8"
+              placeholder="Search alerts by location or type…"
+              className="border-border bg-surface-overlay pl-8 text-xs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" className="gap-2">
-            <Filter className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="gap-1.5 border-border bg-surface-raised text-xs">
+            <Filter className="h-3.5 w-3.5" />
             Filters
           </Button>
         </div>
-        <Button onClick={handleBulkAcknowledge} className="gap-2">
-          <CheckCircle className="h-4 w-4" />
+        <Button size="sm" onClick={handleBulkAcknowledge} className="gap-1.5 text-xs">
+          <CheckCircle className="h-3.5 w-3.5" />
           Acknowledge All
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Alert Feed</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <AlertCenter searchQuery={searchQuery} />
-        </CardContent>
-      </Card>
+      <AlertCenter searchQuery={searchQuery} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Case Queue</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <CaseQueueTable />
-        </CardContent>
-      </Card>
+      <Panel title="Case Queue">
+        <CaseQueueTable />
+      </Panel>
     </div>
   );
 }

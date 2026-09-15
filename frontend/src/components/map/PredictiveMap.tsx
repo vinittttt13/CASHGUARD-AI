@@ -105,7 +105,7 @@ function MapResizeHandler() {
 function IndiaResetControl() {
   const map = useMap();
   return (
-    <div className="absolute top-4 right-14 z-[400]">
+    <div className="absolute right-14 top-3 z-[400]">
       <button
         type="button"
         onClick={(e) => {
@@ -113,11 +113,11 @@ function IndiaResetControl() {
           e.stopPropagation();
           map.setView(INDIA_CENTER, 5);
         }}
-        className="bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold px-2.5 py-1.5 rounded-md shadow-md border border-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer"
-        title="Reset Map to India View"
+        className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-xs font-medium text-foreground shadow-sm transition-colors hover:bg-surface-overlay"
+        title="Reset map to India view"
       >
-        <Compass className="w-3.5 h-3.5 text-blue-600" />
-        <span>India View</span>
+        <Compass className="h-3.5 w-3.5 text-primary" />
+        <span>Reset</span>
       </button>
     </div>
   );
@@ -189,16 +189,16 @@ export default function PredictiveMap({
     );
   }, [predictionPoints]);
 
-  if (!mounted) return <div className="w-full h-full bg-slate-100 animate-pulse rounded-lg" />;
+  if (!mounted) return <div className="h-full w-full animate-pulse rounded-lg bg-surface-overlay" />;
 
   const getPredictionColor = (confidence: number) => {
-    if (confidence > 0.8) return "#dc2626";
-    if (confidence > 0.5) return "#d97706";
-    return "#16a34a";
+    if (confidence > 0.8) return "#ef4444"; // risk-critical
+    if (confidence > 0.5) return "#f59e0b"; // risk-medium
+    return "#22c55e"; // risk-low
   };
 
   return (
-    <div className="relative w-full h-full rounded-xl overflow-hidden shadow-sm border border-slate-200">
+    <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
       <MapContainer
         center={center}
         zoom={zoom}
@@ -208,14 +208,15 @@ export default function PredictiveMap({
           [5.0, 65.0],
           [38.5, 100.0],
         ]}
-        className="w-full h-full"
+        className="h-full w-full"
       >
         <IndiaResetControl />
         <MapEventsHandler onClick={onAreaClick} />
         <MapResizeHandler />
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png"
+          subdomains="abcd"
         />
 
         <BoundsFitter bounds={bounds} />
@@ -242,10 +243,23 @@ export default function PredictiveMap({
                   }}
                 >
                   <Popup>
-                    <div className="p-1">
-                      <h4 className="font-semibold">{pred.atmName}</h4>
-                      <div className="text-sm mt-1">Confidence: {formatConfidence(pred.confidence)}</div>
-                      <div className="text-xs text-muted-foreground mt-1">Last Incident: {pred.lastIncidentDate}</div>
+                    <div className="min-w-[190px]">
+                      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-400">
+                        Predicted Hotspot
+                      </div>
+                      <h4 className="text-sm font-semibold text-slate-100">{pred.atmName}</h4>
+                      <dl className="mt-2 space-y-1 text-xs">
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-400">Confidence</dt>
+                          <dd className="font-mono font-medium text-slate-100">
+                            {formatConfidence(pred.confidence)}
+                          </dd>
+                        </div>
+                        <div className="flex justify-between gap-3">
+                          <dt className="text-slate-400">Last Event</dt>
+                          <dd className="font-mono text-slate-200">{pred.lastIncidentDate}</dd>
+                        </div>
+                      </dl>
                     </div>
                   </Popup>
                 </CircleMarker>
@@ -279,19 +293,21 @@ export default function PredictiveMap({
       </MapContainer>
 
       {/* Legend */}
-      <div className="absolute bottom-6 left-6 z-[400] bg-white p-3 rounded-lg shadow-md border border-slate-200 text-xs">
-        <div className="font-semibold text-slate-900 mb-2">Prediction Confidence</div>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-red-600 opacity-80"></div>
-          <span className="text-slate-700">High (&gt; 80%)</span>
+      <div className="absolute bottom-4 left-4 z-[400] rounded-lg border border-border bg-surface-raised/95 p-3 text-xs backdrop-blur">
+        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Prediction Confidence
         </div>
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-3 h-3 rounded-full bg-amber-500 opacity-80"></div>
-          <span className="text-slate-700">Medium (50-80%)</span>
+        <div className="mb-1 flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-risk-critical" />
+          <span className="text-foreground">Critical (&gt; 80%)</span>
+        </div>
+        <div className="mb-1 flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-risk-medium" />
+          <span className="text-foreground">Medium (50–80%)</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full bg-emerald-600 opacity-80"></div>
-          <span className="text-slate-700">Low (&lt; 50%)</span>
+          <div className="h-2 w-2 rounded-full bg-risk-low" />
+          <span className="text-foreground">Low (&lt; 50%)</span>
         </div>
       </div>
     </div>

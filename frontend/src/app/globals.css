@@ -2,67 +2,60 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * CASHGUARD design tokens — financial cyber intelligence platform.
+ * Dark-first, single palette (no light theme). Values match the
+ * product's fixed design language, not shadcn defaults.
+ */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 220 35% 3%;
+    --surface: 220 28% 6%;
+    --surface-raised: 215 25% 8%;
+    --surface-overlay: 213 24% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --border: 205 27% 15%;
+    --border-strong: 200 25% 20%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --foreground: 205 28% 92%;
+    --muted-foreground: 205 12% 60%;
+    --subtle-foreground: 205 10% 42%;
 
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --card: 220 28% 6%;
+    --card-foreground: 205 28% 92%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --popover: 215 25% 8%;
+    --popover-foreground: 205 28% 92%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --primary: 189 85% 51%;
+    --primary-foreground: 220 35% 4%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 217 91% 60%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 213 24% 10%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 213 24% 10%;
+    --accent-foreground: 205 28% 92%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 79% 63%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --input: 205 27% 15%;
+    --ring: 189 85% 51%;
+
+    /* Semantic risk / status colors — never used decoratively */
+    --risk-low: 142 69% 45%;
+    --risk-medium: 38 92% 50%;
+    --risk-high: 25 95% 53%;
+    --risk-critical: 0 79% 63%;
+    --risk-system: 189 85% 51%;
+    --risk-analytic: 255 87% 79%;
+
+    --radius: 0.5rem;
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
   }
 }
 
@@ -72,5 +65,79 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  ::selection {
+    @apply bg-cyan-500/25 text-foreground;
+  }
+  .font-mono,
+  .tabular-technical {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Leaflet popup chrome — restyled to match the dark investigation-console
+   theme. Leaflet renders these outside the React tree, so plain CSS. */
+.leaflet-container {
+  background: #0b1118;
+  font-family: var(--font-sans), Inter, sans-serif;
+}
+.leaflet-popup-content-wrapper {
+  background: #111a24;
+  color: #e6edf3;
+  border: 1px solid #1b2a38;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+.leaflet-popup-tip {
+  background: #111a24;
+  border: 1px solid #1b2a38;
+}
+.leaflet-popup-close-button {
+  color: #8b9aaa !important;
+}
+.leaflet-popup-close-button:hover {
+  color: #e6edf3 !important;
+}
+.leaflet-control-layers {
+  background: #111a24 !important;
+  border: 1px solid #1b2a38 !important;
+  color: #e6edf3 !important;
+  border-radius: 8px !important;
+}
+.leaflet-control-layers-toggle {
+  filter: invert(1) hue-rotate(180deg);
+}
+.leaflet-control-zoom a {
+  background: #111a24 !important;
+  color: #e6edf3 !important;
+  border-color: #1b2a38 !important;
+}
+.leaflet-control-zoom a:hover {
+  background: #141f2a !important;
+}
+.leaflet-control-attribution {
+  background: rgba(11, 17, 24, 0.75) !important;
+  color: #5e6e7e !important;
+}
+.leaflet-control-attribution a {
+  color: #8b9aaa !important;
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border-strong)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border-strong));
+    border-radius: 999px;
   }
 }

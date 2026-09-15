@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Circle, Popup } from "react-leaflet";
 import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -13,34 +12,27 @@ interface GeofenceZoneProps {
   title: string;
 }
 
-export function GeofenceZone({ id, center, radius, priority, title }: GeofenceZoneProps) {
-  const getZoneOptions = () => {
-    switch (priority) {
-      case "critical":
-        return { color: "#dc2626", fillColor: "#dc2626", fillOpacity: 0.3, weight: 2 };
-      case "high":
-        return { color: "#ea580c", fillColor: "#ea580c", fillOpacity: 0.25, weight: 2 };
-      case "medium":
-        return { color: "#d97706", fillColor: "#d97706", fillOpacity: 0.2, weight: 1.5 };
-      case "low":
-        return { color: "#2563eb", fillColor: "#2563eb", fillOpacity: 0.15, weight: 1.5 };
-      default:
-        return { color: "#6b7280", fillColor: "#6b7280", fillOpacity: 0.2, weight: 1 };
-    }
-  };
+const ZONE_STYLE = {
+  critical: { color: "#ef4444", fillColor: "#ef4444", fillOpacity: 0.22, weight: 2 },
+  high: { color: "#f97316", fillColor: "#f97316", fillOpacity: 0.18, weight: 2 },
+  medium: { color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 0.15, weight: 1.5 },
+  low: { color: "#22d3ee", fillColor: "#22d3ee", fillOpacity: 0.12, weight: 1.5 },
+} as const;
+
+export function GeofenceZone({ center, radius, priority, title }: GeofenceZoneProps) {
+  const options = ZONE_STYLE[priority] ?? { color: "#8b9aaa", fillColor: "#8b9aaa", fillOpacity: 0.15, weight: 1 };
+  const textColor = priority === "critical" ? "text-[#ef4444]" : priority === "high" ? "text-[#f97316]" : "text-[#f59e0b]";
 
   return (
-    <Circle center={center} radius={radius} pathOptions={getZoneOptions()}>
-      <Popup className="geofence-popup">
-        <div className="flex flex-col gap-2 min-w-[200px]">
-          <div className="flex items-center gap-2 font-semibold">
-            <AlertTriangle className={cn("w-4 h-4", priority === 'critical' ? 'text-red-600' : 'text-orange-500')} />
-            <span className="capitalize text-sm">{priority} Alert Zone</span>
+    <Circle center={center} radius={radius} pathOptions={options}>
+      <Popup>
+        <div className="min-w-[190px]">
+          <div className={cn("flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide", textColor)}>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {priority} Alert Zone
           </div>
-          <div className="text-sm font-medium">{title}</div>
-          <div className="text-xs text-muted-foreground">
-            Radius: {(radius / 1000).toFixed(1)} km
-          </div>
+          <div className="mt-1.5 text-sm font-medium text-slate-100">{title}</div>
+          <div className="mt-1 text-xs text-slate-400">Radius: {(radius / 1000).toFixed(1)} km</div>
         </div>
       </Popup>
     </Circle>

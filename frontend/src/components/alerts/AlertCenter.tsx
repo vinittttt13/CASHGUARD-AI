@@ -1,13 +1,14 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { Filter, ShieldAlert } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Filter } from "lucide-react";
 import { AlertCard } from "./AlertCard";
 import { useApiResource } from "@/hooks/useApiResource";
 import { acknowledgeAlert, getAlerts } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
+import { cn } from "@/lib/utils";
 import type { Alert as ApiAlert } from "@/types";
 
 type Priority = "All" | "Critical" | "High" | "Medium" | "Low";
@@ -75,57 +76,47 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background rounded-xl border shadow-sm overflow-hidden">
-      <div className="p-4 border-b bg-card">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <h2 className="text-lg font-semibold tracking-tight">Alert Center</h2>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <Filter className="w-4 h-4 text-muted-foreground mr-1 flex-shrink-0" />
-          {(["All", "Critical", "High", "Medium", "Low"] as Priority[]).map(
-            (p) => (
-              <button
-                key={p}
-                onClick={() => setFilter(p)}
-                className={`px-3 py-1.5 text-sm font-medium rounded-full whitespace-nowrap transition-colors ${
-                  filter === p
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted/50 text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {p}
-                {p !== "All" && (
-                  <span className="ml-1.5 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px]">
-                    {alerts.filter((a) => a.priority === p).length}
-                  </span>
-                )}
-              </button>
-            ),
-          )}
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface">
+      <div className="border-b border-border/70 p-3">
+        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">Alert Feed</h2>
+        <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+          <Filter className="mr-0.5 h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
+          {(["All", "Critical", "High", "Medium", "Low"] as Priority[]).map((p) => (
+            <button
+              key={p}
+              onClick={() => setFilter(p)}
+              className={cn(
+                "whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                filter === p
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface-raised text-muted-foreground hover:bg-surface-overlay hover:text-foreground"
+              )}
+            >
+              {p}
+              {p !== "All" && (
+                <span className="ml-1.5 font-mono text-[10px] opacity-80">
+                  {alerts.filter((a) => a.priority === p).length}
+                </span>
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/10">
+      <div className="flex-1 space-y-2.5 overflow-y-auto p-3 scrollbar-thin">
         {loading && <Loading label="Loading alerts…" />}
         {error && <ErrorState error={error} onRetry={refetch} />}
         {!loading && !error && filtered.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-            <ShieldAlert className="w-12 h-12 mb-4 opacity-20" />
-            <p>No alerts match your current filters.</p>
-          </div>
+          <EmptyState label="NO ACTIVE THREATS" hint="No alerts match the current filters." />
         )}
         {!loading &&
           !error &&
           filtered.map((alert) => (
-            <AlertCard
-              key={alert.id}
-              alert={alert}
-              onAcknowledge={() => handleAcknowledge(alert.id)}
-            />
+            <AlertCard key={alert.id} alert={alert} onAcknowledge={() => handleAcknowledge(alert.id)} />
           ))}
       </div>
 
-      <div className="p-3 border-t bg-card text-xs text-center text-muted-foreground">
+      <div className="border-t border-border/70 p-2.5 text-center text-xs text-subtle-foreground">
         Showing {filtered.length} of {alerts.length} alerts
       </div>
     </div>

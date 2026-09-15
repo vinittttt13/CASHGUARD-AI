@@ -6,6 +6,7 @@ const api = vi.hoisted(() => ({
   getComplaintStats: vi.fn(),
   getAlerts: vi.fn(),
   getHotspots: vi.fn(),
+  getModelStatus: vi.fn(),
   getComplaints: vi.fn(),
   predictComplaint: vi.fn(),
   acknowledgeAlert: vi.fn(),
@@ -70,6 +71,13 @@ describe("StatsOverview", () => {
       { cluster_id: "h2" },
       { cluster_id: "h3" },
     ]);
+    api.getModelStatus.mockResolvedValue({
+      loaded_models: {},
+      total_loaded: 4,
+      artifacts_dir: "backend/app/ml/model_artifacts",
+      manifest: { version: "1.0.0" },
+      metrics: { metrics: { test_accuracy: 0.884 } },
+    });
 
     render(<StatsOverview />);
 
@@ -86,6 +94,11 @@ describe("StatsOverview", () => {
     api.getComplaintStats.mockRejectedValue(new Error("nope"));
     api.getAlerts.mockRejectedValue(new Error("nope"));
     api.getHotspots.mockRejectedValue(new Error("nope"));
+    api.getModelStatus.mockResolvedValue({
+      loaded_models: {},
+      total_loaded: 0,
+      artifacts_dir: "backend/app/ml/model_artifacts",
+    });
 
     render(<StatsOverview />);
     await waitFor(() =>

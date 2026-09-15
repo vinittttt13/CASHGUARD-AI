@@ -43,19 +43,21 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="flex flex-col items-center justify-center p-8 text-center bg-red-50/50 rounded-xl border border-red-100 min-h-[300px]">
-          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
-            <AlertTriangle className="w-8 h-8" />
+        <div className="flex min-h-[300px] flex-col items-center justify-center rounded-lg border border-risk-critical/30 bg-risk-critical/5 p-8 text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-risk-critical/15 text-risk-critical">
+            <AlertTriangle className="h-6 w-6" />
           </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h2>
-          <p className="text-gray-500 mb-6 max-w-md">
+          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-risk-critical">
+            Module Error
+          </h2>
+          <p className="mb-5 max-w-md text-xs text-muted-foreground">
             {this.state.error?.message || "An unexpected error occurred while rendering this component."}
           </p>
           <button
             onClick={this.handleRetry}
-            className="flex items-center px-4 py-2 bg-white border shadow-sm rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+            className="flex items-center gap-1.5 rounded-md border border-border bg-surface-raised px-4 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-overlay focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
           >
-            <RefreshCcw className="w-4 h-4 mr-2" />
+            <RefreshCcw className="h-3.5 w-3.5" />
             Try Again
           </button>
         </div>

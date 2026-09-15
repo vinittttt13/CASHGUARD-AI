@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, SectionHeader } from "@/components/shared/intel-primitives";
 
 import { TimeSeriesChart } from "@/components/analytics/time-series-chart";
 import { GeographicDistribution } from "@/components/analytics/geographic-distribution";
@@ -93,106 +93,64 @@ export default function AnalyticsPage() {
   }, [prediction.data]);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold tracking-tight">Advanced Analytics</h2>
-        <span className="text-sm text-muted-foreground">
-          Last {DAYS} days
-        </span>
-      </div>
+    <div className="mx-auto flex max-w-[1680px] flex-col gap-5">
+      <SectionHeader title="Advanced Analytics" description={`Last ${DAYS} days`} />
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-8">
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Crime Volume Time Series</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {trends.loading && <Loading />}
-            {trends.error && (
-              <ErrorState error={trends.error} onRetry={trends.refetch} />
-            )}
-            {!trends.loading && !trends.error && (
-              <TimeSeriesChart data={timeSeries} />
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <Panel title="Crime Volume Time Series" className="md:col-span-2" contentClassName="h-[300px]">
+          {trends.loading && <Loading />}
+          {trends.error && <ErrorState error={trends.error} onRetry={trends.refetch} />}
+          {!trends.loading && !trends.error && <TimeSeriesChart data={timeSeries} />}
+        </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Model Confidence</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px] flex items-center justify-center">
-            {alerts.loading ? (
-              <Loading />
-            ) : alerts.error ? (
-              <ErrorState error={alerts.error} onRetry={alerts.refetch} />
-            ) : (
-              <ConfidenceGauge
-                score={confidence.score}
-                sampleSize={confidence.sampleSize}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <Panel title="Model Confidence" contentClassName="h-[300px] flex items-center justify-center">
+          {alerts.loading ? (
+            <Loading />
+          ) : alerts.error ? (
+            <ErrorState error={alerts.error} onRetry={alerts.refetch} />
+          ) : (
+            <ConfidenceGauge score={confidence.score} sampleSize={confidence.sampleSize} />
+          )}
+        </Panel>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Feature Importance</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {prediction.loading || complaints.loading ? (
-              <Loading />
-            ) : radarData.length === 0 ? (
-              <EmptyState
-                label="No SHAP data."
-                hint="Train the models (heuristic fallback has no feature importance)."
-              />
-            ) : (
-              <FeatureImportanceRadar data={radarData} />
-            )}
-          </CardContent>
-        </Card>
+        <Panel title="Feature Importance" description="Top contributing factors (SHAP)" contentClassName="h-[300px]">
+          {prediction.loading || complaints.loading ? (
+            <Loading />
+          ) : radarData.length === 0 ? (
+            <EmptyState
+              label="No SHAP data."
+              hint="Train the models — the heuristic fallback has no feature importance."
+            />
+          ) : (
+            <FeatureImportanceRadar data={radarData} />
+          )}
+        </Panel>
 
-        <Card className="col-span-2">
-          <CardHeader>
-            <CardTitle>Geographic Distribution</CardTitle>
-          </CardHeader>
-          <CardContent className="h-[300px]">
-            {stats.loading ? (
-              <Loading />
-            ) : stats.error ? (
-              <ErrorState error={stats.error} onRetry={stats.refetch} />
-            ) : geoData.length === 0 ? (
-              <EmptyState label="No complaints." />
-            ) : (
-              <GeographicDistribution data={geoData} />
-            )}
-          </CardContent>
-        </Card>
+        <Panel title="Geographic Distribution" className="md:col-span-2" contentClassName="h-[300px]">
+          {stats.loading ? (
+            <Loading />
+          ) : stats.error ? (
+            <ErrorState error={stats.error} onRetry={stats.refetch} />
+          ) : geoData.length === 0 ? (
+            <EmptyState label="No complaints." hint="No complaints recorded yet." />
+          ) : (
+            <GeographicDistribution data={geoData} />
+          )}
+        </Panel>
 
-        <Card className="col-span-full">
-          <CardHeader>
-            <CardTitle>Predicted Hotspots Database</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {hotspots.loading ? (
-              <Loading />
-            ) : hotspots.error ? (
-              <ErrorState error={hotspots.error} onRetry={hotspots.refetch} />
-            ) : (
-              <HotspotTable hotspots={hotspots.data ?? []} />
-            )}
-          </CardContent>
-        </Card>
+        <Panel title="Predicted Hotspots Database" description="Ranked cash-out cluster registry" className="md:col-span-3">
+          {hotspots.loading ? (
+            <Loading />
+          ) : hotspots.error ? (
+            <ErrorState error={hotspots.error} onRetry={hotspots.refetch} />
+          ) : (
+            <HotspotTable hotspots={hotspots.data ?? []} />
+          )}
+        </Panel>
 
-        <Card className="col-span-full">
-          <CardHeader>
-            <CardTitle>AML Transaction Risk Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AmlTransactionPanel />
-          </CardContent>
-        </Card>
+        <Panel title="AML Transaction Risk Analysis" className="md:col-span-3">
+          <AmlTransactionPanel />
+        </Panel>
       </div>
     </div>
   );

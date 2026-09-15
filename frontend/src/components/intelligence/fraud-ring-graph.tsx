@@ -18,9 +18,9 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
   const activeRing = rings[selectedRingIndex] ?? rings[0];
 
   const ringRiskBadge = (score: number) => {
-    if (score >= 0.8) return { label: "CRITICAL RISK", color: "bg-red-500/10 text-red-600 border-red-500/20" };
-    if (score >= 0.5) return { label: "ELEVATED RISK", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" };
-    return { label: "MODERATE RISK", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" };
+    if (score >= 0.8) return { label: "CRITICAL RISK", color: "bg-risk-critical/10 text-risk-critical border-risk-critical/25" };
+    if (score >= 0.5) return { label: "ELEVATED RISK", color: "bg-risk-medium/10 text-risk-medium border-risk-medium/25" };
+    return { label: "MODERATE RISK", color: "bg-secondary/10 text-secondary border-secondary/25" };
   };
 
   // Node layout calculation for SVG graph
@@ -116,12 +116,12 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
       {activeRing && (
         <div className="grid gap-6 lg:grid-cols-[60%_40%] items-start">
           {/* SVG Network Visualizer */}
-          <div className="relative rounded-xl border bg-card p-4 overflow-hidden flex flex-col items-center justify-center min-h-[420px]">
-            <div className="absolute top-4 left-4 z-10 flex items-center gap-2">
+          <div className="relative flex min-h-[420px] flex-col items-center justify-center overflow-hidden rounded-lg border border-border bg-surface p-4">
+            <div className="absolute left-4 top-4 z-10 flex items-center gap-2">
               <Badge variant="outline" className={`font-mono text-xs ${badge?.color}`}>
                 {badge?.label}
               </Badge>
-              <span className="text-xs text-muted-foreground font-mono">
+              <span className="font-mono text-xs text-muted-foreground">
                 Risk Score: {(activeRing.risk_score * 100).toFixed(1)}%
               </span>
             </div>
@@ -136,7 +136,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     y1={graphNodes.center!.y}
                     x2={node.x}
                     y2={node.y}
-                    stroke="#94a3b8"
+                    stroke="#5e6e7e"
                     strokeWidth="1.5"
                     strokeDasharray="4 3"
                     opacity="0.6"
@@ -167,7 +167,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     y1={graphNodes.center!.y}
                     x2={node.x}
                     y2={node.y}
-                    stroke="#10b981"
+                    stroke="#22c55e"
                     strokeWidth="1.5"
                     opacity="0.6"
                   />
@@ -176,14 +176,14 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               {/* Complaint Nodes */}
               {graphNodes.complaints.map((node) => (
                 <g key={`node-c-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="14" fill="#f8fafc" stroke="#ef4444" strokeWidth="2" />
+                  <circle cx={node.x} cy={node.y} r="14" fill="#141f2a" stroke="#ef4444" strokeWidth="2" />
                   <text
                     x={node.x}
                     y={node.y + 4}
                     textAnchor="middle"
                     fontSize="9"
                     fontWeight="600"
-                    fill="#1e293b"
+                    fill="#e6edf3"
                   >
                     {node.label.slice(4)}
                   </text>
@@ -192,7 +192,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     y={node.y + 24}
                     textAnchor="middle"
                     fontSize="8"
-                    fill="#64748b"
+                    fill="#8b9aaa"
                   >
                     Complaint
                   </text>
@@ -202,14 +202,14 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               {/* Bank Nodes */}
               {graphNodes.banks.map((node) => (
                 <g key={`node-b-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="16" fill="#eff6ff" stroke="#3b82f6" strokeWidth="2.5" />
+                  <circle cx={node.x} cy={node.y} r="16" fill="#141f2a" stroke="#3b82f6" strokeWidth="2.5" />
                   <text
                     x={node.x}
                     y={node.y + 4}
                     textAnchor="middle"
                     fontSize="8"
                     fontWeight="bold"
-                    fill="#1d4ed8"
+                    fill="#8fb4ff"
                   >
                     {node.label.slice(0, 4)}
                   </text>
@@ -228,14 +228,14 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               {/* Location Nodes */}
               {graphNodes.locations.map((node) => (
                 <g key={`node-l-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="14" fill="#ecfdf5" stroke="#10b981" strokeWidth="2" />
+                  <circle cx={node.x} cy={node.y} r="14" fill="#141f2a" stroke="#22c55e" strokeWidth="2" />
                   <text
                     x={node.x}
                     y={node.y + 4}
                     textAnchor="middle"
                     fontSize="8"
                     fontWeight="bold"
-                    fill="#047857"
+                    fill="#4ade80"
                   >
                     {node.label.slice(0, 3)}
                   </text>
@@ -249,8 +249,8 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     cx={graphNodes.center.x}
                     cy={graphNodes.center.y}
                     r="28"
-                    fill="#fee2e2"
-                    stroke="#dc2626"
+                    fill="#1f1416"
+                    stroke="#ef4444"
                     strokeWidth="3"
                   />
                   <text
@@ -259,7 +259,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="bold"
-                    fill="#991b1b"
+                    fill="#f87171"
                   >
                     {activeRing.ring_id}
                   </text>
@@ -269,7 +269,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     textAnchor="middle"
                     fontSize="8"
                     fontWeight="600"
-                    fill="#dc2626"
+                    fill="#ef4444"
                   >
                     SYNDICATE
                   </text>
@@ -278,21 +278,21 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
             </svg>
 
             {/* Graph Legend */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t w-full justify-center">
+            <div className="flex w-full items-center justify-center gap-4 border-t border-border pt-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <span className="w-3 h-3 rounded-full bg-red-100 border border-red-600 inline-block" />
+                <span className="inline-block h-3 w-3 rounded-full border border-risk-critical bg-risk-critical/15" />
                 <span>Syndicate Hub</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-100 border border-blue-500 inline-block" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-secondary bg-secondary/15" />
                 <span>Targeted Bank</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-100 border border-emerald-500 inline-block" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-risk-low bg-risk-low/15" />
                 <span>Location Hotspot</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-white border border-rose-500 inline-block" />
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-risk-critical bg-surface-overlay" />
                 <span>Correlated Complaint</span>
               </div>
             </div>
@@ -314,19 +314,19 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border p-2.5 bg-muted/20">
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="rounded-lg border border-border bg-surface-overlay p-2.5">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <IndianRupee className="h-3 w-3" /> Total Defrauded
                   </div>
-                  <div className="text-base font-bold text-destructive mt-0.5">
+                  <div className="mt-0.5 font-mono text-base font-semibold text-risk-critical">
                     {formatCurrency(activeRing.total_defrauded_inr)}
                   </div>
                 </div>
-                <div className="rounded-lg border p-2.5 bg-muted/20">
-                  <div className="text-xs text-muted-foreground flex items-center gap-1">
+                <div className="rounded-lg border border-border bg-surface-overlay p-2.5">
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Users className="h-3 w-3" /> Correlated Incidents
                   </div>
-                  <div className="text-base font-bold mt-0.5">
+                  <div className="mt-0.5 font-mono text-base font-semibold text-foreground">
                     {activeRing.complaint_count} complaints
                   </div>
                 </div>
@@ -334,8 +334,8 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Shared Banks */}
               <div>
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Building2 className="h-3.5 w-3.5 text-blue-500" /> Targeted Banking Channels
+                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Building2 className="h-3.5 w-3.5 text-secondary" /> Targeted Banking Channels
                 </h5>
                 <div className="flex flex-wrap gap-1.5">
                   {activeRing.shared_banks.length > 0 ? (
@@ -352,8 +352,8 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Shared Locations */}
               <div>
-                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-emerald-500" /> Geographic Footprint
+                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 text-risk-low" /> Geographic Footprint
                 </h5>
                 <div className="flex flex-wrap gap-1.5">
                   {activeRing.shared_locations.length > 0 ? (
@@ -371,14 +371,14 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               {/* Suspect Identifiers if available */}
               {activeRing.suspect_identifiers && activeRing.suspect_identifiers.length > 0 && (
                 <div>
-                  <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Layers className="h-3.5 w-3.5 text-purple-500" /> Shared Suspect Identifiers
+                  <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    <Layers className="h-3.5 w-3.5 text-risk-analytic" /> Shared Suspect Identifiers
                   </h5>
                   <div className="flex flex-wrap gap-1.5">
                     {activeRing.suspect_identifiers.map((ident) => (
                       <span
                         key={ident}
-                        className="text-[11px] font-mono bg-muted px-2 py-0.5 rounded border text-muted-foreground"
+                        className="rounded border border-border bg-surface-overlay px-2 py-0.5 font-mono text-[11px] text-muted-foreground"
                       >
                         {ident}
                       </span>

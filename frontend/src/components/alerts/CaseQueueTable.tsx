@@ -3,10 +3,11 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, Loader2, Search } from "lucide-react";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
+import { SeverityBadge } from "@/components/shared/intel-primitives";
 import { useApiResource } from "@/hooks/useApiResource";
 import { useToast } from "@/hooks/use-toast";
 import { getComplaints, updateComplaint } from "@/lib/api";
-import { formatCurrency } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import type { Complaint, ComplaintStatus } from "@/types";
 
 const STATUS_LABEL: Record<ComplaintStatus, string> = {
@@ -17,34 +18,23 @@ const STATUS_LABEL: Record<ComplaintStatus, string> = {
 };
 
 const STATUS_BADGE: Record<ComplaintStatus, string> = {
-  pending: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  processing: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  predicted: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  resolved: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  pending: "border-border text-muted-foreground",
+  processing: "border-secondary/30 bg-secondary/10 text-secondary",
+  predicted: "border-risk-medium/30 bg-risk-medium/10 text-risk-medium",
+  resolved: "border-risk-low/30 bg-risk-low/10 text-risk-low",
 };
 
-const STATUS_FILTERS: Array<ComplaintStatus | "all"> = [
-  "all",
-  "pending",
-  "processing",
-  "predicted",
-  "resolved",
-];
+const STATUS_FILTERS: Array<ComplaintStatus | "all"> = ["all", "pending", "processing", "predicted", "resolved"];
 
 // A case's severity here is derived from the amount defrauded, since
 // complaints don't carry a separate risk score — this is a queue-triage
 // view, not the AML/hotspot risk models.
-function severityFor(amount: number): "High" | "Medium" | "Low" {
-  if (amount >= 500000) return "High";
-  if (amount >= 50000) return "Medium";
-  return "Low";
+function severityFor(amount: number): "critical" | "high" | "medium" | "low" {
+  if (amount >= 1000000) return "critical";
+  if (amount >= 500000) return "high";
+  if (amount >= 50000) return "medium";
+  return "low";
 }
-
-const SEVERITY_BADGE: Record<string, string> = {
-  High: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  Medium: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  Low: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-};
 
 export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void }) {
   const { toast } = useToast();
@@ -92,13 +82,13 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
+        <div className="relative max-w-sm flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-subtle-foreground" />
           <input
-            className="flex h-9 w-full rounded-md border border-input bg-transparent pl-8 pr-3 py-1 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            placeholder="Search by case #, bank, city, or state..."
+            className="flex h-8 w-full rounded-md border border-border bg-surface-overlay py-1 pl-8 pr-3 text-xs text-foreground placeholder:text-subtle-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            placeholder="Search by case #, bank, city, or state…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -108,11 +98,12 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
             <button
               key={s}
               onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
+              className={cn(
+                "whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
                 statusFilter === s
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
-              }`}
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-surface-raised text-muted-foreground hover:bg-surface-overlay hover:text-foreground"
+              )}
             >
               {s === "all" ? "All" : STATUS_LABEL[s]}
             </button>
@@ -123,22 +114,22 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
       {loading && <Loading label="Loading case queue…" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && filtered.length === 0 && (
-        <EmptyState label="No cases match your current filters." />
+        <EmptyState label="NO CASES FOUND" hint="No cases match the current filters." />
       )}
 
       {!loading && !error && filtered.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/30">
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Case #</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Received</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Category</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Amount</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Severity</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Jurisdiction</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Status</th>
-                <th className="text-left py-2 px-3 font-medium text-muted-foreground">Actions</th>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-surface-raised">
+              <tr className="border-b border-border">
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Case ID</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Received</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Category</th>
+                <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-muted-foreground">Amount</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Severity</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Jurisdiction</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -146,28 +137,28 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
                 const severity = severityFor(c.amount_defrauded);
                 const isUpdating = updatingId === c.id;
                 return (
-                  <tr key={c.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="py-3 px-3 font-medium">{c.complaint_number}</td>
-                    <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
+                  <tr key={c.id} className="border-b border-border/70 last:border-0 hover:bg-surface-raised/60">
+                    <td className="whitespace-nowrap px-3 py-2 font-mono text-foreground">{c.complaint_number}</td>
+                    <td className="whitespace-nowrap px-3 py-2 font-mono text-muted-foreground">
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
-                    <td className="py-3 px-3 capitalize">{c.complaint_category.replace(/_/g, " ")}</td>
-                    <td className="py-3 px-3">{formatCurrency(c.amount_defrauded)}</td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${SEVERITY_BADGE[severity]}`}>
-                        {severity}
-                      </span>
+                    <td className="px-3 py-2 capitalize text-muted-foreground">{c.complaint_category.replace(/_/g, " ")}</td>
+                    <td className="whitespace-nowrap px-3 py-2 text-right font-mono font-medium text-foreground">
+                      {formatCurrency(c.amount_defrauded)}
                     </td>
-                    <td className="py-3 px-3 text-muted-foreground whitespace-nowrap">
+                    <td className="px-3 py-2">
+                      <SeverityBadge level={severity} size="sm" />
+                    </td>
+                    <td className="whitespace-nowrap px-3 py-2 text-muted-foreground">
                       {[c.city, c.district, c.state].filter(Boolean).join(", ") || "Unknown"}
                     </td>
-                    <td className="py-3 px-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[c.status]}`}>
+                    <td className="px-3 py-2">
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide", STATUS_BADGE[c.status])}>
                         {STATUS_LABEL[c.status]}
                       </span>
                     </td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-2">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-3">
                         {onReview && (
                           <button
                             type="button"
@@ -182,13 +173,9 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleStatusChange(c, "resolved")}
-                            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:underline disabled:opacity-50"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-risk-low hover:underline disabled:opacity-50"
                           >
-                            {isUpdating ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <CheckCircle2 className="h-3 w-3" />
-                            )}
+                            {isUpdating ? <Loader2 className="h-3 w-3 animate-spin" /> : <CheckCircle2 className="h-3 w-3" />}
                             Resolve
                           </button>
                         )}

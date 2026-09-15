@@ -46,14 +46,14 @@ export default function Home() {
     <main className="min-h-screen bg-background text-foreground">
       <div className="mx-auto flex max-w-5xl flex-col gap-16 px-6 py-16 sm:py-24">
         <section className="flex flex-col items-center gap-6 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            <span className="h-1.5 w-1.5 rounded-full bg-risk-low" />
             Status: Operational
           </span>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
-            CashGuard AI
-            <span className="block text-lg font-medium text-muted-foreground sm:text-2xl mt-2">
-              Cybercrime Predictive Analytics Framework
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+            CASHGUARD <span className="text-primary">AI</span>
+            <span className="mt-2 block text-base font-medium text-muted-foreground sm:text-lg">
+              Financial Cyber Intelligence Platform
             </span>
           </h1>
           <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
@@ -62,7 +62,7 @@ export default function Home() {
           </p>
           <Link
             href="/login"
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
             Access Analyst Command Center
             <ArrowRight className="h-4 w-4" />
@@ -73,12 +73,12 @@ export default function Home() {
           {FEATURES.map((feature) => (
             <div
               key={feature.title}
-              className="flex flex-col gap-3 rounded-xl border bg-card p-5 text-card-foreground shadow-sm"
+              className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/15 text-primary">
                 <feature.icon className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-semibold">{feature.title}</h3>
+              <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 {feature.description}
               </p>

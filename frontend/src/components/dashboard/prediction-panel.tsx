@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
-import { AlertCircle, Map, FileText, ArrowUpRight, ShieldAlert } from "lucide-react";
+import { AlertCircle, Map, FileText, ShieldAlert } from "lucide-react";
 import { cn, formatConfidence } from "@/lib/utils";
 import Link from "next/link";
+import { normalizeRiskLevel, RISK_META, SeverityBadge } from "@/components/shared/intel-primitives";
 
 interface PredictionData {
   id: string;
@@ -15,151 +15,137 @@ interface PredictionData {
 export function PredictionPanel({ data, loading }: { data?: PredictionData; loading?: boolean }) {
   if (loading) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs min-h-[320px] flex flex-col gap-4 animate-pulse">
-        <div className="h-5 w-1/3 bg-slate-100 rounded"></div>
-        <div className="h-20 w-full bg-slate-100 rounded mt-2"></div>
-        <div className="h-20 w-full bg-slate-100 rounded mt-2"></div>
+      <div className="flex min-h-[320px] flex-col gap-3 rounded-lg border border-border bg-surface p-4">
+        <div className="h-4 w-1/3 animate-pulse rounded bg-surface-overlay" />
+        <div className="mt-2 h-20 w-full animate-pulse rounded bg-surface-overlay" />
+        <div className="mt-2 h-20 w-full animate-pulse rounded bg-surface-overlay" />
       </div>
     );
   }
 
   if (!data) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-xs min-h-[320px] flex items-center justify-center text-slate-500 flex-col gap-2">
-        <AlertCircle className="w-8 h-8 text-slate-300" />
-        <p className="text-sm font-medium">No active threat predictions selected.</p>
-        <span className="text-xs text-slate-400">Select a complaint from the live feed to score.</span>
+      <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-surface p-8 text-center">
+        <AlertCircle className="h-6 w-6 text-subtle-foreground" />
+        <p className="text-xs font-semibold uppercase tracking-wide text-foreground">No Prediction Selected</p>
+        <span className="text-xs text-muted-foreground">Select a complaint from the live feed to score it.</span>
       </div>
     );
   }
 
-  const getRiskBadge = (level: string) => {
-    switch (level) {
-      case "Critical":
-        return "bg-rose-50 text-rose-700 border-rose-200";
-      case "High":
-        return "bg-orange-50 text-orange-700 border-orange-200";
-      case "Medium":
-        return "bg-amber-50 text-amber-700 border-amber-200";
-      default:
-        return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    }
-  };
-
-  const getBarColor = (level: string) => {
-    switch (level) {
-      case "Critical":
-        return "bg-rose-600";
-      case "High":
-        return "bg-orange-500";
-      case "Medium":
-        return "bg-amber-500";
-      default:
-        return "bg-blue-600";
-    }
-  };
+  const level = normalizeRiskLevel(data.riskLevel);
+  const meta = RISK_META[level];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white text-slate-900 shadow-xs flex flex-col h-full">
-      {/* Header */}
-      <div className="p-5 border-b border-slate-100">
-        <div className="flex items-center justify-between mb-3">
+    <div className="flex h-full flex-col rounded-lg border border-border bg-surface">
+      <header className="border-b border-border/70 p-4">
+        <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 rounded-md bg-blue-50 text-blue-600">
-              <ShieldAlert className="w-4 h-4" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-primary">
+              <ShieldAlert className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="font-bold text-sm text-slate-900 leading-tight">AI Threat Intelligence</h3>
-              <span className="text-[10px] text-slate-400 font-medium">Model: XGBoost + Random Forest</span>
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
+                Why This Incident Was Flagged
+              </h3>
+              <span className="text-[10px] text-subtle-foreground">XGBoost + Random Forest</span>
             </div>
           </div>
-          <span className={cn("px-2.5 py-0.5 rounded-full text-[11px] font-bold border", getRiskBadge(data.riskLevel))}>
-            {data.riskLevel} Risk
-          </span>
+          <SeverityBadge level={level} />
         </div>
 
-        {/* Top Predicted Locations */}
-        <div className="space-y-3 mt-4">
+        <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+            <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
               Predicted Cash-Out Targets
             </h4>
-            <span className="text-[10px] text-slate-400 font-medium">Confidence Score</span>
+            <span className="text-[10px] text-subtle-foreground">Confidence</span>
           </div>
 
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {data.locations.slice(0, 4).map((loc, i) => (
-              <div key={i} className="flex flex-col gap-1 p-2 rounded-lg bg-slate-50 border border-slate-100">
+              <div key={i} className="flex flex-col gap-1 rounded-md border border-border/70 bg-surface-overlay p-2">
                 <div className="flex justify-between text-xs">
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 rounded-full bg-white border border-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-border font-mono text-[9px] font-semibold text-muted-foreground">
                       {i + 1}
                     </span>
-                    <span className="font-semibold text-slate-800">{loc.name}</span>
+                    <span className="truncate font-medium text-foreground">{loc.name}</span>
                   </div>
-                  <span className="font-bold text-slate-900">{formatConfidence(loc.confidence)}</span>
+                  <span className="shrink-0 font-mono font-semibold text-foreground">
+                    {formatConfidence(loc.confidence)}
+                  </span>
                 </div>
-                <div className="w-full h-1.5 bg-slate-200/70 rounded-full overflow-hidden mt-0.5">
+                <div className="mt-0.5 h-1 w-full overflow-hidden rounded-full bg-surface">
                   <div
-                    className={cn("h-full rounded-full transition-all duration-700", getBarColor(data.riskLevel))}
+                    className={cn("h-full rounded-full transition-all duration-700", meta.dot)}
                     style={{ width: `${Math.max(loc.confidence * 100, 4)}%` }}
                   />
                 </div>
               </div>
             ))}
+            {data.locations.length === 0 && (
+              <p className="text-xs text-muted-foreground">No predicted locations returned by the model.</p>
+            )}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Key Risk Drivers (SHAP) */}
-      <div className="p-5 flex-1">
-        <h4 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Key Risk Factors (SHAP Drivers)
+      <div className="flex-1 p-4">
+        <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Top Contributing Factors
         </h4>
         <div className="space-y-2.5">
           {data.features.slice(0, 5).map((feat, i) => {
-            const hasImpact = Math.abs(feat.value) > 0.001;
+            const isPositive = feat.value >= 0;
             return (
-              <div key={i} className="flex items-center justify-between text-xs">
-                <span className="text-slate-600 truncate max-w-[140px]" title={feat.name}>
+              <div key={i} className="flex items-center justify-between gap-3 text-xs">
+                <span
+                  className={cn("shrink-0 font-mono text-[10px] font-semibold", isPositive ? "text-risk-critical" : "text-risk-low")}
+                >
+                  {isPositive ? "+" : "−"}
+                </span>
+                <span className="min-w-0 flex-1 truncate capitalize text-muted-foreground" title={feat.name}>
                   {feat.name.replace(/_/g, " ")}
                 </span>
-                <div className="flex items-center gap-2 w-36">
-                  <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div className="flex w-28 shrink-0 items-center gap-2">
+                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-overlay">
                     <div
-                      className="h-full bg-blue-600 rounded-full"
+                      className={cn("h-full rounded-full", isPositive ? "bg-risk-critical" : "bg-risk-low")}
                       style={{ width: `${Math.min(Math.abs(feat.value) * 100, 100)}%` }}
                     />
                   </div>
-                  <span className="text-[11px] w-12 text-right font-semibold text-slate-700">
-                    {hasImpact ? `+${feat.value.toFixed(2)}` : "Baseline"}
+                  <span className="w-10 shrink-0 text-right font-mono text-[10px] font-semibold text-foreground">
+                    {feat.value.toFixed(2)}
                   </span>
                 </div>
               </div>
             );
           })}
+          {data.features.length === 0 && (
+            <p className="text-xs text-muted-foreground">No feature-importance data returned by the model.</p>
+          )}
         </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="p-3 border-t border-slate-100 bg-slate-50/50 grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2 border-t border-border/70 p-3">
         <button
           type="button"
           onClick={() => {
             const mapEl = document.querySelector(".leaflet-container");
             mapEl?.scrollIntoView({ behavior: "smooth" });
           }}
-          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-800 shadow-xs rounded-lg text-xs font-semibold hover:bg-slate-100 transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-overlay"
         >
-          <Map className="w-3.5 h-3.5 text-blue-600" />
+          <Map className="h-3.5 w-3.5 text-primary" />
           Focus on Map
         </button>
         <Link
           href="/intelligence"
-          className="flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white shadow-xs rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          <FileText className="w-3.5 h-3.5" />
-          Police Dossier
+          <FileText className="h-3.5 w-3.5" />
+          Intelligence Dossier
         </Link>
       </div>
     </div>

@@ -18,12 +18,22 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+      },
       colors: {
         border: "hsl(var(--border))",
+        "border-strong": "hsl(var(--border-strong))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        surface: {
+          DEFAULT: "hsl(var(--surface))",
+          raised: "hsl(var(--surface-raised))",
+          overlay: "hsl(var(--surface-overlay))",
+        },
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -52,18 +62,19 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        law: {
-          blue: "#0d47a1",
-          light: "#5472d3",
-          dark: "#002171",
-          slate: "#475569",
-          amber: "#fbbf24",
-        }
+        risk: {
+          low: "hsl(var(--risk-low))",
+          medium: "hsl(var(--risk-medium))",
+          high: "hsl(var(--risk-high))",
+          critical: "hsl(var(--risk-critical))",
+          system: "hsl(var(--risk-system))",
+          analytic: "hsl(var(--risk-analytic))",
+        },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "var(--radius-lg)",
+        md: "var(--radius-md)",
+        sm: "var(--radius-sm)",
       },
       keyframes: {
         "accordion-down": {
