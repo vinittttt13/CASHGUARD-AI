@@ -5,12 +5,12 @@
     "rf_risk.pkl",
     "kmeans_hotspot.pkl"
   ],
-  "version": "v20260911.1928",
-  "last_trained": "2026-09-11T19:28:10.303835",
-  "source": "synthetic",
+  "version": "v20260912.0452",
+  "last_trained": "2026-09-12T04:52:09.680560",
+  "source": "database",
   "sample_size": 5000,
   "hardware": {
-    "os": "Windows 10 (AMD64)",
+    "os": "Linux 6.6.87.2-microsoft-standard-WSL2 (x86_64)",
     "cpu_count": 8,
     "gpus": [
       {
@@ -19,7 +19,7 @@
         "vendor": "NVIDIA",
         "driver_version": "616.64",
         "vram_mb": 4096,
-        "vram_free_mb": 3377,
+        "vram_free_mb": 3560,
         "compute_capability": "7.5",
         "cuda_cores": 896,
         "cuda_available": true
@@ -30,7 +30,7 @@
     "cuda_available": true,
     "rocm_available": false,
     "primary_gpu": "NVIDIA GeForce GTX 1650",
-    "xgboost_device": "cuda",
+    "xgboost_device": "cpu",
     "xgboost_tree_method": "hist",
     "n_jobs": 8
   }

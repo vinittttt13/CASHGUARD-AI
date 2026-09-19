@@ -52,11 +52,6 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # Rate limiting is enforced entirely in the middleware below (not via slowapi's
 # route decorators, whose swallow_errors path is broken in 0.1.9). Every request
 # gets the global default; a few sensitive routes get a tighter per-IP budget.
-_GLOBAL_LIMIT = parse_rate_limit("60/minute")
-_ROUTE_LIMITS = {
-    ("POST", "/api/v1/auth/login"): parse_rate_limit("5/minute"),
-    ("POST", "/api/v1/predict"): parse_rate_limit("10/minute"),
-}
 _RATE_LIMIT_EXEMPT_PREFIXES = ("/health", "/docs", "/redoc", "/openapi.json")
 
 
@@ -68,11 +63,20 @@ async def rate_limit_middleware(request: Request, call_next):
     allowed through rather than turned into a 500 — the readiness probe already
     reports 503 in that case so Kubernetes drains the pod.
     """
+    if not settings.rate_limit_enabled:
+        return await call_next(request)
+
     path = request.url.path
     if not any(path.startswith(p) for p in _RATE_LIMIT_EXEMPT_PREFIXES):
         client_ip = get_remote_address(request)
-        rules = [(_GLOBAL_LIMIT, "global")]
-        route_limit = _ROUTE_LIMITS.get((request.method, path))
+        global_limit = parse_rate_limit(settings.rate_limit_global)
+        rules = [(global_limit, "global")]
+
+        route_limits = {
+            ("POST", "/api/v1/auth/login"): parse_rate_limit(settings.rate_limit_login),
+            ("POST", "/api/v1/predict"): parse_rate_limit(settings.rate_limit_predict),
+        }
+        route_limit = route_limits.get((request.method, path))
         if route_limit is not None:
             rules.append((route_limit, f"{request.method}:{path}"))
 
@@ -85,7 +89,8 @@ async def rate_limit_middleware(request: Request, call_next):
             if not allowed:
                 return JSONResponse(
                     status_code=429,
-                    content={"detail": f"Rate limit exceeded: {item}"},
+                    content={"detail": f"Rate limit exceeded: {item}. Please retry shortly."},
+                    headers={"Retry-After": "60"},
                 )
 
     return await call_next(request)

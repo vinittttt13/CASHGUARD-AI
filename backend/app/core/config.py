@@ -30,6 +30,12 @@ class Settings(BaseSettings):
     geocoding_timeout: int = 10
     max_prediction_radius_km: float = 50.0
 
+    # Rate limiting
+    rate_limit_enabled: bool = True
+    rate_limit_global: str = "300/minute"
+    rate_limit_login: str = "5/minute"
+    rate_limit_predict: str = "60/minute"
+
     # Database connection pool settings (high concurrency)
     db_pool_size: int = 50
     db_max_overflow: int = 20

@@ -41,7 +41,7 @@ _storage_uri = (
 
 limiter = Limiter(
     key_func=get_remote_address,
-    default_limits=["60/minute"],
+    default_limits=[settings.rate_limit_global],
     storage_uri=_storage_uri,
     strategy="fixed-window",
     # If the storage backend (Redis) errors at request time, log and allow the

@@ -20,19 +20,28 @@ export function ErrorState({
   onRetry,
   title = "CONNECTION ERROR",
 }: {
-  error: Error | { message?: string } | string;
+  error: Error | { message?: string; response?: { status?: number } } | string;
   onRetry?: () => void;
   title?: string;
 }) {
-  const message =
+  const rawMessage =
     typeof error === "string" ? error : error?.message || "Unable to retrieve intelligence data.";
+  const is429 =
+    (typeof error !== "string" && (error as any)?.response?.status === 429) ||
+    rawMessage.includes("429");
+
+  const displayTitle = is429 ? "RATE LIMIT EXCEEDED" : title;
+  const message = is429
+    ? "Too many requests. Please pause a moment before retrying."
+    : rawMessage;
+
   return (
     <div
       role="alert"
       className="flex flex-col items-center justify-center gap-2 rounded-lg border border-risk-critical/30 bg-risk-critical/5 p-8 text-center"
     >
       <ShieldAlert className="h-6 w-6 text-risk-critical" aria-hidden="true" />
-      <p className="text-xs font-semibold uppercase tracking-wide text-risk-critical">{title}</p>
+      <p className="text-xs font-semibold uppercase tracking-wide text-risk-critical">{displayTitle}</p>
       <p className="max-w-sm text-xs text-muted-foreground">Failed to load data: {message}</p>
       {onRetry && (
         <button
