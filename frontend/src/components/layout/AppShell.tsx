@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { StatusIndicator } from "@/components/shared/intel-primitives";
+import { CommandPalette } from "@/components/shared/command-palette";
 import { isAuthenticated as checkAuth, clearAuth, getUserFromToken } from "@/lib/auth";
 import { logoutUser } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -174,6 +175,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
+      <CommandPalette onLogout={handleLogout} />
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -290,6 +292,16 @@ export default function DashboardLayout({
           </div>
 
           <div className="ml-auto flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))
+              }
+              className="hidden items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground md:flex"
+            >
+              <span>Search…</span>
+              <kbd className="label-caps rounded border border-border px-1 text-[10px]">⌘K</kbd>
+            </button>
             {/* System status cluster */}
             <div className="hidden items-center gap-3 rounded-md border border-border bg-surface-raised px-3 py-1.5 lg:flex">
               <StatusIndicator state="online" label="API Operational" />

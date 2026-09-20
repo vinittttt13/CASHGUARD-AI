@@ -3,6 +3,7 @@
 import { MapPin, Clock, CheckCircle2 } from "lucide-react";
 import { cn, formatRelativeTime } from "@/lib/utils";
 import { normalizeRiskLevel, RISK_META, SeverityBadge, TechnicalId } from "@/components/shared/intel-primitives";
+import { GoldenHourCountdown } from "./golden-hour-countdown";
 
 interface AlertCardProps {
   alert: {
@@ -36,6 +37,9 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
             <h3 className="truncate text-sm font-medium text-foreground">{alert.title}</h3>
             <SeverityBadge level={level} size="sm" />
           </div>
+          {!alert.acknowledged && (level === "critical" || level === "high") && (
+            <GoldenHourCountdown incidentTimestamp={alert.timestamp} className="shrink-0" />
+          )}
         </div>
 
         <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{alert.description}</p>
