@@ -3,59 +3,111 @@
 @tailwind utilities;
 
 /*
- * CASHGUARD design tokens — financial cyber intelligence platform.
- * Dark-first, single palette (no light theme). Values match the
- * product's fixed design language, not shadcn defaults.
+ * CASHGUARD design tokens — "forensic instrument" identity.
+ * Warm-charcoal dark theme (default) with a light theme for daylight
+ * ops-room use. Exactly two brand accents: flare (risk-critical/alerts)
+ * and verified (risk-clear/confirmed). risk-review (amber) is a
+ * semantic-only third tone for the middle severity tier — see
+ * docs/frontend design brief for the reasoning.
  */
 @layer base {
   :root {
-    --background: 220 35% 3%;
-    --surface: 220 28% 6%;
-    --surface-raised: 215 25% 8%;
-    --surface-overlay: 213 24% 10%;
+    /* ---- Light theme (daylight ops-room) ---- */
+    --background: 42 28% 95%;
+    --surface: 40 24% 92%;
+    --surface-raised: 38 20% 88%;
+    --surface-overlay: 38 18% 84%;
 
-    --border: 205 27% 15%;
-    --border-strong: 200 25% 20%;
+    --border: 36 15% 78%;
+    --border-strong: 36 16% 66%;
 
-    --foreground: 205 28% 92%;
-    --muted-foreground: 205 12% 60%;
-    --subtle-foreground: 205 10% 42%;
+    --foreground: 34 30% 10%;
+    --muted-foreground: 36 12% 34%;
+    --subtle-foreground: 36 10% 48%;
 
-    --card: 220 28% 6%;
-    --card-foreground: 205 28% 92%;
+    --card: 40 24% 92%;
+    --card-foreground: 34 30% 10%;
 
-    --popover: 215 25% 8%;
-    --popover-foreground: 205 28% 92%;
+    --popover: 38 20% 88%;
+    --popover-foreground: 34 30% 10%;
 
-    --primary: 189 85% 51%;
-    --primary-foreground: 220 35% 4%;
+    /* Primary = inverted ink-stamp fill, not a colored brand accent —
+       accents are reserved for risk semantics. */
+    --primary: 34 30% 10%;
+    --primary-foreground: 42 28% 96%;
 
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 38 20% 88%;
+    --secondary-foreground: 34 30% 10%;
 
-    --muted: 213 24% 10%;
+    --muted: 38 20% 88%;
 
-    --accent: 213 24% 10%;
-    --accent-foreground: 205 28% 92%;
+    --accent: 38 18% 84%;
+    --accent-foreground: 34 30% 10%;
 
-    --destructive: 0 79% 63%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 10 85% 45%;
+    --destructive-foreground: 42 28% 96%;
 
-    --input: 205 27% 15%;
-    --ring: 189 85% 51%;
+    --input: 36 15% 78%;
+    --ring: 165 30% 32%;
 
-    /* Semantic risk / status colors — never used decoratively */
-    --risk-low: 142 69% 45%;
-    --risk-medium: 38 92% 50%;
-    --risk-high: 25 95% 53%;
-    --risk-critical: 0 79% 63%;
-    --risk-system: 189 85% 51%;
-    --risk-analytic: 255 87% 79%;
+    --flare: 10 88% 46%;
+    --verified: 165 32% 32%;
+    --risk-clear: 165 32% 32%;
+    --risk-review: 35 78% 38%;
+    --risk-critical: 10 88% 46%;
+    --hairline: 36 15% 78%;
+    --ash: 36 12% 40%;
 
-    --radius: 0.5rem;
-    --radius-sm: 0.25rem;
-    --radius-md: 0.375rem;
-    --radius-lg: 0.5rem;
+    --radius: 0.1875rem;
+    --radius-sm: 0.125rem;
+    --radius-md: 0.1875rem;
+    --radius-lg: 0.25rem;
+  }
+
+  .dark {
+    /* ---- Dark theme (default) ---- */
+    --background: 34 19% 7%;
+    --surface: 32 16% 9%;
+    --surface-raised: 30 14% 11%;
+    --surface-overlay: 30 13% 14%;
+
+    --border: 37 13% 19%;
+    --border-strong: 36 14% 27%;
+
+    --foreground: 40 33% 89%;
+    --muted-foreground: 38 9% 55%;
+    --subtle-foreground: 38 8% 40%;
+
+    --card: 32 16% 9%;
+    --card-foreground: 40 33% 89%;
+
+    --popover: 30 14% 11%;
+    --popover-foreground: 40 33% 89%;
+
+    --primary: 40 33% 89%;
+    --primary-foreground: 34 25% 8%;
+
+    --secondary: 30 14% 11%;
+    --secondary-foreground: 40 33% 89%;
+
+    --muted: 30 14% 11%;
+
+    --accent: 30 13% 14%;
+    --accent-foreground: 40 33% 89%;
+
+    --destructive: 10 100% 57%;
+    --destructive-foreground: 20 40% 9%;
+
+    --input: 37 13% 19%;
+    --ring: 165 23% 46%;
+
+    --flare: 10 100% 57%;
+    --verified: 165 23% 46%;
+    --risk-clear: 165 23% 46%;
+    --risk-review: 35 70% 51%;
+    --risk-critical: 10 100% 57%;
+    --hairline: 37 13% 19%;
+    --ash: 38 9% 50%;
   }
 }
 
@@ -68,7 +120,7 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
   ::selection {
-    @apply bg-cyan-500/25 text-foreground;
+    @apply bg-flare/25 text-foreground;
   }
   .font-mono,
   .tabular-technical {
@@ -76,55 +128,91 @@
   }
 }
 
-/* Leaflet popup chrome — restyled to match the dark investigation-console
-   theme. Leaflet renders these outside the React tree, so plain CSS. */
+@layer utilities {
+  /* Small-caps section labels — real OpenType small caps, not an
+     uppercase text-transform "eyebrow label" tell. */
+  .label-caps {
+    font-variant-caps: all-small-caps;
+    letter-spacing: 0.02em;
+  }
+
+  /* Corner-tick "crosshair" motif — marks a panel as carrying live /
+     actionable data. Used sparingly, never on every card (see brief). */
+  .crosshair-corners {
+    position: relative;
+  }
+  .crosshair-corners::before,
+  .crosshair-corners::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    pointer-events: none;
+  }
+  .crosshair-corners::before {
+    top: -1px;
+    left: -1px;
+    border-top: 1px solid hsl(var(--flare));
+    border-left: 1px solid hsl(var(--flare));
+  }
+  .crosshair-corners::after {
+    bottom: -1px;
+    right: -1px;
+    border-bottom: 1px solid hsl(var(--flare));
+    border-right: 1px solid hsl(var(--flare));
+  }
+}
+
+/* Leaflet popup chrome — restyled to match the warm-charcoal forensic
+   instrument theme. Leaflet renders these outside the React tree, so
+   plain CSS with the palette's hex values directly (no HSL vars). */
 .leaflet-container {
-  background: #0b1118;
-  font-family: var(--font-sans), Inter, sans-serif;
+  background: #16130f;
+  font-family: var(--font-sans), sans-serif;
 }
 .leaflet-popup-content-wrapper {
-  background: #111a24;
-  color: #e6edf3;
-  border: 1px solid #1b2a38;
-  border-radius: 8px;
+  background: #201b14;
+  color: #ede7da;
+  border: 1px solid #38332b;
+  border-radius: 3px;
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.45);
 }
 .leaflet-popup-content {
   margin: 12px 14px;
 }
 .leaflet-popup-tip {
-  background: #111a24;
-  border: 1px solid #1b2a38;
+  background: #201b14;
+  border: 1px solid #38332b;
 }
 .leaflet-popup-close-button {
-  color: #8b9aaa !important;
+  color: #8b8375 !important;
 }
 .leaflet-popup-close-button:hover {
-  color: #e6edf3 !important;
+  color: #ede7da !important;
 }
 .leaflet-control-layers {
-  background: #111a24 !important;
-  border: 1px solid #1b2a38 !important;
-  color: #e6edf3 !important;
-  border-radius: 8px !important;
+  background: #201b14 !important;
+  border: 1px solid #38332b !important;
+  color: #ede7da !important;
+  border-radius: 3px !important;
 }
 .leaflet-control-layers-toggle {
-  filter: invert(1) hue-rotate(180deg);
+  filter: invert(1) sepia(0.3) hue-rotate(-10deg);
 }
 .leaflet-control-zoom a {
-  background: #111a24 !important;
-  color: #e6edf3 !important;
-  border-color: #1b2a38 !important;
+  background: #201b14 !important;
+  color: #ede7da !important;
+  border-color: #38332b !important;
 }
 .leaflet-control-zoom a:hover {
-  background: #141f2a !important;
+  background: #241e16 !important;
 }
 .leaflet-control-attribution {
-  background: rgba(11, 17, 24, 0.75) !important;
-  color: #5e6e7e !important;
+  background: rgba(22, 19, 15, 0.75) !important;
+  color: #6b6255 !important;
 }
 .leaflet-control-attribution a {
-  color: #8b9aaa !important;
+  color: #8b8375 !important;
 }
 
 @layer utilities {
