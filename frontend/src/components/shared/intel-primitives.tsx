@@ -154,17 +154,28 @@ export function StatusIndicator({
   label,
   className,
 }: {
-  state: "online" | "offline" | "degraded";
+  state: "online" | "offline" | "degraded" | "reconnecting";
   label: string;
   className?: string;
 }) {
   const color =
-    state === "online" ? "bg-risk-low" : state === "degraded" ? "bg-risk-medium" : "bg-risk-critical";
+    state === "online"
+      ? "bg-risk-low"
+      : state === "degraded" || state === "reconnecting"
+        ? "bg-risk-medium"
+        : "bg-risk-critical";
+  // "online" pulses to show a healthy live connection; "reconnecting" blinks
+  // faster/harder to read as active-but-troubled, distinct from a flat dead
+  // "offline" dot — a viewer should be able to tell "still trying" from
+  // "given up" at a glance.
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground", className)}>
       <span className="relative flex h-1.5 w-1.5">
         {state === "online" && (
           <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-60", color)} />
+        )}
+        {state === "reconnecting" && (
+          <span className={cn("absolute inline-flex h-full w-full animate-pulse rounded-full opacity-80", color)} />
         )}
         <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", color)} />
       </span>

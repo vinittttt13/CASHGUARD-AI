@@ -62,6 +62,7 @@ export default function DashboardLayout({
   const unreadAlertCount = useAppStore((s) => s.unreadAlertCount);
   const clearUnread = useAppStore((s) => s.clearUnread);
   const socketConnected = useAppStore((s) => s.socketConnected);
+  const socketReconnecting = useAppStore((s) => s.socketReconnecting);
 
   useEffect(() => {
     if (!checkAuth()) {
@@ -294,8 +295,8 @@ export default function DashboardLayout({
               <StatusIndicator state="online" label="API Operational" />
               <span className="h-3 w-px bg-border" aria-hidden="true" />
               <StatusIndicator
-                state={socketConnected ? "online" : "offline"}
-                label={socketConnected ? "Live Feed Connected" : "Live Feed Offline"}
+                state={socketConnected ? "online" : socketReconnecting ? "reconnecting" : "offline"}
+                label={socketConnected ? "Live feed connected" : socketReconnecting ? "Reconnecting…" : "Live feed offline"}
               />
             </div>
 

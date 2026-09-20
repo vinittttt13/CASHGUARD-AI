@@ -33,6 +33,8 @@ interface AppState {
   // WebSocket connection state
   socketConnected: boolean;
   setSocketConnected: (connected: boolean) => void;
+  socketReconnecting: boolean;
+  setSocketReconnecting: (reconnecting: boolean) => void;
 
   // Sound preferences
   soundEnabled: boolean;
@@ -74,6 +76,8 @@ export const useAppStore = create<AppState>()(
       // WebSocket
       socketConnected: false,
       setSocketConnected: (connected) => set({ socketConnected: connected }),
+      socketReconnecting: false,
+      setSocketReconnecting: (reconnecting) => set({ socketReconnecting: reconnecting }),
 
       // Sound / notification preferences
       soundEnabled: true,

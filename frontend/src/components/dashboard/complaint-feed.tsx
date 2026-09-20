@@ -22,6 +22,7 @@ const categoryStyle = (category: string) =>
 export function ComplaintFeed() {
   const { toast } = useToast();
   const connected = useAppStore((s) => s.socketConnected);
+  const reconnecting = useAppStore((s) => s.socketReconnecting);
   const { data, error, loading, refetch } = useApiResource(() => getComplaints({ limit: 15 }), []);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [predictingId, setPredictingId] = useState<string | null>(null);
@@ -52,8 +53,8 @@ export function ComplaintFeed() {
       contentClassName="p-0"
       action={
         <StatusIndicator
-          state={connected ? "online" : "offline"}
-          label={connected ? "Feed connected" : "Feed offline"}
+          state={connected ? "online" : reconnecting ? "reconnecting" : "offline"}
+          label={connected ? "Feed connected" : reconnecting ? "Reconnecting…" : "Feed offline"}
         />
       }
     >

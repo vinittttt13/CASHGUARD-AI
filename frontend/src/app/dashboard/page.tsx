@@ -41,6 +41,7 @@ function LatestPrediction() {
       data={{
         id: p.id,
         riskLevel: titleCase(p.risk_level),
+        confidenceScore: p.confidence_score,
         locations: (p.predicted_locations ?? []).map((l) => ({
           name: l.atm_name ?? `Cluster ${p.hotspot_cluster_id ?? "?"}`,
           confidence: l.confidence,

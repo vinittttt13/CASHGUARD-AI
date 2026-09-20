@@ -3,6 +3,7 @@ import { Instrument_Serif, Public_Sans, Fragment_Mono } from "next/font/google";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { MotionProvider } from "@/components/motion-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 
@@ -49,8 +50,10 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <ErrorBoundary>{children}</ErrorBoundary>
-          <Toaster />
+          <MotionProvider>
+            <ErrorBoundary>{children}</ErrorBoundary>
+            <Toaster />
+          </MotionProvider>
         </ThemeProvider>
       </body>
     </html>

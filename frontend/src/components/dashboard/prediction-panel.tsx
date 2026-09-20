@@ -4,10 +4,12 @@ import { AlertCircle, Map, FileText, ShieldAlert } from "lucide-react";
 import { cn, formatConfidence } from "@/lib/utils";
 import Link from "next/link";
 import { normalizeRiskLevel, RISK_META, SeverityBadge } from "@/components/shared/intel-primitives";
+import { RiskGauge } from "@/components/shared/risk-gauge";
 
 interface PredictionData {
   id: string;
   riskLevel: "Critical" | "High" | "Medium" | "Low";
+  confidenceScore?: number;
   locations: { name: string; confidence: number }[];
   features: { name: string; value: number }[];
 }
@@ -39,7 +41,7 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-surface">
       <header className="border-b border-border/70 p-4">
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-muted-foreground">
             <ShieldAlert className="h-4 w-4" aria-hidden="true" />
             <div>
@@ -49,7 +51,12 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
               <span className="text-[10px] text-subtle-foreground">XGBoost + Random Forest</span>
             </div>
           </div>
-          <SeverityBadge level={level} />
+          <div className="flex shrink-0 items-center gap-3">
+            <SeverityBadge level={level} />
+            {typeof data.confidenceScore === "number" && (
+              <RiskGauge value={data.confidenceScore} size={56} strokeWidth={5} />
+            )}
+          </div>
         </div>
 
         <div className="mt-4 space-y-2">
