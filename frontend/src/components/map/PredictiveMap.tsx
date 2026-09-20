@@ -213,10 +213,15 @@ export default function PredictiveMap({
         <IndiaResetControl />
         <MapEventsHandler onClick={onAreaClick} />
         <MapResizeHandler />
+        {/* CARTO's free anonymous basemap tier now requires an API key (every
+            tile renders an "API KEY REQUIRED" watermark without one) — using
+            the standard no-key OSM tile server instead, with a CSS filter to
+            match the dark identity. See .map-tile-dark in globals.css. */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
+          className="map-tile-dark"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          subdomains="abc"
         />
 
         <BoundsFitter bounds={bounds} />

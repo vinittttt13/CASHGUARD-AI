@@ -170,6 +170,11 @@
   background: #16130f;
   font-family: var(--font-sans), sans-serif;
 }
+/* Standard OSM tiles are a light basemap — invert + hue-rotate to a warm
+   dark tone instead of the raw cyan-tinted default photo-negative look. */
+.map-tile-dark {
+  filter: invert(1) grayscale(0.35) brightness(0.85) contrast(1.05) sepia(0.25) hue-rotate(-10deg);
+}
 .leaflet-popup-content-wrapper {
   background: #201b14;
   color: #ede7da;
