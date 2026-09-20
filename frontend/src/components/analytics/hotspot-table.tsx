@@ -21,12 +21,12 @@ export function HotspotTable({ hotspots = [] }: { hotspots?: Hotspot[] }) {
       <table className="w-full text-xs">
         <thead>
           <tr className="border-b border-border">
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">#</th>
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Location</th>
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Incidents</th>
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Risk Score</th>
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Radius</th>
-            <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Status</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">#</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Location</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Incidents</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Risk Score</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Radius</th>
+            <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Status</th>
           </tr>
         </thead>
         <tbody>

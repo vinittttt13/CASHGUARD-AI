@@ -32,18 +32,18 @@ export function TrendChart({ trends }: { trends?: TrendsResponse }) {
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#1b2a38" />
-        <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#8b9aaa" }} minTickGap={24} axisLine={{ stroke: "#1b2a38" }} tickLine={false} />
-        <YAxis tick={{ fontSize: 11, fill: "#8b9aaa" }} allowDecimals={false} axisLine={false} tickLine={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--hairline))" />
+        <XAxis dataKey="date" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} minTickGap={24} axisLine={{ stroke: "hsl(var(--hairline))" }} tickLine={false} />
+        <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} allowDecimals={false} axisLine={false} tickLine={false} />
         <Tooltip
-          contentStyle={{ borderRadius: 6, border: "1px solid #1b2a38", background: "#111a24", color: "#e6edf3", fontSize: 12 }}
-          labelStyle={{ color: "#e6edf3" }}
+          contentStyle={{ borderRadius: 3, border: "1px solid hsl(var(--border))", background: "hsl(var(--surface-raised))", color: "hsl(var(--foreground))", fontSize: 12 }}
+          labelStyle={{ color: "hsl(var(--foreground))" }}
         />
         <Line
           type="monotone"
           dataKey="incidents"
           name="Incidents"
-          stroke="#ef4444"
+          stroke="hsl(var(--flare))"
           strokeWidth={2}
           dot={false}
           connectNulls
@@ -52,7 +52,7 @@ export function TrendChart({ trends }: { trends?: TrendsResponse }) {
           type="monotone"
           dataKey="forecast"
           name="Forecast"
-          stroke="#a78bfa"
+          stroke="hsl(var(--ash))"
           strokeWidth={2}
           strokeDasharray="5 5"
           dot={false}

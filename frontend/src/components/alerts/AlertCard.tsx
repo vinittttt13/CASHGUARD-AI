@@ -52,8 +52,8 @@ export function AlertCard({ alert, onAcknowledge }: AlertCardProps) {
         </div>
 
         <div className="mt-3 flex items-center justify-between border-t border-border/70 pt-2.5">
-          <span className="text-[11px] font-medium uppercase tracking-wide text-subtle-foreground">
-            {alert.type}
+          <span className="text-[11px] font-medium label-caps text-subtle-foreground">
+            {alert.type?.replace(/_/g, " ")}
           </span>
           {alert.acknowledged ? (
             <span className="flex items-center gap-1.5 rounded-md border border-risk-low/30 bg-risk-low/10 px-2.5 py-1 text-xs font-medium text-risk-low">

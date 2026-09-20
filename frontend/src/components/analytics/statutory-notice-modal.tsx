@@ -19,7 +19,7 @@ interface StatutoryNoticeModalProps {
 // Masks all but the last 4 characters of a bank/account identifier so the
 // printed notice doesn't leak the full value into a screenshot or log.
 function mask(value: string | undefined | null): string {
-  if (!value) return "UNSPECIFIED";
+  if (!value) return "Unspecified";
   if (value.length <= 4) return value;
   return `${"X".repeat(value.length - 4)}${value.slice(-4)}`;
 }
@@ -62,7 +62,7 @@ export function StatutoryNoticeModal({ open, onClose, transaction }: StatutoryNo
 
         <div className="p-8 space-y-6 font-serif">
           <header className="text-center border-b-2 border-slate-800 pb-4">
-            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            <p className="text-xs font-bold label-caps text-slate-500">
               Office of the Superintendent of Police / Cyber Crime Cell
             </p>
             <h1 className="text-xl font-extrabold uppercase mt-1">

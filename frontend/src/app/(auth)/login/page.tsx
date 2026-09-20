@@ -181,7 +181,7 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-6 flex items-center justify-center gap-2 border-t border-border pt-4 text-[10px] uppercase tracking-wide text-subtle-foreground">
+          <div className="mt-6 flex items-center justify-center gap-2 border-t border-border pt-4 text-[10px] label-caps text-subtle-foreground">
             <KeyRound className="h-3 w-3" />
             Secure Authentication · JWT Session
           </div>

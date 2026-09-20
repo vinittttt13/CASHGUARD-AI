@@ -78,7 +78,7 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface">
       <div className="border-b border-border/70 p-3">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">Alert Feed</h2>
+        <h2 className="mb-2 text-xs font-semibold label-caps text-foreground">Alert Feed</h2>
         <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
           <Filter className="mr-0.5 h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
           {(["All", "Critical", "High", "Medium", "Low"] as Priority[]).map((p) => (

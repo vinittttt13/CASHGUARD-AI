@@ -9,9 +9,9 @@ interface ConfidenceGaugeProps {
 
 export function ConfidenceGauge({ score, sampleSize }: ConfidenceGaugeProps) {
   const getFillColor = (s: number) => {
-    if (s >= 75) return "#22c55e"; // risk-low
-    if (s >= 50) return "#f59e0b"; // risk-medium
-    return "#ef4444"; // risk-critical
+    if (s >= 75) return "hsl(var(--verified))";
+    if (s >= 50) return "hsl(var(--risk-review))";
+    return "hsl(var(--flare))";
   };
 
   const data = [{ name: "Confidence", value: score, fill: getFillColor(score) }];
@@ -40,7 +40,7 @@ export function ConfidenceGauge({ score, sampleSize }: ConfidenceGaugeProps) {
         <span className="font-mono text-2xl font-semibold tabular-nums" style={{ color: getFillColor(score) }}>
           {score.toFixed(1)}%
         </span>
-        <span className="mt-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+        <span className="mt-1 text-[10px] font-semibold label-caps text-muted-foreground">
           Live Confidence Score
         </span>
         <span className="mt-2 text-xs text-subtle-foreground">

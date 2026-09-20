@@ -17,11 +17,11 @@ interface ATMMarkerProps {
 
 export function ATMMarker({ id, position, name, address, risk_score, incident_count }: ATMMarkerProps) {
   const icon = useMemo(() => {
-    let colorClass = "text-[#22c55e] bg-[#141f2a] border-[#22c55e]";
+    let colorClass = "text-[#5b9083] bg-[#201b14] border-[#5b9083]";
     if (risk_score > 0.7) {
-      colorClass = "text-[#ef4444] bg-[#141f2a] border-[#ef4444]";
+      colorClass = "text-[#ff4b26] bg-[#201b14] border-[#ff4b26]";
     } else if (risk_score >= 0.3) {
-      colorClass = "text-[#f59e0b] bg-[#141f2a] border-[#f59e0b]";
+      colorClass = "text-[#d98f2b] bg-[#201b14] border-[#d98f2b]";
     }
 
     const html = `
@@ -46,26 +46,26 @@ export function ATMMarker({ id, position, name, address, risk_score, incident_co
     });
   }, [risk_score]);
 
-  const riskColor = risk_score > 0.7 ? "text-[#ef4444]" : risk_score >= 0.3 ? "text-[#f59e0b]" : "text-[#22c55e]";
+  const riskColor = risk_score > 0.7 ? "text-flare" : risk_score >= 0.3 ? "text-risk-review" : "text-verified";
 
   return (
     <Marker position={position} icon={icon}>
       <Popup>
         <div className="min-w-[200px]">
-          <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-400">
+          <div className="mb-1.5 text-[10px] font-semibold label-caps text-verified">
             ATM / Withdrawal Location
           </div>
-          <h3 className="text-sm font-semibold text-slate-100">{name}</h3>
-          <p className="mt-0.5 text-xs text-slate-400">{address}</p>
-          <div className="my-2 h-px w-full bg-slate-700" />
+          <h3 className="text-sm font-semibold text-foreground">{name}</h3>
+          <p className="mt-0.5 text-xs text-muted-foreground">{address}</p>
+          <div className="my-2 h-px w-full bg-border" />
           <dl className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex flex-col gap-0.5">
-              <dt className="text-slate-400">Risk Score</dt>
+              <dt className="text-muted-foreground">Risk score</dt>
               <dd className={cn("font-mono font-medium", riskColor)}>{formatConfidence(risk_score)}</dd>
             </div>
             <div className="flex flex-col gap-0.5">
-              <dt className="text-slate-400">Incidents</dt>
-              <dd className="font-mono font-medium text-slate-100">{incident_count}</dd>
+              <dt className="text-muted-foreground">Incidents</dt>
+              <dd className="font-mono font-medium text-foreground">{incident_count}</dd>
             </div>
           </dl>
         </div>

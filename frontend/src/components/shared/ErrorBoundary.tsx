@@ -47,7 +47,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-risk-critical/15 text-risk-critical">
             <AlertTriangle className="h-6 w-6" />
           </div>
-          <h2 className="mb-1 text-sm font-semibold uppercase tracking-wide text-risk-critical">
+          <h2 className="mb-1 text-sm font-semibold label-caps text-risk-critical">
             Module Error
           </h2>
           <p className="mb-5 max-w-md text-xs text-muted-foreground">

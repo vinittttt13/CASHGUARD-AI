@@ -169,7 +169,7 @@ export default function IntelligenceReportPage() {
 function Stat({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
   return (
     <div className="rounded-md border border-border bg-surface-overlay p-2.5">
-      <p className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="text-[10px] font-medium label-caps text-muted-foreground">{label}</p>
       <p className={`mt-0.5 font-mono text-base font-semibold ${tone ?? "text-foreground"}`}>{value}</p>
     </div>
   );

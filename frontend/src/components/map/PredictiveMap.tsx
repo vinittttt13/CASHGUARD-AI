@@ -192,9 +192,9 @@ export default function PredictiveMap({
   if (!mounted) return <div className="h-full w-full animate-pulse rounded-lg bg-surface-overlay" />;
 
   const getPredictionColor = (confidence: number) => {
-    if (confidence > 0.8) return "#ef4444"; // risk-critical
-    if (confidence > 0.5) return "#f59e0b"; // risk-medium
-    return "#22c55e"; // risk-low
+    if (confidence > 0.8) return "hsl(var(--flare))";
+    if (confidence > 0.5) return "hsl(var(--risk-review))";
+    return "hsl(var(--verified))";
   };
 
   return (
@@ -249,20 +249,20 @@ export default function PredictiveMap({
                 >
                   <Popup>
                     <div className="min-w-[190px]">
-                      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-400">
+                      <div className="mb-1.5 text-[10px] font-semibold label-caps text-verified">
                         Predicted Hotspot
                       </div>
-                      <h4 className="text-sm font-semibold text-slate-100">{pred.atmName}</h4>
+                      <h4 className="text-sm font-semibold text-foreground">{pred.atmName}</h4>
                       <dl className="mt-2 space-y-1 text-xs">
                         <div className="flex justify-between gap-3">
-                          <dt className="text-slate-400">Confidence</dt>
-                          <dd className="font-mono font-medium text-slate-100">
+                          <dt className="text-muted-foreground">Confidence</dt>
+                          <dd className="font-mono font-medium text-foreground">
                             {formatConfidence(pred.confidence)}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-3">
-                          <dt className="text-slate-400">Last Event</dt>
-                          <dd className="font-mono text-slate-200">{pred.lastIncidentDate}</dd>
+                          <dt className="text-muted-foreground">Last Event</dt>
+                          <dd className="font-mono text-foreground">{pred.lastIncidentDate}</dd>
                         </div>
                       </dl>
                     </div>
@@ -299,7 +299,7 @@ export default function PredictiveMap({
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 z-[400] rounded-lg border border-border bg-surface-raised/95 p-3 text-xs backdrop-blur">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="mb-2 text-[10px] font-semibold label-caps text-muted-foreground">
           Prediction Confidence
         </div>
         <div className="mb-1 flex items-center gap-2">

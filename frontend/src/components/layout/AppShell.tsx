@@ -124,7 +124,7 @@ export default function DashboardLayout({
       {navSections.map((section) => (
         <div key={section.label}>
           {!collapsed && (
-            <div className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground">
+            <div className="mb-1.5 px-3 text-[10px] font-semibold label-caps text-subtle-foreground">
               {section.label}
             </div>
           )}
@@ -189,7 +189,7 @@ export default function DashboardLayout({
               <div className="truncate text-sm font-semibold text-foreground">
                 CASHGUARD <span className="text-primary">AI</span>
               </div>
-              <div className="truncate text-[9px] font-medium uppercase tracking-widest text-subtle-foreground">
+              <div className="truncate text-[9px] font-medium label-caps text-subtle-foreground">
                 Financial Cyber Intelligence
               </div>
             </div>
@@ -227,7 +227,7 @@ export default function DashboardLayout({
               </Avatar>
               <div className="flex min-w-0 flex-col">
                 <span className="truncate text-xs font-medium text-foreground">{userEmail}</span>
-                <span className="text-[10px] uppercase tracking-wide text-subtle-foreground">{userRole}</span>
+                <span className="text-[10px] label-caps text-subtle-foreground">{userRole}</span>
               </div>
               <button
                 type="button"
@@ -273,7 +273,7 @@ export default function DashboardLayout({
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-foreground">{userEmail}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-subtle-foreground">{userRole}</span>
+                    <span className="text-[10px] label-caps text-subtle-foreground">{userRole}</span>
                   </div>
                 </div>
                 <Button variant="outline" className="w-full gap-2 border-border" onClick={handleLogout}>
@@ -339,7 +339,7 @@ export default function DashboardLayout({
                   <div className="mb-1 border-b border-border p-2">
                     <p className="truncate text-xs font-medium text-foreground">{userEmail}</p>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium label-caps text-muted-foreground">
                         {userRole}
                       </span>
                       <StatusIndicator state="online" label="Active" />

@@ -42,13 +42,13 @@ export function HeatmapLayer({ data }: HeatmapLayerProps) {
           radius: 22,
           blur: 18,
           maxZoom: 15,
-          // Restrained risk-semantic gradient — cyan (baseline) through
-          // amber/orange to critical red, no rainbow hues.
+          // Restrained risk-semantic gradient — verified teal (baseline)
+          // through amber to flare (critical), no rainbow hues.
           gradient: {
-            0.3: "#22d3ee",
-            0.55: "#f59e0b",
-            0.75: "#f97316",
-            1.0: "#ef4444",
+            0.3: "#5b9083",
+            0.55: "#d98f2b",
+            0.75: "#e8672c",
+            1.0: "#ff4b26",
           },
         }).addTo(map);
       }

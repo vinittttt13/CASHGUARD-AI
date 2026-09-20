@@ -113,7 +113,7 @@ export default function AnalyticsPage() {
           )}
         </Panel>
 
-        <Panel title="Feature Importance" description="Top contributing factors (SHAP)" contentClassName="h-[300px]">
+        <Panel title="Feature Importance" description="Top contributing factors (SHAP)" contentClassName="h-[350px]">
           {prediction.loading || complaints.loading ? (
             <Loading />
           ) : radarData.length === 0 ? (

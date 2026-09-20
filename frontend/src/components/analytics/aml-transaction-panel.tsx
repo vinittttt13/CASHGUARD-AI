@@ -196,7 +196,7 @@ export function AmlTransactionPanel() {
         ) : (
           <div className="space-y-3">
             <div className={cn("rounded-md border p-3 text-center", RISK_META[result.risk_level].bg, RISK_META[result.risk_level].border)}>
-              <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Risk Level</div>
+              <div className="text-[10px] font-semibold label-caps text-muted-foreground">Risk Level</div>
               <div className={cn("mt-1 flex items-center justify-center", RISK_META[result.risk_level].text)}>
                 <SeverityBadge level={result.risk_level} />
               </div>

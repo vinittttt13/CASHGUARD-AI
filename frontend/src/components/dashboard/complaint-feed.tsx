@@ -11,7 +11,7 @@ import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
 import { Panel, StatusIndicator, TechnicalId } from "@/components/shared/intel-primitives";
 
 const CATEGORY_STYLE: Record<string, string> = {
-  phishing: "border-secondary/30 bg-secondary/10 text-secondary",
+  phishing: "border-foreground/30 bg-foreground/10 text-foreground",
   vishing: "border-risk-analytic/30 bg-risk-analytic/10 text-risk-analytic",
   otp_fraud: "border-risk-critical/30 bg-risk-critical/10 text-risk-critical",
   atm_fraud: "border-risk-medium/30 bg-risk-medium/10 text-risk-medium",
