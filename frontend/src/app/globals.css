@@ -163,6 +163,29 @@
   }
 }
 
+/* Map hotspot marker pulse — an expanding ring, scaled by the marker's own
+   risk color via currentColor so one rule serves flare/amber/verified
+   alike. Reserved for the highest-risk markers only (see ATMMarker.tsx);
+   a map with every pin pulsing communicates nothing. */
+@keyframes marker-pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 currentColor;
+    opacity: 0.55;
+  }
+  100% {
+    box-shadow: 0 0 0 14px currentColor;
+    opacity: 0;
+  }
+}
+.marker-pulse {
+  animation: marker-pulse-ring 1.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marker-pulse {
+    animation: none;
+  }
+}
+
 /* Leaflet popup chrome — restyled to match the warm-charcoal forensic
    instrument theme. Leaflet renders these outside the React tree, so
    plain CSS with the palette's hex values directly (no HSL vars). */

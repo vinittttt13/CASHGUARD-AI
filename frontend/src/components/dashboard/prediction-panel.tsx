@@ -1,10 +1,12 @@
 "use client";
 
 import { AlertCircle, Map, FileText, ShieldAlert } from "lucide-react";
+import { motion } from "motion/react";
 import { cn, formatConfidence } from "@/lib/utils";
 import Link from "next/link";
 import { normalizeRiskLevel, RISK_META, SeverityBadge } from "@/components/shared/intel-primitives";
 import { RiskGauge } from "@/components/shared/risk-gauge";
+import { shapReason } from "@/lib/shap-reasons";
 
 interface PredictionData {
   id: string;
@@ -100,30 +102,44 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
         <h4 className="label-caps mb-3 text-xs font-semibold text-muted-foreground">
           Top contributing factors
         </h4>
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {data.features.slice(0, 5).map((feat, i) => {
             const isPositive = feat.value >= 0;
+            const pct = Math.min(Math.abs(feat.value) * 100, 100);
             return (
-              <div key={i} className="flex items-center justify-between gap-3 text-xs">
-                <span
-                  className={cn("shrink-0 font-mono text-[10px] font-semibold", isPositive ? "text-risk-critical" : "text-risk-low")}
-                >
-                  {isPositive ? "+" : "−"}
-                </span>
-                <span className="min-w-0 flex-1 truncate capitalize text-muted-foreground" title={feat.name}>
-                  {feat.name.replace(/_/g, " ")}
-                </span>
-                <div className="flex w-28 shrink-0 items-center gap-2">
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-overlay">
-                    <div
-                      className={cn("h-full rounded-full", isPositive ? "bg-risk-critical" : "bg-risk-low")}
-                      style={{ width: `${Math.min(Math.abs(feat.value) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <span className="w-10 shrink-0 text-right font-mono text-[10px] font-semibold text-foreground">
-                    {feat.value.toFixed(2)}
+              <div key={feat.name} className="text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={cn("shrink-0 font-mono text-[10px] font-semibold", isPositive ? "text-risk-critical" : "text-risk-low")}
+                  >
+                    {isPositive ? "+" : "−"}
                   </span>
+                  <span className="min-w-0 flex-1 truncate capitalize text-muted-foreground" title={feat.name}>
+                    {feat.name.replace(/_/g, " ")}
+                  </span>
+                  <div className="flex w-28 shrink-0 items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-overlay">
+                      <motion.div
+                        className={cn("h-full rounded-full", isPositive ? "bg-risk-critical" : "bg-risk-low")}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.4, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                      />
+                    </div>
+                    <span className="w-10 shrink-0 text-right font-mono text-[10px] font-semibold text-foreground">
+                      {feat.value.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: i * 0.12 + 0.25 }}
+                  className="ml-4 mt-0.5 truncate pl-0.5 text-[11px] text-subtle-foreground"
+                  title={shapReason(feat.name)}
+                >
+                  {shapReason(feat.name)}
+                </motion.p>
               </div>
             );
           })}

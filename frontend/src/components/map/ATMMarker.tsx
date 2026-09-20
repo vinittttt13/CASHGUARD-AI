@@ -18,15 +18,23 @@ interface ATMMarkerProps {
 export function ATMMarker({ id, position, name, address, risk_score, incident_count }: ATMMarkerProps) {
   const icon = useMemo(() => {
     let colorClass = "text-[#5b9083] bg-[#201b14] border-[#5b9083]";
-    if (risk_score > 0.7) {
+    const critical = risk_score > 0.7;
+    if (critical) {
       colorClass = "text-[#ff4b26] bg-[#201b14] border-[#ff4b26]";
     } else if (risk_score >= 0.3) {
       colorClass = "text-[#d98f2b] bg-[#201b14] border-[#d98f2b]";
     }
 
+    // Marker scales with risk (22-34px) — the map should read as a
+    // heightmap of danger at a glance, not a flat grid of identical pins.
+    const px = Math.round(22 + Math.min(Math.max(risk_score, 0), 1) * 12);
+    // Only the highest-risk markers pulse — a map where every pin pulses
+    // communicates nothing (see the marker-pulse rule in globals.css).
+    const pulseClass = critical ? "marker-pulse" : "";
+
     const html = `
-      <div class="flex items-center justify-center w-7 h-7 rounded-full border-2 shadow-md ${colorClass}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark">
+      <div class="relative flex items-center justify-center rounded-full border-2 shadow-md ${colorClass} ${pulseClass}" style="width:${px}px;height:${px}px">
+        <svg xmlns="http://www.w3.org/2000/svg" width="${Math.round(px * 0.57)}" height="${Math.round(px * 0.57)}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-landmark">
           <line x1="3" x2="21" y1="22" y2="22"/>
           <line x1="6" x2="6" y1="18" y2="11"/>
           <line x1="10" x2="10" y1="18" y2="11"/>
@@ -40,9 +48,9 @@ export function ATMMarker({ id, position, name, address, risk_score, incident_co
     return L.divIcon({
       html,
       className: "custom-atm-marker",
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14],
+      iconSize: [px, px],
+      iconAnchor: [px / 2, px / 2],
+      popupAnchor: [0, -px / 2],
     });
   }, [risk_score]);
 
