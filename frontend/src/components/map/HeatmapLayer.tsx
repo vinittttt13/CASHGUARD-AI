@@ -20,13 +20,20 @@ export function HeatmapLayer({ data }: HeatmapLayerProps) {
 
   useEffect(() => {
     if (!map) return;
-    // Viewport filter: only include points inside current map bounds
-    const bounds = map.getBounds();
-    const visible = data.filter((p) => bounds.contains([p.lat, p.lng]));
+    let cancelled = false;
+
+    // leaflet.heat renders onto its own canvas layer and already clips to
+    // the visible viewport internally — no need (and it's actively harmful)
+    // to pre-filter points by map.getBounds() here. That bounds snapshot
+    // was taken once at mount, before MapResizeHandler's deferred
+    // setView/invalidateSize settles the container, and was never
+    // recomputed on pan/zoom — so the heat layer could render empty on
+    // load and then never update as the user moved the map. Feed it all
+    // points and let it handle visibility.
+    const points = data.map((p) => [p.lat, p.lng, p.intensity] as [number, number, number]);
 
     import("leaflet.heat").then(() => {
-      const points = visible.map((p) => [p.lat, p.lng, p.intensity] as [number, number, number]);
-
+      if (cancelled) return;
       if (layerRef.current) {
         layerRef.current.setLatLngs(points);
       } else {
@@ -48,6 +55,7 @@ export function HeatmapLayer({ data }: HeatmapLayerProps) {
     });
 
     return () => {
+      cancelled = true;
       if (layerRef.current && map) {
         map.removeLayer(layerRef.current);
         layerRef.current = null;
