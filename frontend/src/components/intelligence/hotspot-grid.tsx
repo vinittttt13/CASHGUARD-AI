@@ -7,7 +7,7 @@ import { RiskScore, TechnicalId } from "@/components/shared/intel-primitives";
 type ActiveHotspot = IntelligenceReport["active_hotspots"][number];
 
 export function HotspotGrid({ hotspots = [] }: { hotspots?: ActiveHotspot[] }) {
-  if (!hotspots.length) return <EmptyState label="NO ACTIVE HOTSPOTS" hint="No cash-out clusters in this window." />;
+  if (!hotspots.length) return <EmptyState label="No active hotspots" hint="No cash-out clusters in this window." />;
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">

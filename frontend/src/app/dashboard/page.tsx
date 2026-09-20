@@ -65,14 +65,12 @@ export default function DashboardPage() {
       <StatsOverview />
 
       <div className="grid items-start gap-5 lg:grid-cols-[62%_38%] xl:grid-cols-[64%_36%]">
-        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-border bg-surface">
+        <div className="crosshair-corners flex min-h-[620px] flex-col overflow-hidden border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border/70 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-primary">
-                <Radar className="h-4 w-4" />
-              </div>
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Radar className="h-4 w-4" aria-hidden="true" />
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">Live Threat Map</h3>
+                <h3 className="label-caps text-sm font-semibold text-foreground">Live threat map</h3>
                 <span className="text-[10px] text-subtle-foreground">India cybercrime operations corridor</span>
               </div>
             </div>

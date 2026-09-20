@@ -47,13 +47,13 @@ export function ComplaintFeed() {
 
   return (
     <Panel
-      title="Live Incident Feed"
+      title="Live incident feed"
       description="Real-time complaint reporting"
       contentClassName="p-0"
       action={
         <StatusIndicator
           state={connected ? "online" : "offline"}
-          label={connected ? "Feed Connected" : "Feed Offline"}
+          label={connected ? "Feed connected" : "Feed offline"}
         />
       }
     >
@@ -61,7 +61,7 @@ export function ComplaintFeed() {
         {loading && <Loading label="Loading incident feed…" />}
         {error && <ErrorState error={error} onRetry={refetch} />}
         {!loading && !error && data && data.items.length === 0 && (
-          <EmptyState label="NO ACTIVE THREATS" hint="No complaints recorded yet." />
+          <EmptyState label="No active threats" hint="No complaints recorded yet." />
         )}
         {!loading && !error && data && data.items.length > 0 && (
           <div className="flex flex-col divide-y divide-border/70">
@@ -82,11 +82,11 @@ export function ComplaintFeed() {
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span
                           className={cn(
-                            "rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                            "label-caps rounded border px-1.5 py-0.5 text-[11px] font-medium",
                             categoryStyle(c.complaint_category)
                           )}
                         >
-                          {c.complaint_category}
+                          {c.complaint_category?.replace(/_/g, " ")}
                         </span>
                         <span className="flex items-center gap-1 text-xs text-muted-foreground">
                           <MapPin className="h-3 w-3 text-subtle-foreground" />
@@ -101,7 +101,7 @@ export function ComplaintFeed() {
                       </TechnicalId>
                     </div>
                     <div className="flex shrink-0 flex-col items-end gap-2">
-                      <span className="rounded border border-border px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="label-caps rounded border border-border px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                         {c.status}
                       </span>
                       <ChevronDown
@@ -143,7 +143,7 @@ export function ComplaintFeed() {
           className="flex w-full items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
         >
           <RefreshCw className="h-3 w-3" />
-          Refresh Incident Stream
+          Refresh incident stream
         </button>
       </div>
     </Panel>

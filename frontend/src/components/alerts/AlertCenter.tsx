@@ -107,7 +107,7 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
         {loading && <Loading label="Loading alerts…" />}
         {error && <ErrorState error={error} onRetry={refetch} />}
         {!loading && !error && filtered.length === 0 && (
-          <EmptyState label="NO ACTIVE THREATS" hint="No alerts match the current filters." />
+          <EmptyState label="No active threats" hint="No alerts match the current filters." />
         )}
         {!loading &&
           !error &&

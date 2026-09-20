@@ -357,7 +357,7 @@ export default function SettingsPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState label="NO GPU DETECTED" hint="Inference is running on CPU." />
+                <EmptyState label="No GPU detected" hint="Inference is running on CPU." />
               )}
               <div className="flex items-center gap-2 rounded-md border border-border bg-surface-overlay p-3.5">
                 <Server className="h-4 w-4 shrink-0 text-primary" />

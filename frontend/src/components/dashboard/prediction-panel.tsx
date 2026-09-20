@@ -27,7 +27,7 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
     return (
       <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-surface p-8 text-center">
         <AlertCircle className="h-6 w-6 text-subtle-foreground" />
-        <p className="text-xs font-semibold uppercase tracking-wide text-foreground">No Prediction Selected</p>
+        <p className="label-caps text-sm font-semibold text-foreground">No prediction selected</p>
         <span className="text-xs text-muted-foreground">Select a complaint from the live feed to score it.</span>
       </div>
     );
@@ -40,13 +40,11 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
     <div className="flex h-full flex-col rounded-lg border border-border bg-surface">
       <header className="border-b border-border/70 p-4">
         <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-primary">
-              <ShieldAlert className="h-4 w-4" />
-            </div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                Why This Incident Was Flagged
+              <h3 className="label-caps text-sm font-semibold text-foreground">
+                Why this incident was flagged
               </h3>
               <span className="text-[10px] text-subtle-foreground">XGBoost + Random Forest</span>
             </div>
@@ -56,8 +54,8 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
 
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Predicted Cash-Out Targets
+            <h4 className="label-caps text-xs font-semibold text-muted-foreground">
+              Predicted cash-out targets
             </h4>
             <span className="text-[10px] text-subtle-foreground">Confidence</span>
           </div>
@@ -92,8 +90,8 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
       </header>
 
       <div className="flex-1 p-4">
-        <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Top Contributing Factors
+        <h4 className="label-caps mb-3 text-xs font-semibold text-muted-foreground">
+          Top contributing factors
         </h4>
         <div className="space-y-2.5">
           {data.features.slice(0, 5).map((feat, i) => {
@@ -137,15 +135,15 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
           }}
           className="flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-overlay"
         >
-          <Map className="h-3.5 w-3.5 text-primary" />
-          Focus on Map
+          <Map className="h-3.5 w-3.5" aria-hidden="true" />
+          Focus on map
         </button>
         <Link
           href="/intelligence"
           className="flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          <FileText className="h-3.5 w-3.5" />
-          Intelligence Dossier
+          <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+          Open dossier
         </Link>
       </div>
     </div>

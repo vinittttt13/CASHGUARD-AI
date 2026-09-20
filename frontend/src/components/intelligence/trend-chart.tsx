@@ -27,7 +27,7 @@ export function TrendChart({ trends }: { trends?: TrendsResponse }) {
     })),
   ];
 
-  if (!data.length) return <EmptyState label="NO TREND DATA" hint="No incident history in this window." />;
+  if (!data.length) return <EmptyState label="No trend data" hint="No incident history in this window." />;
 
   return (
     <ResponsiveContainer width="100%" height="100%">

@@ -114,7 +114,7 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
       {loading && <Loading label="Loading case queue…" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && filtered.length === 0 && (
-        <EmptyState label="NO CASES FOUND" hint="No cases match the current filters." />
+        <EmptyState label="No cases found" hint="No cases match the current filters." />
       )}
 
       {!loading && !error && filtered.length > 0 && (

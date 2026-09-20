@@ -31,7 +31,7 @@ export function StateBreakdown({
     .sort((a, b) => b.incidents - a.incidents)
     .slice(0, 12);
 
-  if (!data.length) return <EmptyState label="NO STATE DATA" hint="No jurisdiction breakdown available." />;
+  if (!data.length) return <EmptyState label="No state data" hint="No jurisdiction breakdown available." />;
 
   const max = Math.max(...data.map((d) => d.incidents));
 
