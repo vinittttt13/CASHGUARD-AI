@@ -61,9 +61,12 @@ test("AML transaction analysis: submit a real transaction and get a real backend
   // not a client-side mock — proven by a risk level actually rendering and
   // the response explicitly naming which model produced it (xgboost_aml if
   // a trained artifact is loaded, or the heuristic fallback if not — either
-  // way, never silently unlabeled).
-  await expect(page.getByText(/CRITICAL|HIGH|MEDIUM|LOW/)).toBeVisible({
-    timeout: 15_000,
-  });
+  // way, never silently unlabeled). Labels are the friendly RISK_META ones
+  // (Clear/Review/High/Critical, see components/shared/intel-primitives.tsx),
+  // not the raw backend risk_level strings — and scoped to the result card,
+  // since the same badges also label rows in the hotspots table above it.
+  const riskCard = page.getByText("Risk Level", { exact: true }).locator("..");
+  await expect(riskCard).toBeVisible({ timeout: 15_000 });
+  await expect(riskCard.getByText(/Clear|Review|High|Critical/)).toBeVisible();
   await expect(page.getByText(/xgboost_aml|Heuristic fallback/i)).toBeVisible();
 });
