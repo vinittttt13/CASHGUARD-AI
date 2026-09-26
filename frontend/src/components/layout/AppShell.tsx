@@ -174,7 +174,7 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen text-foreground">
       <CommandPalette onLogout={handleLogout} />
       {/* Desktop Sidebar */}
       <aside

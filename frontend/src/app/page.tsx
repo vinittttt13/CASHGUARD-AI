@@ -43,7 +43,7 @@ export default function Home() {
   }, [router]);
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen text-foreground">
       <div className="mx-auto flex max-w-5xl flex-col gap-16 px-6 py-16 sm:py-24">
         <section className="flex flex-col items-center gap-6 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-xs font-medium label-caps text-muted-foreground">

@@ -65,7 +65,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen grid-cols-1 bg-background lg:grid-cols-2">
+    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
       {/* Left: Branding / mission */}
       <div className="relative hidden flex-col justify-between overflow-hidden border-r border-border bg-surface p-10 lg:flex">
         <div>

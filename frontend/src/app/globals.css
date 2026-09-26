@@ -61,7 +61,7 @@
     /* Glassmorphism tuning — bright daylight canvas needs a much fainter
        ambient bloom and higher glass opacity than the dark theme, or dense
        text (tables, alert lists) loses contrast. See "Glass surfaces" below. */
-    --ambient-bloom-opacity: 0.05;
+    --ambient-bloom-opacity: 0.09;
     --glass-opacity-surface: 0.86;
     --glass-opacity-raised: 0.82;
     --glass-opacity-overlay: 0.68;
@@ -121,7 +121,7 @@
 
     /* Glassmorphism tuning — the dark theme is the primary identity, so glass
        is more pronounced here: lower opacity, heavier blur, a visible bloom. */
-    --ambient-bloom-opacity: 0.14;
+    --ambient-bloom-opacity: 0.22;
     --glass-opacity-surface: 0.78;
     --glass-opacity-raised: 0.7;
     --glass-opacity-overlay: 0.52;

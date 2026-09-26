@@ -40,7 +40,7 @@ export default function DesignSystemPage() {
   const { toast } = useToast();
 
   return (
-    <div className="min-h-screen bg-background px-6 py-10 text-foreground sm:px-10">
+    <div className="min-h-screen px-6 py-10 text-foreground sm:px-10">
       <header className="mb-12 flex items-start justify-between border-b border-border pb-6">
         <div>
           <p className="label-caps text-xs text-muted-foreground">internal — not linked in nav</p>
