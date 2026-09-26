@@ -61,11 +61,11 @@
     /* Glassmorphism tuning — bright daylight canvas needs a much fainter
        ambient bloom and higher glass opacity than the dark theme, or dense
        text (tables, alert lists) loses contrast. See "Glass surfaces" below. */
-    --ambient-bloom-opacity: 0.09;
-    --glass-opacity-surface: 0.86;
-    --glass-opacity-raised: 0.82;
-    --glass-opacity-overlay: 0.68;
-    --glass-opacity-popover: 0.9;
+    --ambient-bloom-opacity: 0.12;
+    --glass-opacity-surface: 0.76;
+    --glass-opacity-raised: 0.68;
+    --glass-opacity-overlay: 0.56;
+    --glass-opacity-popover: 0.8;
     --glass-sheen-opacity: 0.4;
 
     --radius: 0.1875rem;
@@ -121,11 +121,11 @@
 
     /* Glassmorphism tuning — the dark theme is the primary identity, so glass
        is more pronounced here: lower opacity, heavier blur, a visible bloom. */
-    --ambient-bloom-opacity: 0.22;
-    --glass-opacity-surface: 0.78;
-    --glass-opacity-raised: 0.7;
-    --glass-opacity-overlay: 0.52;
-    --glass-opacity-popover: 0.76;
+    --ambient-bloom-opacity: 0.3;
+    --glass-opacity-surface: 0.58;
+    --glass-opacity-raised: 0.46;
+    --glass-opacity-overlay: 0.34;
+    --glass-opacity-popover: 0.56;
     --glass-sheen-opacity: 1;
   }
 }
@@ -150,10 +150,14 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
+    /* Large enough to reach well past the corners into the content area —
+       a bloom that only touches the edges never shows up behind centered
+       cards, which is what made the first pass at this read as "no glass
+       at all" even though the panels were technically translucent. */
     background-image:
-      radial-gradient(ellipse 900px 700px at 8% -10%, hsl(var(--flare) / var(--ambient-bloom-opacity)), transparent 60%),
-      radial-gradient(ellipse 800px 900px at 108% 15%, hsl(var(--verified) / var(--ambient-bloom-opacity)), transparent 60%),
-      radial-gradient(ellipse 1000px 800px at 50% 118%, hsl(var(--risk-review) / var(--ambient-bloom-opacity)), transparent 60%);
+      radial-gradient(ellipse 1300px 1000px at 12% -5%, hsl(var(--flare) / var(--ambient-bloom-opacity)), transparent 65%),
+      radial-gradient(ellipse 1200px 1200px at 100% 20%, hsl(var(--verified) / var(--ambient-bloom-opacity)), transparent 65%),
+      radial-gradient(ellipse 1400px 1100px at 40% 105%, hsl(var(--risk-review) / var(--ambient-bloom-opacity)), transparent 65%);
   }
   ::selection {
     @apply bg-flare/25 text-foreground;
@@ -184,13 +188,15 @@
   .bg-surface-overlay,
   .bg-card,
   .bg-popover {
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    /* Hairline top sheen (light catching the glass edge) plus a soft,
-       tight contact shadow for lift — restrained, not the generic
-       soft-grey-shadow-under-every-card look. */
+    backdrop-filter: blur(28px) saturate(170%);
+    -webkit-backdrop-filter: blur(28px) saturate(170%);
+    /* A diagonal light-catch (top-left highlight fading out) plus a
+       hairline top sheen and a soft contact shadow — the combination
+       that actually reads as "glass" instead of "dark card". Restrained
+       to one corner, not a full gloss overlay. */
+    background-image: linear-gradient(135deg, hsl(var(--foreground) / calc(0.08 * var(--glass-sheen-opacity))), transparent 45%);
     box-shadow:
-      inset 0 1px 0 0 hsl(var(--foreground) / calc(0.05 * var(--glass-sheen-opacity))),
+      inset 0 1px 0 0 hsl(var(--foreground) / calc(0.08 * var(--glass-sheen-opacity))),
       0 12px 32px -16px hsl(0 0% 0% / 0.5);
   }
   .bg-surface {
@@ -201,16 +207,16 @@
   }
   .bg-surface-overlay {
     background-color: hsl(var(--surface-overlay) / var(--glass-opacity-overlay));
-    backdrop-filter: blur(10px) saturate(130%);
-    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    backdrop-filter: blur(14px) saturate(150%);
+    -webkit-backdrop-filter: blur(14px) saturate(150%);
   }
   .bg-card {
     background-color: hsl(var(--card) / var(--glass-opacity-raised));
   }
   .bg-popover {
     background-color: hsl(var(--popover) / var(--glass-opacity-popover));
-    backdrop-filter: blur(26px) saturate(160%);
-    -webkit-backdrop-filter: blur(26px) saturate(160%);
+    backdrop-filter: blur(34px) saturate(180%);
+    -webkit-backdrop-filter: blur(34px) saturate(180%);
   }
 }
 
