@@ -249,7 +249,7 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-surface/95 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-surface px-4 md:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 border-border bg-surface-raised md:hidden">

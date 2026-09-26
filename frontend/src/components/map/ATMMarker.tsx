@@ -17,12 +17,12 @@ interface ATMMarkerProps {
 
 export function ATMMarker({ id, position, name, address, risk_score, incident_count }: ATMMarkerProps) {
   const icon = useMemo(() => {
-    let colorClass = "text-[#5b9083] bg-[#201b14] border-[#5b9083]";
+    let colorClass = "text-[#5b9083] bg-[#201b14]/70 backdrop-blur-sm border-[#5b9083]";
     const critical = risk_score > 0.7;
     if (critical) {
-      colorClass = "text-[#ff4b26] bg-[#201b14] border-[#ff4b26]";
+      colorClass = "text-[#ff4b26] bg-[#201b14]/70 backdrop-blur-sm border-[#ff4b26]";
     } else if (risk_score >= 0.3) {
-      colorClass = "text-[#d98f2b] bg-[#201b14] border-[#d98f2b]";
+      colorClass = "text-[#d98f2b] bg-[#201b14]/70 backdrop-blur-sm border-[#d98f2b]";
     }
 
     // Marker scales with risk (22-34px) — the map should read as a

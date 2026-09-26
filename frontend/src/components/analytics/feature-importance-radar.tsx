@@ -31,7 +31,8 @@ export function FeatureImportanceRadar({ data }: FeatureImportanceRadarProps) {
             contentStyle={{
               borderRadius: 3,
               border: "1px solid hsl(var(--border))",
-              background: "hsl(var(--surface-raised))",
+              background: "hsl(var(--surface-raised) / var(--glass-opacity-raised))",
+              backdropFilter: "blur(20px) saturate(150%)",
               color: "hsl(var(--foreground))",
               fontSize: 12,
             }}
