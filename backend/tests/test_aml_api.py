@@ -49,6 +49,8 @@ async def test_valid_transaction_returns_full_prediction_contract(
         "top_factors",
         "model_name",
         "model_version",
+        "requires_human_review",
+        "auto_action_threshold",
     }
     assert body["is_laundering"] in (0, 1)
     assert 0.0 <= body["laundering_probability"] <= 1.0
@@ -56,6 +58,12 @@ async def test_valid_transaction_returns_full_prediction_contract(
     assert isinstance(body["top_factors"], list)
     # Never silently present the heuristic as if it were the real model.
     assert body["model_name"] in ("xgboost_aml", "heuristic_aml_fallback")
+    # Model precision is only ~34-46% — anything below the auto-action bar
+    # must be routed to a human analyst, never auto-actioned.
+    assert isinstance(body["requires_human_review"], bool)
+    assert body["requires_human_review"] == (
+        body["laundering_probability"] < body["auto_action_threshold"]
+    )
 
 
 @pytest.mark.asyncio

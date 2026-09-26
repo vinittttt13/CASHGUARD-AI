@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.websocket import manager
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
 from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
@@ -88,6 +89,11 @@ async def create_complaint(
     db.add(new_complaint)
     await db.commit()
     await db.refresh(new_complaint)
+
+    response = ComplaintResponse.model_validate(new_complaint)
+    await manager.broadcast(
+        {"type": "new_complaint", "data": response.model_dump(mode="json")}
+    )
     return new_complaint
 
 

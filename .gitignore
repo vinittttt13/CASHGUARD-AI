@@ -62,6 +62,9 @@ logs/
 # rule without also fixing PredictionService to fail loudly (not silently
 # heuristic-fallback) when no real models are available.
 backend/data/
+# Machine-specific (CPU/GPU/driver) snapshot rewritten by hardware detection on
+# every run — tracking it causes spurious dirty-tree diffs on every dev machine.
+backend/app/ml/model_artifacts/hardware_profile.json
 dataset/*.csv
 dataset/*.txt
 dataset/*.parquet

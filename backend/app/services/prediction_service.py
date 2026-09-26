@@ -354,10 +354,26 @@ class PredictionService:
     # AML Transaction Laundering Scoring (XGBoost)
     # ------------------------------------------------------------------
 
+    # The trained xgboost_aml model has precision of only ~34-46% at its
+    # standard decision_threshold (see model_artifacts/xgboost_aml_metrics.json)
+    # — over half of "is_laundering" flags there are false positives. Taking
+    # automated action (account freeze, statutory notice) on that is a legal
+    # liability, so every score below this much higher bar is routed to a
+    # human analyst for triage instead of being treated as actionable.
+    AML_AUTO_ACTION_THRESHOLD = 0.85
+
+    def _apply_human_in_the_loop_gate(self, res: Dict[str, Any]) -> Dict[str, Any]:
+        probability = float(res.get("laundering_probability", 0.0))
+        res["requires_human_review"] = probability < self.AML_AUTO_ACTION_THRESHOLD
+        res["auto_action_threshold"] = self.AML_AUTO_ACTION_THRESHOLD
+        return res
+
     def score_aml_transaction(self, tx_data: Dict[str, Any]) -> Dict[str, Any]:
         """Score an AML transaction for laundering risk using xgboost_aml model.
 
-        Falls back to rule-based heuristic if model is not loaded.
+        Falls back to rule-based heuristic if model is not loaded. The result
+        always carries a `requires_human_review` flag — given the model's low
+        precision, only near-certain scores are ever treated as auto-actionable.
         """
         aml_model = self.registry.get("xgboost_aml")
         if aml_model is not None:
@@ -366,7 +382,7 @@ class PredictionService:
                 res = aml_model.score_transaction(tx_data)
                 res["model_name"] = "xgboost_aml"
                 res["model_version"] = version
-                return res
+                return self._apply_human_in_the_loop_gate(res)
             except Exception as exc:
                 logger.warning(
                     "AML XGBoost scoring failed: %s. Using heuristic fallback.", exc
@@ -392,15 +408,17 @@ class PredictionService:
             else "high" if prob >= 0.5 else "medium" if prob >= 0.2 else "low"
         )
 
-        return {
-            "is_laundering": int(prob >= 0.5),
-            "laundering_probability": round(prob, 4),
-            "risk_level": risk,
-            "decision_threshold": 0.5,
-            "top_factors": [
-                {"factor": "amount_paid", "weight": 0.45},
-                {"factor": "payment_format", "weight": 0.35},
-            ],
-            "model_name": "heuristic_aml_fallback",
-            "model_version": "v1.0-fallback",
-        }
+        return self._apply_human_in_the_loop_gate(
+            {
+                "is_laundering": int(prob >= 0.5),
+                "laundering_probability": round(prob, 4),
+                "risk_level": risk,
+                "decision_threshold": 0.5,
+                "top_factors": [
+                    {"factor": "amount_paid", "weight": 0.45},
+                    {"factor": "payment_format", "weight": 0.35},
+                ],
+                "model_name": "heuristic_aml_fallback",
+                "model_version": "v1.0-fallback",
+            }
+        )

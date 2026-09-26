@@ -82,6 +82,11 @@ class AmlTransactionResponse(BaseModel):
     top_factors: List[Dict[str, Any]]
     model_name: str = "xgboost_aml"
     model_version: str = "v1.0"
+    # The model's precision is only ~34-46% (see model_artifacts/xgboost_aml_metrics.json),
+    # so anything below auto_action_threshold must go through analyst triage
+    # rather than trigger an automated freeze/notice.
+    requires_human_review: bool = True
+    auto_action_threshold: float = 0.85
 
 
 class TrainModelRequest(BaseModel):

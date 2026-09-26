@@ -1,16 +1,21 @@
 from functools import lru_cache
 from typing import List
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+DEFAULT_SECRET_KEY = "change-me-to-a-secure-random-key-at-least-32-chars-long!"
+DEFAULT_DATABASE_URL = "postgresql+asyncpg://postgres:postgres@localhost:5432/cybercrime"
+DEFAULT_REDIS_URL = "redis://localhost:6379/0"
+# Other insecure fallbacks checked into docker-compose.yml / .env.example —
+# flagged too, since production must not inherit either of them.
+_KNOWN_INSECURE_SECRET_KEYS = {DEFAULT_SECRET_KEY, "your-secret-key-change-in-production"}
 
 
 class Settings(BaseSettings):
-    database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/cybercrime"
-    )
-    redis_url: str = "redis://localhost:6379/0"
-    secret_key: str = "change-me-to-a-secure-random-key-at-least-32-chars-long!"
+    database_url: str = DEFAULT_DATABASE_URL
+    redis_url: str = DEFAULT_REDIS_URL
+    secret_key: str = DEFAULT_SECRET_KEY
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
@@ -52,6 +57,24 @@ class Settings(BaseSettings):
                 'Generate one with: python -c "import secrets; print(secrets.token_urlsafe(48))"'
             )
         return v
+
+    @model_validator(mode="after")
+    def validate_production_secrets(self) -> "Settings":
+        if self.environment == "production":
+            insecure = []
+            if self.secret_key in _KNOWN_INSECURE_SECRET_KEYS:
+                insecure.append("SECRET_KEY")
+            if self.database_url == DEFAULT_DATABASE_URL:
+                insecure.append("DATABASE_URL")
+            if self.redis_url == DEFAULT_REDIS_URL:
+                insecure.append("REDIS_URL")
+            if insecure:
+                raise ValueError(
+                    "Refusing to start with ENVIRONMENT=production while using "
+                    f"default/insecure values for: {', '.join(insecure)}. "
+                    "Set real values via environment variables or .env."
+                )
+        return self
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),

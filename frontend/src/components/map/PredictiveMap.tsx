@@ -14,12 +14,15 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { getHeatmapData, getHotspots } from "@/lib/api";
 
 // Fix Leaflet default marker icons without touching the prototype
-// (deleting from prototype causes hasOwnProperty crash in setOptions)
+// (deleting from prototype causes hasOwnProperty crash in setOptions).
+// Self-hosted from public/leaflet/ (copied from node_modules/leaflet/dist/images)
+// rather than fetched from a CDN, so the map still shows markers on an
+// offline/restricted venue network.
 if (typeof window !== "undefined") {
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+    iconUrl: "/leaflet/marker-icon.png",
+    shadowUrl: "/leaflet/marker-shadow.png",
   });
 }
 
@@ -134,6 +137,11 @@ export default function PredictiveMap({
   const heatmap = useApiResource(getHeatmapData, []);
   const hotspots = useApiResource(getHotspots, []);
   const [mounted, setMounted] = useState(false);
+  // OSM's public tile server is a single point of failure — degraded venue
+  // Wi-Fi renders it as blank grey tiles with no indication why. Surface a
+  // visible notice instead of failing silently once enough tiles error out.
+  const [tileErrorCount, setTileErrorCount] = useState(0);
+  const tilesUnavailable = tileErrorCount >= 6;
 
   useEffect(() => {
     setMounted(true);
@@ -199,6 +207,13 @@ export default function PredictiveMap({
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
+      {tilesUnavailable && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex justify-center p-2">
+          <div className="pointer-events-auto rounded-md border border-risk-review/40 bg-surface-raised px-3 py-1.5 text-xs font-medium text-risk-review shadow-sm">
+            Map tiles unavailable — check network connectivity. Markers and heatmap data below are still live.
+          </div>
+        </div>
+      )}
       <MapContainer
         center={center}
         zoom={zoom}
@@ -222,6 +237,10 @@ export default function PredictiveMap({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           subdomains="abc"
+          eventHandlers={{
+            tileerror: () => setTileErrorCount((n) => n + 1),
+            tileload: () => setTileErrorCount(0),
+          }}
         />
 
         <BoundsFitter bounds={bounds} />

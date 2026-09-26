@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif, Public_Sans, Fragment_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -7,20 +7,27 @@ import { MotionProvider } from "@/components/motion-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { ErrorBoundary } from "@/components/shared/ErrorBoundary";
 
+// Self-hosted (not next/font/google): a build on an offline/restricted
+// network must not depend on reaching fonts.googleapis.com at build time.
+// See src/fonts/README.md for how these .woff2 files were sourced.
+
 // Display face — wordmark, mastheads, alert titles only. Never digits.
-const instrumentSerif = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
+const instrumentSerif = localFont({
+  src: [
+    { path: "../fonts/instrument-serif-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/instrument-serif-400-italic.woff2", weight: "400", style: "italic" },
+  ],
   variable: "--font-serif",
 });
 // Body/UI face — the U.S. government's own typeface (USWDS). Chosen for
 // what it signals (institutional, government-grade) as much as its shape.
-const publicSans = Public_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const publicSans = localFont({
+  src: [{ path: "../fonts/public-sans-variable.woff2", weight: "100 900", style: "normal" }],
+  variable: "--font-sans",
+});
 // Numbers, case IDs, timestamps, coordinates — always tabular.
-const fragmentMono = Fragment_Mono({
-  subsets: ["latin"],
-  weight: "400",
+const fragmentMono = localFont({
+  src: [{ path: "../fonts/fragment-mono-400.woff2", weight: "400", style: "normal" }],
   variable: "--font-mono",
 });
 

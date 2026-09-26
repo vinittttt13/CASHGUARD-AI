@@ -16,11 +16,15 @@ function format(msRemaining: number) {
 
 /**
  * A live countdown from the incident timestamp to the 60-minute "golden
- * hour" — the window banks/NPCI cash-out interception is realistically
- * possible in. Urgency state changes as it runs down: calm past 30 min
- * left, amber under 10, flare and pulsing under 2, then a closed state
- * once the window has passed (not hidden — a closed window is itself
- * information: this case now needs a different, slower track).
+ * hour" window for AUTOMATED digital interdiction — an API-triggered
+ * withdrawal-channel hold on the mule account via the bank/NPCI switch,
+ * plus a lien push to CFCFRMS. This is not a physical-dispatch SLA: no
+ * PCR van can realistically reach an ATM through Indian traffic in this
+ * window, so nothing here implies in-person interception. Urgency state
+ * changes as it runs down: calm past 30 min left, amber under 10, flare
+ * and pulsing under 2, then a closed state once the window has passed
+ * (not hidden — a closed window is itself information: this case now
+ * needs a different, slower track).
  */
 export function GoldenHourCountdown({ incidentTimestamp, className }: { incidentTimestamp: string; className?: string }) {
   const deadline = React.useMemo(
@@ -58,7 +62,11 @@ export function GoldenHourCountdown({ incidentTimestamp, className }: { incident
         tone.bg,
         className
       )}
-      title={closed ? "Golden hour window has closed" : "Time remaining in the golden-hour intercept window"}
+      title={
+        closed
+          ? "Golden hour window has closed — automated channel-hold and CFCFRMS lien are no longer available"
+          : "Time remaining to trigger an automated bank/NPCI withdrawal-channel hold before the golden-hour window closes"
+      }
     >
       {closed ? (
         <>
