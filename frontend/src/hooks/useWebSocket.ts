@@ -36,6 +36,7 @@ export const useWebSocket = (customToken?: string) => {
   const { toast } = useToast();
   const updatePredictionStatus = useAppStore((state: any) => state.updatePredictionStatus);
   const setConnected = useAppStore((state: any) => state.setSocketConnected);
+  const setReconnecting = useAppStore((state: any) => state.setSocketReconnecting);
 
   const connect = useCallback(() => {
     if (isUnmounted.current) return;
@@ -55,6 +56,7 @@ export const useWebSocket = (customToken?: string) => {
 
       socket.onopen = () => {
         setConnected(true);
+        setReconnecting(false);
         reconnectAttempts.current = 0;
       };
 
@@ -89,8 +91,10 @@ export const useWebSocket = (customToken?: string) => {
           if (reconnectAttempts.current > 5) {
             console.error("WebSocket max reconnect attempts exceeded; giving up.");
             reconnectAttempts.current = 0; // reset for next session
+            setReconnecting(false);
             return; // dead-letter: stop reconnecting
           }
+          setReconnecting(true);
           reconnectTimeoutRef.current = setTimeout(connect, delay);
         }
       };
@@ -101,10 +105,11 @@ export const useWebSocket = (customToken?: string) => {
     } catch {
       // Reconnect on initial socket initialization error
       if (!isUnmounted.current) {
+        setReconnecting(true);
         reconnectTimeoutRef.current = setTimeout(connect, 3000);
       }
     }
-  }, [customToken, addAlert, updatePredictionStatus, setConnected, soundEnabled, toast]);
+  }, [customToken, addAlert, updatePredictionStatus, setConnected, setReconnecting, soundEnabled, toast]);
 
   useEffect(() => {
     isUnmounted.current = false;

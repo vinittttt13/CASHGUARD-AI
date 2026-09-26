@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.websocket import manager
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
 from app.models.intelligence_alert import AlertPriority, AlertType, IntelligenceAlert
@@ -50,6 +51,11 @@ async def create_alert(
     db.add(new_alert)
     await db.commit()
     await db.refresh(new_alert)
+
+    response = AlertResponse.model_validate(new_alert)
+    await manager.broadcast(
+        {"type": "new_alert", "data": response.model_dump(mode="json")}
+    )
     return new_alert
 
 

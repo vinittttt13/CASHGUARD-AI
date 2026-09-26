@@ -18,11 +18,18 @@ class SHAPExplainer:
     def explain_prediction(self, X_instance):
         shap_values = self.explainer.shap_values(X_instance)
         if isinstance(shap_values, list):
+            # Older SHAP API: one (n_samples, n_features) array per class.
             vals = shap_values[0][0]
         else:
             vals = shap_values[0]
-            if len(vals.shape) > 1:
-                vals = vals[0]
+            if vals.ndim > 1:
+                # Multiclass models return (n_features, n_classes) for this
+                # instance. Mean absolute magnitude across classes gives a
+                # per-feature importance vector aligned with feature_names —
+                # NOT vals[0], which would grab one feature's per-class
+                # values instead of one class's per-feature values, silently
+                # mis-pairing the result against feature_names.
+                vals = np.abs(vals).mean(axis=-1)
         return {k: float(v) for k, v in zip(self.feature_names, vals)}
 
     def explain_batch(self, X_batch):

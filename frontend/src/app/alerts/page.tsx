@@ -25,7 +25,7 @@ function SummaryStat({
 }) {
   return (
     <div className="rounded-lg border border-border bg-surface p-3.5">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-medium label-caps text-muted-foreground">{label}</span>
       {loading ? (
         <div className="mt-2 h-6 w-10 animate-pulse rounded bg-surface-overlay" />
       ) : (

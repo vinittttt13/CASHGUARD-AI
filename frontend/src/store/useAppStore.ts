@@ -33,6 +33,8 @@ interface AppState {
   // WebSocket connection state
   socketConnected: boolean;
   setSocketConnected: (connected: boolean) => void;
+  socketReconnecting: boolean;
+  setSocketReconnecting: (reconnecting: boolean) => void;
 
   // Sound preferences
   soundEnabled: boolean;
@@ -74,6 +76,8 @@ export const useAppStore = create<AppState>()(
       // WebSocket
       socketConnected: false,
       setSocketConnected: (connected) => set({ socketConnected: connected }),
+      socketReconnecting: false,
+      setSocketReconnecting: (reconnecting) => set({ socketReconnecting: reconnecting }),
 
       // Sound / notification preferences
       soundEnabled: true,
@@ -84,10 +88,13 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: "cgai-store",
-      // Only persist user identity and unread count; alerts refresh from API
+      // Persist user identity, unread count, and the live alert buffer so a
+      // refresh doesn't drop unacknowledged WebSocket alerts that haven't
+      // been re-pushed by the server yet.
       partialize: (state) => ({
         currentUser: state.currentUser,
         unreadAlertCount: state.unreadAlertCount,
+        alerts: state.alerts,
       }),
     }
   )

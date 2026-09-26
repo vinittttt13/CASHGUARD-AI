@@ -28,13 +28,13 @@ export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="rounded-md border border-[#1b2a38] bg-[#111a24] p-3 shadow-lg">
-          <p className="mb-2 text-xs font-semibold text-[#e6edf3]">{formatDateStr(label)}</p>
+        <div className="border border-border bg-surface-raised p-3 shadow-lg">
+          <p className="mb-2 font-mono text-xs font-semibold text-foreground">{formatDateStr(label)}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-xs">
               <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="capitalize text-[#8b9aaa]">{entry.name}:</span>
-              <span className="font-mono font-semibold text-[#e6edf3]">{entry.value}</span>
+              <span className="capitalize text-muted-foreground">{entry.name}:</span>
+              <span className="font-mono font-semibold text-foreground">{entry.value}</span>
             </div>
           ))}
         </div>
@@ -52,51 +52,51 @@ export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
         >
           <defs>
             <linearGradient id="colorForecast" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#a78bfa" stopOpacity={0.25}/>
-              <stop offset="95%" stopColor="#a78bfa" stopOpacity={0}/>
+              <stop offset="5%" stopColor="hsl(var(--ash))" stopOpacity={0.25}/>
+              <stop offset="95%" stopColor="hsl(var(--ash))" stopOpacity={0}/>
             </linearGradient>
             <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.25}/>
-              <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+              <stop offset="5%" stopColor="hsl(var(--verified))" stopOpacity={0.25}/>
+              <stop offset="95%" stopColor="hsl(var(--verified))" stopOpacity={0}/>
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1b2a38" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--hairline))" />
           <XAxis
             dataKey="date"
             tickFormatter={formatDateStr}
-            tick={{ fontSize: 11, fill: '#8b9aaa' }}
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickMargin={10}
             minTickGap={30}
-            axisLine={{ stroke: '#1b2a38' }}
+            axisLine={{ stroke: 'hsl(var(--hairline))' }}
             tickLine={false}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: '#8b9aaa' }}
+            tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
             tickMargin={10}
             axisLine={false}
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 12, color: '#8b9aaa' }} />
+          <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }} />
 
-          {/* Forecast Area (Confidence Interval could use area bounds if supported, but here just filling under forecast) */}
+          {/* Forecast — uncertain/predicted, so muted + dashed rather than a brand accent. */}
           <Area
             type="monotone"
             dataKey="forecast"
             name="Forecast"
-            stroke="#a78bfa"
+            stroke="hsl(var(--ash))"
             strokeWidth={2}
             strokeDasharray="5 5"
             fillOpacity={1}
             fill="url(#colorForecast)"
           />
 
-          {/* Actual Line */}
+          {/* Actual — confirmed data, uses the "verified" semantic tone. */}
           <Area
             type="monotone"
             dataKey="actual"
             name="Actual Complaints"
-            stroke="#22d3ee"
+            stroke="hsl(var(--verified))"
             strokeWidth={2}
             fillOpacity={1}
             fill="url(#colorActual)"

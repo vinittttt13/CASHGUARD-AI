@@ -19,7 +19,7 @@ const STATUS_LABEL: Record<ComplaintStatus, string> = {
 
 const STATUS_BADGE: Record<ComplaintStatus, string> = {
   pending: "border-border text-muted-foreground",
-  processing: "border-secondary/30 bg-secondary/10 text-secondary",
+  processing: "border-foreground/30 bg-foreground/10 text-foreground",
   predicted: "border-risk-medium/30 bg-risk-medium/10 text-risk-medium",
   resolved: "border-risk-low/30 bg-risk-low/10 text-risk-low",
 };
@@ -114,7 +114,7 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
       {loading && <Loading label="Loading case queue…" />}
       {error && <ErrorState error={error} onRetry={refetch} />}
       {!loading && !error && filtered.length === 0 && (
-        <EmptyState label="NO CASES FOUND" hint="No cases match the current filters." />
+        <EmptyState label="No cases found" hint="No cases match the current filters." />
       )}
 
       {!loading && !error && filtered.length > 0 && (
@@ -122,14 +122,14 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
           <table className="w-full text-xs">
             <thead className="sticky top-0 bg-surface-raised">
               <tr className="border-b border-border">
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Case ID</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Received</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Category</th>
-                <th className="px-3 py-2 text-right font-medium uppercase tracking-wide text-muted-foreground">Amount</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Severity</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Jurisdiction</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Status</th>
-                <th className="px-3 py-2 text-left font-medium uppercase tracking-wide text-muted-foreground">Actions</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Case ID</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Received</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Category</th>
+                <th className="px-3 py-2 text-right font-medium label-caps text-muted-foreground">Amount</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Severity</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Jurisdiction</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Status</th>
+                <th className="px-3 py-2 text-left font-medium label-caps text-muted-foreground">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -153,7 +153,7 @@ export function CaseQueueTable({ onReview }: { onReview?: (c: Complaint) => void
                       {[c.city, c.district, c.state].filter(Boolean).join(", ") || "Unknown"}
                     </td>
                     <td className="px-3 py-2">
-                      <span className={cn("rounded border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide", STATUS_BADGE[c.status])}>
+                      <span className={cn("rounded border px-1.5 py-0.5 text-[10px] font-medium label-caps", STATUS_BADGE[c.status])}>
                         {STATUS_LABEL[c.status]}
                       </span>
                     </td>

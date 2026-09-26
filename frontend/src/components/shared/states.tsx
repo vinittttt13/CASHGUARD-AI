@@ -10,7 +10,7 @@ export function Loading({ label = "Retrieving intelligence data…" }: { label?:
       className="flex flex-col items-center justify-center gap-2 p-8 text-xs text-muted-foreground"
     >
       <Loader2 className="h-5 w-5 animate-spin text-primary" />
-      <span className="uppercase tracking-wide">{label}</span>
+      <span className="label-caps">{label}</span>
     </div>
   );
 }
@@ -18,7 +18,7 @@ export function Loading({ label = "Retrieving intelligence data…" }: { label?:
 export function ErrorState({
   error,
   onRetry,
-  title = "CONNECTION ERROR",
+  title = "Connection error",
 }: {
   error: Error | { message?: string; response?: { status?: number } } | string;
   onRetry?: () => void;
@@ -30,7 +30,7 @@ export function ErrorState({
     (typeof error !== "string" && (error as any)?.response?.status === 429) ||
     rawMessage.includes("429");
 
-  const displayTitle = is429 ? "RATE LIMIT EXCEEDED" : title;
+  const displayTitle = is429 ? "Rate limit exceeded" : title;
   const message = is429
     ? "Too many requests. Please pause a moment before retrying."
     : rawMessage;
@@ -38,10 +38,10 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center justify-center gap-2 rounded-lg border border-risk-critical/30 bg-risk-critical/5 p-8 text-center"
+      className="flex flex-col items-center justify-center gap-2 border border-flare/30 bg-flare/5 p-8 text-center"
     >
-      <ShieldAlert className="h-6 w-6 text-risk-critical" aria-hidden="true" />
-      <p className="text-xs font-semibold uppercase tracking-wide text-risk-critical">{displayTitle}</p>
+      <ShieldAlert className="h-6 w-6 text-flare" aria-hidden="true" />
+      <p className="label-caps text-sm font-semibold text-flare">{displayTitle}</p>
       <p className="max-w-sm text-xs text-muted-foreground">Failed to load data: {message}</p>
       {onRetry && (
         <button
@@ -60,7 +60,7 @@ export function ErrorState({
 }
 
 export function EmptyState({
-  label = "NO ACTIVE THREATS",
+  label = "No active threats",
   hint = "No incidents match the current filters.",
 }: {
   label?: string;
@@ -69,7 +69,7 @@ export function EmptyState({
   return (
     <div className="flex flex-col items-center justify-center gap-1.5 p-8 text-center">
       <Inbox className="h-6 w-6 text-subtle-foreground" aria-hidden="true" />
-      <span className="text-xs font-semibold uppercase tracking-wide text-foreground">{label}</span>
+      <span className="label-caps text-sm font-semibold text-foreground">{label}</span>
       {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
     </div>
   );

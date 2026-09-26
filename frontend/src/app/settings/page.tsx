@@ -235,7 +235,7 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">{currentUser?.email ?? "agent@agency.gov"}</p>
-                  <span className="mt-0.5 inline-block rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <span className="mt-0.5 inline-block rounded border border-border px-1.5 py-0.5 text-[10px] font-medium label-caps text-muted-foreground">
                     {currentUser?.role ?? "analyst"}
                   </span>
                 </div>
@@ -333,7 +333,7 @@ export default function SettingsPage() {
                   {gpus.map((gpu, i) => (
                     <div key={i} className="space-y-1.5 rounded-md border border-border bg-surface-overlay p-3.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="text-[10px] font-semibold label-caps text-muted-foreground">
                           {gpu.vendor ?? "GPU"}
                         </span>
                       </div>
@@ -357,12 +357,12 @@ export default function SettingsPage() {
                   ))}
                 </div>
               ) : (
-                <EmptyState label="NO GPU DETECTED" hint="Inference is running on CPU." />
+                <EmptyState label="No GPU detected" hint="Inference is running on CPU." />
               )}
               <div className="flex items-center gap-2 rounded-md border border-border bg-surface-overlay p-3.5">
                 <Server className="h-4 w-4 shrink-0 text-primary" />
                 <div className="min-w-0 flex-1">
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Compute Engine</div>
+                  <div className="text-[10px] font-semibold label-caps text-muted-foreground">Compute Engine</div>
                   <div className="font-mono text-xs text-foreground">
                     {modelStatus?.hardware?.cpu_count ?? "—"} logical CPU cores
                     {modelStatus?.hardware?.xgboost_tree_method && ` · tree_method: ${modelStatus.hardware.xgboost_tree_method}`}
@@ -423,7 +423,7 @@ export default function SettingsPage() {
 
               {lastTrainResult && (
                 <div className="space-y-2 rounded-md border border-risk-low/30 bg-risk-low/10 p-3.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-risk-low">
+                  <div className="flex items-center gap-2 text-xs font-semibold label-caps text-risk-low">
                     <CheckCircle2 className="h-3.5 w-3.5" />
                     Models Retrained &amp; Hot-Swapped
                   </div>

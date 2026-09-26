@@ -13,26 +13,31 @@ interface GeofenceZoneProps {
 }
 
 const ZONE_STYLE = {
-  critical: { color: "#ef4444", fillColor: "#ef4444", fillOpacity: 0.22, weight: 2 },
-  high: { color: "#f97316", fillColor: "#f97316", fillOpacity: 0.18, weight: 2 },
-  medium: { color: "#f59e0b", fillColor: "#f59e0b", fillOpacity: 0.15, weight: 1.5 },
-  low: { color: "#22d3ee", fillColor: "#22d3ee", fillOpacity: 0.12, weight: 1.5 },
+  critical: { color: "#ff4b26", fillColor: "#ff4b26", fillOpacity: 0.22, weight: 2 },
+  high: { color: "#ff4b26", fillColor: "#ff4b26", fillOpacity: 0.14, weight: 2 },
+  medium: { color: "#d98f2b", fillColor: "#d98f2b", fillOpacity: 0.15, weight: 1.5 },
+  low: { color: "#5b9083", fillColor: "#5b9083", fillOpacity: 0.12, weight: 1.5 },
 } as const;
 
 export function GeofenceZone({ center, radius, priority, title }: GeofenceZoneProps) {
-  const options = ZONE_STYLE[priority] ?? { color: "#8b9aaa", fillColor: "#8b9aaa", fillOpacity: 0.15, weight: 1 };
-  const textColor = priority === "critical" ? "text-[#ef4444]" : priority === "high" ? "text-[#f97316]" : "text-[#f59e0b]";
+  const options = ZONE_STYLE[priority] ?? { color: "#8b8375", fillColor: "#8b8375", fillOpacity: 0.15, weight: 1 };
+  const textColor =
+    priority === "critical" || priority === "high"
+      ? "text-flare"
+      : priority === "medium"
+        ? "text-risk-review"
+        : "text-verified";
 
   return (
     <Circle center={center} radius={radius} pathOptions={options}>
       <Popup>
         <div className="min-w-[190px]">
-          <div className={cn("flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide", textColor)}>
+          <div className={cn("flex items-center gap-1.5 text-xs font-semibold label-caps", textColor)}>
             <AlertTriangle className="h-3.5 w-3.5" />
-            {priority} Alert Zone
+            {priority} alert zone
           </div>
-          <div className="mt-1.5 text-sm font-medium text-slate-100">{title}</div>
-          <div className="mt-1 text-xs text-slate-400">Radius: {(radius / 1000).toFixed(1)} km</div>
+          <div className="mt-1.5 text-sm font-medium text-foreground">{title}</div>
+          <div className="mt-1 text-xs text-muted-foreground">Radius: {(radius / 1000).toFixed(1)} km</div>
         </div>
       </Popup>
     </Circle>

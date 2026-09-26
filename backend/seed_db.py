@@ -147,12 +147,28 @@ async def seed():
             state = random.choice(list(states_cities.keys()))
             city = random.choice(states_cities[state])
             lat, lng = random.choice(loc_coords)[:2]
-            days_ago = random.randint(1, 180)
+            # Recency-weighted, not uniform over 180 days: a uniform spread
+            # gives the default "last 7 days" intelligence report window
+            # (and any recent-activity view) only a ~4% chance per complaint
+            # of landing inside it — with 50 complaints that's a real risk
+            # of the report showing 0 complaints / ₹0 while hotspot/cluster
+            # panels on the same page still show real historical data, which
+            # reads as a broken/contradictory screen in a live demo. Bucket
+            # towards recent activity instead, matching how a real incident
+            # feed actually looks (most volume recent, a longer thin tail
+            # for the 30/90-day trend charts).
+            bucket = random.random()
+            if bucket < 0.55:
+                days_ago = random.randint(0, 9)
+            elif bucket < 0.85:
+                days_ago = random.randint(10, 29)
+            else:
+                days_ago = random.randint(30, 180)
             complaint_date = datetime.utcnow() - timedelta(days=days_ago)
 
             complaint = Complaint(
                 id=uuid.uuid4(),
-                complaint_number=f"CYB/2024/{10000 + i}",
+                complaint_number=f"CYB/{datetime.utcnow().year}/{10000 + i}",
                 victim_name_masked=f"V****{random.randint(1, 99):02d}",
                 victim_phone_masked=f"98****{random.randint(1000, 9999)}",
                 complaint_text=random.choice(

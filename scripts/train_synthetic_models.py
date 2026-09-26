@@ -66,7 +66,11 @@ for i in range(n):
         "city": c[0],
         "lat": c[1] + np.random.normal(0, 0.02),
         "lng": c[2] + np.random.normal(0, 0.02),
-        "label": random.choice(["high_risk", "medium", "low"]),
+        # Must match app.models.prediction.RiskLevel exactly — the RF model's
+        # predicted class is persisted verbatim into a Postgres enum column,
+        # so an unrecognized label (e.g. the old "high_risk") fails at
+        # prediction time with "invalid input value for enum risklevel".
+        "label": random.choice(["low", "medium", "high", "critical"]),
     })
 log(f"Created {len(complaints)} synthetic complaints.")
 
@@ -83,25 +87,64 @@ hd.cluster_info = [{"label": i, "count": int((hd.kmeans.labels_ == i).sum())} fo
 joblib.dump(hd, os.path.join(ARTIFACT_DIR, "kmeans_hotspot.pkl"))
 log("Exported kmeans_hotspot.pkl")
 
-# --- 3. CashoutLocationPredictor (xgboost) ---
-log(f"Fitting CashoutLocationPredictor (xgboost_location) on {xgb_dev} ...")
+# --- 3 & 4. CashoutLocationPredictor (xgboost) + RiskLevelClassifier (rf) ---
+# Both are built from the SAME FeatureEngineer.create_feature_matrix() pipeline
+# that PredictionService uses at inference time (app/services/prediction_service.py).
+# Building ad-hoc feature arrays here (as this script used to) silently
+# produces artifacts with a different column count/order than what real
+# inference sends the model, which fails hard at request time (e.g. "Feature
+# shape mismatch, expected: 4, got 17") or — worse — succeeds with mismatched
+# columns and returns wrong predictions with no error at all. Do not
+# reintroduce a hand-rolled feature array for these two models.
+log("Building the 17-column feature matrix via FeatureEngineer (matches inference) ...")
+import pandas as pd
+from datetime import timedelta
+from sklearn.model_selection import train_test_split
+
+from app.ml.feature_engineering import FEATURE_NAMES, FeatureEngineer
+from app.ml.random_forest_model import RiskLevelClassifier
 from app.ml.xgboost_model import CashoutLocationPredictor
 
+complaint_rows = []
+for c in complaints:
+    complaint_rows.append({
+        "timestamp": datetime.utcnow() - timedelta(
+            days=random.randint(0, 90), hours=random.randint(0, 23)
+        ),
+        "lat": c["lat"],
+        "lng": c["lng"],
+        "complaint_text": f"Fraud complaint involving {c['bank']} reported near {c['city']}.",
+        "amount": c["amount"],
+        "state": c["city"],
+        "district": c["city"],
+        "category": "other",
+        "bank_name": c["bank"],
+        "cluster_id": c["city"],
+        "risk_level": c["label"],
+    })
+complaints_df = pd.DataFrame(complaint_rows)
+
+fe = FeatureEngineer()
+fe.fit_atm_tree(complaints_df[["lat", "lng"]].drop_duplicates().reset_index(drop=True))
+X = fe.create_feature_matrix(complaints_df, is_training=True)
+y_cluster = complaints_df["cluster_id"].values
+y_risk = complaints_df["risk_level"].values
+
+idx = np.arange(X.shape[0])
+train_idx, val_idx = train_test_split(idx, test_size=0.2, random_state=42)
+
+log(f"Fitting CashoutLocationPredictor (xgboost_location) on {xgb_dev} ...")
 predictor = CashoutLocationPredictor(device=xgb_dev, tree_method=xgb_tree)
-X = np.array([[c["amount"], c["lat"], c["lng"], random.random()] for c in complaints])
-y = [c["city"] for c in complaints]
-predictor.fit(X, y)
+predictor.train(
+    X[train_idx], y_cluster[train_idx], X[val_idx], y_cluster[val_idx],
+    feature_names=FEATURE_NAMES,
+)
 joblib.dump(predictor, os.path.join(ARTIFACT_DIR, "xgboost_location.pkl"))
 log("Exported xgboost_location.pkl")
 
-# --- 4. RiskLevelClassifier (rf) ---
 log("Fitting RiskLevelClassifier (rf_risk) ...")
-from app.ml.random_forest_model import RiskLevelClassifier
-
 clf = RiskLevelClassifier()
-X_risk = np.array([[c["amount"], random.random(), random.random()] for c in complaints])
-y_risk = [0 if c["label"] == "high_risk" else (1 if c["label"] == "medium" else 2) for c in complaints]
-clf.fit(X_risk, y_risk)
+clf.train(X[train_idx], y_risk[train_idx])
 joblib.dump(clf, os.path.join(ARTIFACT_DIR, "rf_risk.pkl"))
 log("Exported rf_risk.pkl")
 

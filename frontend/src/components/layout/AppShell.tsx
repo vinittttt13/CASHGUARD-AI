@@ -22,6 +22,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { StatusIndicator } from "@/components/shared/intel-primitives";
+import { CommandPalette } from "@/components/shared/command-palette";
 import { isAuthenticated as checkAuth, clearAuth, getUserFromToken } from "@/lib/auth";
 import { logoutUser } from "@/lib/api";
 import { useWebSocket } from "@/hooks/useWebSocket";
@@ -62,6 +63,7 @@ export default function DashboardLayout({
   const unreadAlertCount = useAppStore((s) => s.unreadAlertCount);
   const clearUnread = useAppStore((s) => s.clearUnread);
   const socketConnected = useAppStore((s) => s.socketConnected);
+  const socketReconnecting = useAppStore((s) => s.socketReconnecting);
 
   useEffect(() => {
     if (!checkAuth()) {
@@ -124,7 +126,7 @@ export default function DashboardLayout({
       {navSections.map((section) => (
         <div key={section.label}>
           {!collapsed && (
-            <div className="mb-1.5 px-3 text-[10px] font-semibold uppercase tracking-widest text-subtle-foreground">
+            <div className="mb-1.5 px-3 text-[10px] font-semibold label-caps text-subtle-foreground">
               {section.label}
             </div>
           )}
@@ -172,7 +174,8 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className="flex min-h-screen text-foreground">
+      <CommandPalette onLogout={handleLogout} />
       {/* Desktop Sidebar */}
       <aside
         className={cn(
@@ -189,7 +192,7 @@ export default function DashboardLayout({
               <div className="truncate text-sm font-semibold text-foreground">
                 CASHGUARD <span className="text-primary">AI</span>
               </div>
-              <div className="truncate text-[9px] font-medium uppercase tracking-widest text-subtle-foreground">
+              <div className="truncate text-[9px] font-medium label-caps text-subtle-foreground">
                 Financial Cyber Intelligence
               </div>
             </div>
@@ -227,7 +230,7 @@ export default function DashboardLayout({
               </Avatar>
               <div className="flex min-w-0 flex-col">
                 <span className="truncate text-xs font-medium text-foreground">{userEmail}</span>
-                <span className="text-[10px] uppercase tracking-wide text-subtle-foreground">{userRole}</span>
+                <span className="text-[10px] label-caps text-subtle-foreground">{userRole}</span>
               </div>
               <button
                 type="button"
@@ -246,7 +249,7 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Header */}
-        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-surface/95 px-4 backdrop-blur md:px-6">
+        <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b border-border bg-surface px-4 md:px-6">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline" size="icon" className="shrink-0 border-border bg-surface-raised md:hidden">
@@ -273,7 +276,7 @@ export default function DashboardLayout({
                   </Avatar>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-foreground">{userEmail}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-subtle-foreground">{userRole}</span>
+                    <span className="text-[10px] label-caps text-subtle-foreground">{userRole}</span>
                   </div>
                 </div>
                 <Button variant="outline" className="w-full gap-2 border-border" onClick={handleLogout}>
@@ -289,13 +292,23 @@ export default function DashboardLayout({
           </div>
 
           <div className="ml-auto flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true }))
+              }
+              className="hidden items-center gap-2 rounded-md border border-border bg-surface-raised px-2.5 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground md:flex"
+            >
+              <span>Search…</span>
+              <kbd className="label-caps rounded border border-border px-1 text-[10px]">⌘K</kbd>
+            </button>
             {/* System status cluster */}
             <div className="hidden items-center gap-3 rounded-md border border-border bg-surface-raised px-3 py-1.5 lg:flex">
               <StatusIndicator state="online" label="API Operational" />
               <span className="h-3 w-px bg-border" aria-hidden="true" />
               <StatusIndicator
-                state={socketConnected ? "online" : "offline"}
-                label={socketConnected ? "Live Feed Connected" : "Live Feed Offline"}
+                state={socketConnected ? "online" : socketReconnecting ? "reconnecting" : "offline"}
+                label={socketConnected ? "Live feed connected" : socketReconnecting ? "Reconnecting…" : "Live feed offline"}
               />
             </div>
 
@@ -339,7 +352,7 @@ export default function DashboardLayout({
                   <div className="mb-1 border-b border-border p-2">
                     <p className="truncate text-xs font-medium text-foreground">{userEmail}</p>
                     <div className="mt-1 flex items-center gap-2">
-                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-medium label-caps text-muted-foreground">
                         {userRole}
                       </span>
                       <StatusIndicator state="online" label="Active" />

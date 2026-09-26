@@ -45,7 +45,7 @@ describe("AmlTransactionPanel", () => {
     await userEvent.type(screen.getByLabelText("Amount Paid"), "50000");
     await userEvent.click(screen.getByRole("button", { name: /analyze transaction/i }));
 
-    await waitFor(() => expect(screen.getByText("CRITICAL")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Critical")).toBeInTheDocument());
     expect(screen.getByText(/87\.0% probability/)).toBeInTheDocument();
     expect(screen.getByText(/xgboost_aml/)).toBeInTheDocument();
     // Never labeled as a fallback when the real model produced the result.
@@ -114,7 +114,7 @@ describe("AmlTransactionPanel", () => {
     render(<AmlTransactionPanel />);
     await userEvent.type(screen.getByLabelText("Amount Paid"), "500");
     await userEvent.click(screen.getByRole("button", { name: /analyze transaction/i }));
-    await waitFor(() => expect(screen.getByText("LOW")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Clear")).toBeInTheDocument());
 
     await userEvent.click(screen.getByText(/About this model's accuracy/i));
 
@@ -136,7 +136,7 @@ describe("AmlTransactionPanel", () => {
     render(<AmlTransactionPanel />);
     await userEvent.type(screen.getByLabelText("Amount Paid"), "500");
     await userEvent.click(screen.getByRole("button", { name: /analyze transaction/i }));
-    await waitFor(() => expect(screen.getByText("LOW")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Clear")).toBeInTheDocument());
 
     await userEvent.click(screen.getByRole("button", { name: /reset/i }));
 

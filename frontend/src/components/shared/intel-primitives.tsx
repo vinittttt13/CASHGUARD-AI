@@ -21,7 +21,7 @@ export const RISK_META: Record<
   { label: string; text: string; bg: string; border: string; dot: string; icon: LucideIcon }
 > = {
   low: {
-    label: "LOW",
+    label: "Clear",
     text: "text-risk-low",
     bg: "bg-risk-low/10",
     border: "border-risk-low/30",
@@ -29,7 +29,7 @@ export const RISK_META: Record<
     icon: ShieldCheck,
   },
   medium: {
-    label: "MEDIUM",
+    label: "Review",
     text: "text-risk-medium",
     bg: "bg-risk-medium/10",
     border: "border-risk-medium/30",
@@ -37,7 +37,7 @@ export const RISK_META: Record<
     icon: AlertTriangle,
   },
   high: {
-    label: "HIGH",
+    label: "High",
     text: "text-risk-high",
     bg: "bg-risk-high/10",
     border: "border-risk-high/30",
@@ -45,7 +45,7 @@ export const RISK_META: Record<
     icon: ShieldAlert,
   },
   critical: {
-    label: "CRITICAL",
+    label: "Critical",
     text: "text-risk-critical",
     bg: "bg-risk-critical/10",
     border: "border-risk-critical/30",
@@ -126,10 +126,10 @@ export function RiskScore({
         <span className={cn("font-mono text-lg font-semibold tabular-nums", meta.text)}>
           {normalized.toFixed(0)}
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="text-[10px] font-medium label-caps text-muted-foreground">
           / {max}
         </span>
-        <span className={cn("ml-auto text-[10px] font-semibold uppercase tracking-wide", meta.text)}>
+        <span className={cn("ml-auto text-[10px] font-semibold label-caps", meta.text)}>
           {meta.label}
         </span>
       </div>
@@ -154,21 +154,32 @@ export function StatusIndicator({
   label,
   className,
 }: {
-  state: "online" | "offline" | "degraded";
+  state: "online" | "offline" | "degraded" | "reconnecting";
   label: string;
   className?: string;
 }) {
   const color =
-    state === "online" ? "bg-risk-low" : state === "degraded" ? "bg-risk-medium" : "bg-risk-critical";
+    state === "online"
+      ? "bg-risk-low"
+      : state === "degraded" || state === "reconnecting"
+        ? "bg-risk-medium"
+        : "bg-risk-critical";
+  // "online" pulses to show a healthy live connection; "reconnecting" blinks
+  // faster/harder to read as active-but-troubled, distinct from a flat dead
+  // "offline" dot — a viewer should be able to tell "still trying" from
+  // "given up" at a glance.
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground", className)}>
       <span className="relative flex h-1.5 w-1.5">
         {state === "online" && (
           <span className={cn("absolute inline-flex h-full w-full animate-ping rounded-full opacity-60", color)} />
         )}
+        {state === "reconnecting" && (
+          <span className={cn("absolute inline-flex h-full w-full animate-pulse rounded-full opacity-80", color)} />
+        )}
         <span className={cn("relative inline-flex h-1.5 w-1.5 rounded-full", color)} />
       </span>
-      <span className="uppercase tracking-wide">{label}</span>
+      <span className="label-caps">{label}</span>
     </span>
   );
 }
@@ -248,7 +259,7 @@ export function MetricCard({
   return (
     <div className={cn("rounded-lg border border-border bg-surface p-4", className)}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <span className="text-[11px] font-medium label-caps text-muted-foreground">
           {label}
         </span>
         {Icon && <Icon className="h-3.5 w-3.5 text-subtle-foreground" aria-hidden="true" />}
@@ -312,7 +323,7 @@ export function SectionHeader({
 
 export function ConfidenceIndicator({
   value,
-  label = "MODEL CONFIDENCE",
+  label = "Model confidence",
   className,
 }: {
   /** 0-1 or 0-100 */
@@ -325,7 +336,7 @@ export function ConfidenceIndicator({
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span className="font-medium uppercase tracking-wide">{label}</span>
+        <span className="font-medium label-caps">{label}</span>
         <span className="font-mono tabular-nums text-foreground">{pct.toFixed(0)}%</span>
       </div>
       <div className="h-1 w-full overflow-hidden rounded-full bg-surface-overlay">

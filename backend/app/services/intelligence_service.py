@@ -27,14 +27,16 @@ class IntelligenceService:
 
         # 1. Total complaints in period
         complaints_res = await db.execute(
-            select(func.count(Complaint.id)).where(Complaint.created_at >= start_date)
+            select(func.count(Complaint.id)).where(
+                Complaint.complaint_date >= start_date
+            )
         )
         total_complaints = int(complaints_res.scalar_one() or 0)
 
         # 2. Total defrauded amount
         amount_res = await db.execute(
             select(func.sum(Complaint.amount_defrauded)).where(
-                Complaint.created_at >= start_date
+                Complaint.complaint_date >= start_date
             )
         )
         total_defrauded = float(amount_res.scalar_one() or 0.0)
@@ -74,7 +76,7 @@ class IntelligenceService:
         # 4. State-wise breakdown
         states_res = await db.execute(
             select(Complaint.state, func.count(Complaint.id))
-            .where(Complaint.created_at >= start_date)
+            .where(Complaint.complaint_date >= start_date)
             .group_by(Complaint.state)
         )
         state_breakdown = {
@@ -84,7 +86,7 @@ class IntelligenceService:
         # 5. Category breakdown
         cat_res = await db.execute(
             select(Complaint.complaint_category, func.count(Complaint.id))
-            .where(Complaint.created_at >= start_date)
+            .where(Complaint.complaint_date >= start_date)
             .group_by(Complaint.complaint_category)
         )
         category_breakdown = {
@@ -97,7 +99,7 @@ class IntelligenceService:
             select(Complaint.bank_name, func.count(Complaint.id))
             .where(
                 and_(
-                    Complaint.created_at >= start_date,
+                    Complaint.complaint_date >= start_date,
                     Complaint.bank_name.isnot(None),
                 )
             )
@@ -184,10 +186,10 @@ class IntelligenceService:
 
         query = (
             select(
-                func.date(Complaint.created_at).label("day"),
+                func.date(Complaint.complaint_date).label("day"),
                 func.count(Complaint.id).label("count"),
             )
-            .where(Complaint.created_at >= start_date)
+            .where(Complaint.complaint_date >= start_date)
             .group_by("day")
             .order_by("day")
         )
@@ -313,7 +315,7 @@ class IntelligenceService:
 
         start_date = datetime.utcnow() - timedelta(days=days)
         result = await db.execute(
-            select(Complaint).where(Complaint.created_at >= start_date).limit(500)
+            select(Complaint).where(Complaint.complaint_date >= start_date).limit(500)
         )
         complaints = result.scalars().all()
 

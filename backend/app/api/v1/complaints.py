@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.websocket import manager
 from app.core.database import get_db
 from app.core.security import get_current_user, require_role
 from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
@@ -43,9 +44,9 @@ async def get_complaints(
     if state:
         conditions.append(Complaint.state == state)
     if start_date:
-        conditions.append(Complaint.created_at >= start_date)
+        conditions.append(Complaint.complaint_date >= start_date)
     if end_date:
-        conditions.append(Complaint.created_at <= end_date)
+        conditions.append(Complaint.complaint_date <= end_date)
 
     if conditions:
         query = query.where(and_(*conditions))
@@ -54,7 +55,7 @@ async def get_complaints(
     total_result = await db.execute(total_query)
     total = total_result.scalar_one()
 
-    query = query.order_by(Complaint.created_at.desc()).offset(skip).limit(limit)
+    query = query.order_by(Complaint.complaint_date.desc()).offset(skip).limit(limit)
     result = await db.execute(query)
     complaints = result.scalars().all()
 
@@ -75,10 +76,24 @@ async def create_complaint(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    new_complaint = Complaint(**complaint_in.model_dump())
+    complaint_data = complaint_in.model_dump()
+    # complaint_date is optional on the request schema, but every date-range
+    # filter, sort, and the intelligence report all key off it — a complaint
+    # created without one would silently never appear in any of them (it
+    # would never satisfy a "complaint_date >= start_date" condition).
+    # created_at has a DB-level server_default for the same reason; mirror
+    # that here since this is a Python-level default, not a column default.
+    if complaint_data.get("complaint_date") is None:
+        complaint_data["complaint_date"] = datetime.utcnow()
+    new_complaint = Complaint(**complaint_data)
     db.add(new_complaint)
     await db.commit()
     await db.refresh(new_complaint)
+
+    response = ComplaintResponse.model_validate(new_complaint)
+    await manager.broadcast(
+        {"type": "new_complaint", "data": response.model_dump(mode="json")}
+    )
     return new_complaint
 
 

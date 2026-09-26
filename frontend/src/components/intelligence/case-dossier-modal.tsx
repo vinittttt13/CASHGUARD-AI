@@ -69,7 +69,7 @@ export function CaseDossierModal({ open, onClose, report, fraudRings }: CaseDoss
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-red-800 text-white flex items-center justify-center text-xs font-bold">1</div>
-              <h2 className="text-lg font-extrabold uppercase tracking-wide">Executive Case Summary</h2>
+              <h2 className="text-lg font-extrabold label-caps">Executive Case Summary</h2>
             </div>
             <div className="grid sm:grid-cols-3 gap-4 rounded-lg border bg-slate-50 dark:bg-slate-900 p-4">
               <div>
@@ -92,7 +92,7 @@ export function CaseDossierModal({ open, onClose, report, fraudRings }: CaseDoss
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-red-800 text-white flex items-center justify-center text-xs font-bold">2</div>
-              <h2 className="text-lg font-extrabold uppercase tracking-wide">Identified Fraud Rings &amp; Mules</h2>
+              <h2 className="text-lg font-extrabold label-caps">Identified Fraud Rings &amp; Mules</h2>
             </div>
             <div className="rounded-lg border p-4 space-y-3">
               <div className="flex items-start gap-3">
@@ -116,7 +116,7 @@ export function CaseDossierModal({ open, onClose, report, fraudRings }: CaseDoss
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-red-800 text-white flex items-center justify-center text-xs font-bold">3</div>
-              <h2 className="text-lg font-extrabold uppercase tracking-wide">High-Risk ATM Cash-Out Interception Points</h2>
+              <h2 className="text-lg font-extrabold label-caps">High-Risk ATM Cash-Out Interception Points</h2>
             </div>
             <p className="text-xs uppercase font-bold text-slate-500 mb-2">Top 5 predicted withdrawal clusters</p>
             <table className="w-full text-sm border-collapse border">
@@ -150,7 +150,7 @@ export function CaseDossierModal({ open, onClose, report, fraudRings }: CaseDoss
           <section>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-red-800 text-white flex items-center justify-center text-xs font-bold">4</div>
-              <h2 className="text-lg font-extrabold uppercase tracking-wide">Chain of Custody &amp; Algorithmic Disclosure</h2>
+              <h2 className="text-lg font-extrabold label-caps">Chain of Custody &amp; Algorithmic Disclosure</h2>
             </div>
             <div className="grid sm:grid-cols-2 gap-4 rounded-lg border p-4 text-sm">
               <div>

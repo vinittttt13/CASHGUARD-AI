@@ -14,12 +14,15 @@ import { useApiResource } from "@/hooks/useApiResource";
 import { getHeatmapData, getHotspots } from "@/lib/api";
 
 // Fix Leaflet default marker icons without touching the prototype
-// (deleting from prototype causes hasOwnProperty crash in setOptions)
+// (deleting from prototype causes hasOwnProperty crash in setOptions).
+// Self-hosted from public/leaflet/ (copied from node_modules/leaflet/dist/images)
+// rather than fetched from a CDN, so the map still shows markers on an
+// offline/restricted venue network.
 if (typeof window !== "undefined") {
   L.Icon.Default.mergeOptions({
-    iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-    iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-    shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
+    iconRetinaUrl: "/leaflet/marker-icon-2x.png",
+    iconUrl: "/leaflet/marker-icon.png",
+    shadowUrl: "/leaflet/marker-shadow.png",
   });
 }
 
@@ -134,6 +137,11 @@ export default function PredictiveMap({
   const heatmap = useApiResource(getHeatmapData, []);
   const hotspots = useApiResource(getHotspots, []);
   const [mounted, setMounted] = useState(false);
+  // OSM's public tile server is a single point of failure — degraded venue
+  // Wi-Fi renders it as blank grey tiles with no indication why. Surface a
+  // visible notice instead of failing silently once enough tiles error out.
+  const [tileErrorCount, setTileErrorCount] = useState(0);
+  const tilesUnavailable = tileErrorCount >= 6;
 
   useEffect(() => {
     setMounted(true);
@@ -192,13 +200,20 @@ export default function PredictiveMap({
   if (!mounted) return <div className="h-full w-full animate-pulse rounded-lg bg-surface-overlay" />;
 
   const getPredictionColor = (confidence: number) => {
-    if (confidence > 0.8) return "#ef4444"; // risk-critical
-    if (confidence > 0.5) return "#f59e0b"; // risk-medium
-    return "#22c55e"; // risk-low
+    if (confidence > 0.8) return "hsl(var(--flare))";
+    if (confidence > 0.5) return "hsl(var(--risk-review))";
+    return "hsl(var(--verified))";
   };
 
   return (
     <div className="relative h-full w-full overflow-hidden rounded-lg border border-border">
+      {tilesUnavailable && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 z-[1000] flex justify-center p-2">
+          <div className="pointer-events-auto rounded-md border border-risk-review/40 bg-surface-raised px-3 py-1.5 text-xs font-medium text-risk-review shadow-sm">
+            Map tiles unavailable — check network connectivity. Markers and heatmap data below are still live.
+          </div>
+        </div>
+      )}
       <MapContainer
         center={center}
         zoom={zoom}
@@ -213,10 +228,19 @@ export default function PredictiveMap({
         <IndiaResetControl />
         <MapEventsHandler onClick={onAreaClick} />
         <MapResizeHandler />
+        {/* CARTO's free anonymous basemap tier now requires an API key (every
+            tile renders an "API KEY REQUIRED" watermark without one) — using
+            the standard no-key OSM tile server instead, with a CSS filter to
+            match the dark identity. See .map-tile-dark in globals.css. */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_matter/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
+          className="map-tile-dark"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          subdomains="abc"
+          eventHandlers={{
+            tileerror: () => setTileErrorCount((n) => n + 1),
+            tileload: () => setTileErrorCount(0),
+          }}
         />
 
         <BoundsFitter bounds={bounds} />
@@ -244,20 +268,20 @@ export default function PredictiveMap({
                 >
                   <Popup>
                     <div className="min-w-[190px]">
-                      <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-cyan-400">
+                      <div className="mb-1.5 text-[10px] font-semibold label-caps text-verified">
                         Predicted Hotspot
                       </div>
-                      <h4 className="text-sm font-semibold text-slate-100">{pred.atmName}</h4>
+                      <h4 className="text-sm font-semibold text-foreground">{pred.atmName}</h4>
                       <dl className="mt-2 space-y-1 text-xs">
                         <div className="flex justify-between gap-3">
-                          <dt className="text-slate-400">Confidence</dt>
-                          <dd className="font-mono font-medium text-slate-100">
+                          <dt className="text-muted-foreground">Confidence</dt>
+                          <dd className="font-mono font-medium text-foreground">
                             {formatConfidence(pred.confidence)}
                           </dd>
                         </div>
                         <div className="flex justify-between gap-3">
-                          <dt className="text-slate-400">Last Event</dt>
-                          <dd className="font-mono text-slate-200">{pred.lastIncidentDate}</dd>
+                          <dt className="text-muted-foreground">Last Event</dt>
+                          <dd className="font-mono text-foreground">{pred.lastIncidentDate}</dd>
                         </div>
                       </dl>
                     </div>
@@ -294,7 +318,7 @@ export default function PredictiveMap({
 
       {/* Legend */}
       <div className="absolute bottom-4 left-4 z-[400] rounded-lg border border-border bg-surface-raised/95 p-3 text-xs backdrop-blur">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <div className="mb-2 text-[10px] font-semibold label-caps text-muted-foreground">
           Prediction Confidence
         </div>
         <div className="mb-1 flex items-center gap-2">

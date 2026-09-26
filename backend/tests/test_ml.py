@@ -499,6 +499,40 @@ def test_shap_explainer_radar_and_global():
     assert radar[1] == {"feature": "feat2", "value": -0.3}
 
 
+def test_shap_explain_prediction_handles_multiclass_shape():
+    """explain_prediction must pair one importance value per feature, even for
+    a multiclass tree model whose shap_values() returns
+    (n_samples, n_features, n_classes) — e.g. XGBoost predicting among 5+
+    location clusters. Regression test for a bug where the ndarray branch
+    indexed vals[0] a second time, grabbing one feature's per-class values
+    instead of one sample's per-feature values, silently mis-pairing the
+    result against feature_names (only n_classes entries came back instead
+    of n_features, zipped against the wrong names).
+    """
+    import numpy as np
+
+    from app.ml.shap_explainer import SHAPExplainer
+
+    feature_names = [f"feat{i}" for i in range(17)]
+    explainer = SHAPExplainer.__new__(SHAPExplainer)
+    explainer.model = None
+    explainer.feature_names = feature_names
+
+    n_features, n_classes = 17, 5
+    shap_values = np.random.rand(1, n_features, n_classes)
+    explainer.explainer = type(
+        "FakeExplainer", (), {"shap_values": lambda self, X: shap_values}
+    )()
+
+    result = explainer.explain_prediction(np.zeros((1, n_features)))
+
+    assert set(result.keys()) == set(feature_names)
+    assert len(result) == n_features
+    expected = np.abs(shap_values[0]).mean(axis=-1)
+    for i, name in enumerate(feature_names):
+        assert result[name] == pytest.approx(float(expected[i]))
+
+
 def test_mask_text_comprehensive():
     from app.utils.anonymizer import mask_complaint_data, mask_text
 

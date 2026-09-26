@@ -3,7 +3,9 @@ from datetime import datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.websocket import manager
 from app.models.intelligence_alert import AlertPriority, AlertType, IntelligenceAlert
+from app.schemas.alert import AlertResponse
 
 
 class AlertService:
@@ -20,6 +22,12 @@ class AlertService:
             )
             db.add(alert)
             await db.commit()
+            await db.refresh(alert)
+
+            response = AlertResponse.model_validate(alert)
+            await manager.broadcast(
+                {"type": "new_alert", "data": response.model_dump(mode="json")}
+            )
 
     async def get_active_alerts(self, db: AsyncSession, limit: int = 50) -> list:
         query = (

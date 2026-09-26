@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
+import { motion } from "motion/react";
 import { Network, ShieldAlert, AlertTriangle, Building2, MapPin, Layers, Users, IndianRupee } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,12 +16,13 @@ interface FraudRingGraphProps {
 
 export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
   const [selectedRingIndex, setSelectedRingIndex] = useState(0);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
   const activeRing = rings[selectedRingIndex] ?? rings[0];
 
   const ringRiskBadge = (score: number) => {
-    if (score >= 0.8) return { label: "CRITICAL RISK", color: "bg-risk-critical/10 text-risk-critical border-risk-critical/25" };
-    if (score >= 0.5) return { label: "ELEVATED RISK", color: "bg-risk-medium/10 text-risk-medium border-risk-medium/25" };
-    return { label: "MODERATE RISK", color: "bg-secondary/10 text-secondary border-secondary/25" };
+    if (score >= 0.8) return { label: "Critical risk", color: "bg-risk-critical/10 text-risk-critical border-risk-critical/25" };
+    if (score >= 0.5) return { label: "Elevated risk", color: "bg-risk-medium/10 text-risk-medium border-risk-medium/25" };
+    return { label: "Moderate risk", color: "bg-secondary/10 text-secondary border-secondary/25" };
   };
 
   // Node layout calculation for SVG graph
@@ -126,74 +128,62 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               </span>
             </div>
 
-            <svg viewBox="0 0 520 400" className="w-full h-auto max-h-[380px]">
-              {/* Edges from center to complaints */}
-              {graphNodes.center &&
-                graphNodes.complaints.map((node) => (
-                  <line
-                    key={`edge-c-${node.id}`}
-                    x1={graphNodes.center!.x}
-                    y1={graphNodes.center!.y}
-                    x2={node.x}
-                    y2={node.y}
-                    stroke="#5e6e7e"
-                    strokeWidth="1.5"
-                    strokeDasharray="4 3"
-                    opacity="0.6"
-                  />
-                ))}
-
-              {/* Edges from center to banks */}
-              {graphNodes.center &&
-                graphNodes.banks.map((node) => (
-                  <line
-                    key={`edge-b-${node.id}`}
-                    x1={graphNodes.center!.x}
-                    y1={graphNodes.center!.y}
-                    x2={node.x}
-                    y2={node.y}
-                    stroke="#3b82f6"
-                    strokeWidth="2"
-                    opacity="0.7"
-                  />
-                ))}
-
-              {/* Edges from center to locations */}
-              {graphNodes.center &&
-                graphNodes.locations.map((node) => (
-                  <line
-                    key={`edge-l-${node.id}`}
-                    x1={graphNodes.center!.x}
-                    y1={graphNodes.center!.y}
-                    x2={node.x}
-                    y2={node.y}
-                    stroke="#22c55e"
-                    strokeWidth="1.5"
-                    opacity="0.6"
-                  />
-                ))}
+            <svg viewBox="0 0 520 400" className="w-full h-auto max-h-[380px]" onMouseLeave={() => setHoveredId(null)}>
+              {(
+                [
+                  ...graphNodes.complaints.map((n) => ({ ...n, color: "#ff4b26", dash: "4 3", width: 1.5 })),
+                  ...graphNodes.banks.map((n) => ({ ...n, color: "#ede7da", dash: undefined, width: 2 })),
+                  ...graphNodes.locations.map((n) => ({ ...n, color: "#5b9083", dash: undefined, width: 1.5 })),
+                ] as Array<{ id: string; x: number; y: number; label: string; type: string; color: string; dash?: string; width: number }>
+              ).map((node) => {
+                const dimmed = hoveredId !== null && hoveredId !== node.id;
+                const cx = graphNodes.center!.x;
+                const cy = graphNodes.center!.y;
+                return (
+                  <g key={`edge-${node.id}`} opacity={dimmed ? 0.15 : 1} style={{ transition: "opacity 0.2s" }}>
+                    <line
+                      x1={node.x}
+                      y1={node.y}
+                      x2={cx}
+                      y2={cy}
+                      stroke={node.color}
+                      strokeWidth={hoveredId === node.id ? node.width + 1 : node.width}
+                      strokeDasharray={node.dash}
+                      opacity="0.55"
+                    />
+                    {/* Money-flow particle: travels from the outer node into
+                        the hub, on a per-edge staggered loop. Represents
+                        funds actually moving into the syndicate, not
+                        decoration. */}
+                    <motion.circle
+                      r={2.5}
+                      fill={node.color}
+                      animate={{ cx: [node.x, cx], cy: [node.y, cy], opacity: [0, 1, 1, 0] }}
+                      transition={{
+                        duration: 2.2,
+                        repeat: Infinity,
+                        ease: "linear",
+                        delay: (node.x + node.y) % 2,
+                      }}
+                    />
+                  </g>
+                );
+              })}
 
               {/* Complaint Nodes */}
               {graphNodes.complaints.map((node) => (
-                <g key={`node-c-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="14" fill="#141f2a" stroke="#ef4444" strokeWidth="2" />
-                  <text
-                    x={node.x}
-                    y={node.y + 4}
-                    textAnchor="middle"
-                    fontSize="9"
-                    fontWeight="600"
-                    fill="#e6edf3"
-                  >
+                <g
+                  key={`node-c-${node.id}`}
+                  onMouseEnter={() => setHoveredId(node.id)}
+                  className="cursor-pointer"
+                  opacity={hoveredId !== null && hoveredId !== node.id ? 0.25 : 1}
+                  style={{ transition: "opacity 0.2s" }}
+                >
+                  <circle cx={node.x} cy={node.y} r="14" fill="#201b14" stroke="#ff4b26" strokeWidth="2" />
+                  <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="9" fontWeight="600" fill="#ede7da">
                     {node.label.slice(4)}
                   </text>
-                  <text
-                    x={node.x}
-                    y={node.y + 24}
-                    textAnchor="middle"
-                    fontSize="8"
-                    fill="#8b9aaa"
-                  >
+                  <text x={node.x} y={node.y + 24} textAnchor="middle" fontSize="8" fill="#8b8375">
                     Complaint
                   </text>
                 </g>
@@ -201,25 +191,18 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Bank Nodes */}
               {graphNodes.banks.map((node) => (
-                <g key={`node-b-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="16" fill="#141f2a" stroke="#3b82f6" strokeWidth="2.5" />
-                  <text
-                    x={node.x}
-                    y={node.y + 4}
-                    textAnchor="middle"
-                    fontSize="8"
-                    fontWeight="bold"
-                    fill="#8fb4ff"
-                  >
+                <g
+                  key={`node-b-${node.id}`}
+                  onMouseEnter={() => setHoveredId(node.id)}
+                  className="cursor-pointer"
+                  opacity={hoveredId !== null && hoveredId !== node.id ? 0.25 : 1}
+                  style={{ transition: "opacity 0.2s" }}
+                >
+                  <circle cx={node.x} cy={node.y} r="16" fill="#201b14" stroke="#ede7da" strokeWidth="2.5" />
+                  <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="8" fontWeight="bold" fill="#ede7da">
                     {node.label.slice(0, 4)}
                   </text>
-                  <text
-                    x={node.x}
-                    y={node.y + 26}
-                    textAnchor="middle"
-                    fontSize="8"
-                    fill="#3b82f6"
-                  >
+                  <text x={node.x} y={node.y + 26} textAnchor="middle" fontSize="8" fill="#ede7da">
                     Bank
                   </text>
                 </g>
@@ -227,31 +210,34 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Location Nodes */}
               {graphNodes.locations.map((node) => (
-                <g key={`node-l-${node.id}`}>
-                  <circle cx={node.x} cy={node.y} r="14" fill="#141f2a" stroke="#22c55e" strokeWidth="2" />
-                  <text
-                    x={node.x}
-                    y={node.y + 4}
-                    textAnchor="middle"
-                    fontSize="8"
-                    fontWeight="bold"
-                    fill="#4ade80"
-                  >
+                <g
+                  key={`node-l-${node.id}`}
+                  onMouseEnter={() => setHoveredId(node.id)}
+                  className="cursor-pointer"
+                  opacity={hoveredId !== null && hoveredId !== node.id ? 0.25 : 1}
+                  style={{ transition: "opacity 0.2s" }}
+                >
+                  <circle cx={node.x} cy={node.y} r="14" fill="#201b14" stroke="#5b9083" strokeWidth="2" />
+                  <text x={node.x} y={node.y + 4} textAnchor="middle" fontSize="8" fontWeight="bold" fill="#5b9083">
                     {node.label.slice(0, 3)}
                   </text>
                 </g>
               ))}
 
-              {/* Central Syndicate Ring Node */}
+              {/* Central Syndicate Ring Node — the emphasized hub: a slow
+                  breathing pulse marks it as the thing every edge in this
+                  graph converges on. */}
               {graphNodes.center && (
-                <g>
-                  <circle
+                <g opacity={hoveredId !== null ? 1 : 1}>
+                  <motion.circle
                     cx={graphNodes.center.x}
                     cy={graphNodes.center.y}
                     r="28"
-                    fill="#1f1416"
-                    stroke="#ef4444"
+                    fill="#201b14"
+                    stroke="#ff4b26"
                     strokeWidth="3"
+                    animate={{ r: [28, 30, 28] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                   />
                   <text
                     x={graphNodes.center.x}
@@ -259,7 +245,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     textAnchor="middle"
                     fontSize="11"
                     fontWeight="bold"
-                    fill="#f87171"
+                    fill="#ff4b26"
                   >
                     {activeRing.ring_id}
                   </text>
@@ -269,7 +255,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                     textAnchor="middle"
                     fontSize="8"
                     fontWeight="600"
-                    fill="#ef4444"
+                    fill="#ff4b26"
                   >
                     SYNDICATE
                   </text>
@@ -284,16 +270,16 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
                 <span>Syndicate Hub</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full border border-secondary bg-secondary/15" />
-                <span>Targeted Bank</span>
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-foreground/50 bg-foreground/10" />
+                <span>Targeted bank</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full border border-risk-low bg-risk-low/15" />
-                <span>Location Hotspot</span>
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-verified bg-verified/15" />
+                <span>Location hotspot</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="inline-block h-2.5 w-2.5 rounded-full border border-risk-critical bg-surface-overlay" />
-                <span>Correlated Complaint</span>
+                <span className="inline-block h-2.5 w-2.5 rounded-full border border-ash bg-surface-overlay" />
+                <span>Correlated complaint</span>
               </div>
             </div>
           </div>
@@ -334,7 +320,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Shared Banks */}
               <div>
-                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold label-caps text-muted-foreground">
                   <Building2 className="h-3.5 w-3.5 text-secondary" /> Targeted Banking Channels
                 </h5>
                 <div className="flex flex-wrap gap-1.5">
@@ -352,7 +338,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
 
               {/* Shared Locations */}
               <div>
-                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold label-caps text-muted-foreground">
                   <MapPin className="h-3.5 w-3.5 text-risk-low" /> Geographic Footprint
                 </h5>
                 <div className="flex flex-wrap gap-1.5">
@@ -371,7 +357,7 @@ export function FraudRingGraph({ rings = [] }: FraudRingGraphProps) {
               {/* Suspect Identifiers if available */}
               {activeRing.suspect_identifiers && activeRing.suspect_identifiers.length > 0 && (
                 <div>
-                  <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <h5 className="mb-2 flex items-center gap-1.5 text-xs font-semibold label-caps text-muted-foreground">
                     <Layers className="h-3.5 w-3.5 text-risk-analytic" /> Shared Suspect Identifiers
                   </h5>
                   <div className="flex flex-wrap gap-1.5">

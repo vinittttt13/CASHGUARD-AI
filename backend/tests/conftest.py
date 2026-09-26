@@ -170,6 +170,8 @@ async def auth_headers(async_client: AsyncClient, test_user) -> dict:
 @pytest_asyncio.fixture
 async def test_complaint():
     """Create a test complaint directly in the DB and return the record."""
+    from datetime import datetime
+
     from app.models.complaint import Complaint, ComplaintCategory, ComplaintStatus
 
     async with _TestSessionLocal() as db:
@@ -185,6 +187,11 @@ async def test_complaint():
             longitude=72.8777,
             status=ComplaintStatus.pending,
             bank_name="SBI",
+            # Every date-range filter/sort and the intelligence report key off
+            # complaint_date, not created_at — set it explicitly so this
+            # fixture matches what the create API now guarantees (see
+            # app/api/v1/complaints.py's create_complaint).
+            complaint_date=datetime.utcnow(),
         )
         db.add(complaint)
         await db.commit()

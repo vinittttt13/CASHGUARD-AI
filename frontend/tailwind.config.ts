@@ -19,8 +19,9 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", "Inter", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -63,13 +64,24 @@ const config = {
           foreground: "hsl(var(--card-foreground))",
         },
         risk: {
-          low: "hsl(var(--risk-low))",
-          medium: "hsl(var(--risk-medium))",
-          high: "hsl(var(--risk-high))",
-          critical: "hsl(var(--risk-critical))",
-          system: "hsl(var(--risk-system))",
-          analytic: "hsl(var(--risk-analytic))",
+          // Kept for backwards compat with existing call sites (map.tsx
+          // legend, alert badges, etc.) — values now come from the new
+          // palette. low/clear and high==critical share a color on
+          // purpose: the brief calls for exactly 3 severity tones
+          // (clear/review/critical), not 4.
+          low: "hsl(var(--verified))",
+          medium: "hsl(var(--risk-review))",
+          high: "hsl(var(--flare))",
+          critical: "hsl(var(--flare))",
+          system: "hsl(var(--ash))",
+          analytic: "hsl(var(--ash))",
+          clear: "hsl(var(--verified))",
+          review: "hsl(var(--risk-review))",
         },
+        flare: "hsl(var(--flare))",
+        verified: "hsl(var(--verified))",
+        hairline: "hsl(var(--hairline))",
+        ash: "hsl(var(--ash))",
       },
       borderRadius: {
         lg: "var(--radius-lg)",

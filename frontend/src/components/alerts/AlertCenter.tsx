@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import { Filter } from "lucide-react";
 import { AlertCard } from "./AlertCard";
 import { useApiResource } from "@/hooks/useApiResource";
@@ -8,6 +9,7 @@ import { acknowledgeAlert, getAlerts } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
 import { useToast } from "@/hooks/use-toast";
 import { EmptyState, ErrorState, Loading } from "@/components/shared/states";
+import { StatusIndicator } from "@/components/shared/intel-primitives";
 import { cn } from "@/lib/utils";
 import type { Alert as ApiAlert } from "@/types";
 
@@ -43,6 +45,8 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
   const [filter, setFilter] = useState<Priority>("All");
   const { data, error, loading, refetch } = useApiResource(getAlerts, []);
   const liveAlerts = useAppStore((s) => s.alerts) as ApiAlert[];
+  const connected = useAppStore((s) => s.socketConnected);
+  const reconnecting = useAppStore((s) => s.socketReconnecting);
 
   const alerts = useMemo(() => {
     const fetched = data?.items ?? [];
@@ -78,7 +82,13 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface">
       <div className="border-b border-border/70 p-3">
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground">Alert Feed</h2>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-xs font-semibold label-caps text-foreground">Alert feed</h2>
+          <StatusIndicator
+            state={connected ? "online" : reconnecting ? "reconnecting" : "offline"}
+            label={connected ? "Live" : reconnecting ? "Reconnecting…" : "Offline"}
+          />
+        </div>
         <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
           <Filter className="mr-0.5 h-3.5 w-3.5 shrink-0 text-subtle-foreground" />
           {(["All", "Critical", "High", "Medium", "Low"] as Priority[]).map((p) => (
@@ -107,13 +117,29 @@ export function AlertCenter({ searchQuery = "" }: { searchQuery?: string }) {
         {loading && <Loading label="Loading alerts…" />}
         {error && <ErrorState error={error} onRetry={refetch} />}
         {!loading && !error && filtered.length === 0 && (
-          <EmptyState label="NO ACTIVE THREATS" hint="No alerts match the current filters." />
+          <EmptyState label="No active threats" hint="No alerts match the current filters." />
         )}
-        {!loading &&
-          !error &&
-          filtered.map((alert) => (
-            <AlertCard key={alert.id} alert={alert} onAcknowledge={() => handleAcknowledge(alert.id)} />
-          ))}
+        {!loading && !error && (
+          <AnimatePresence initial={false}>
+            {filtered.map((alert) => (
+              <motion.div
+                key={alert.id}
+                layout
+                initial={{ opacity: 0, x: -16 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                  backgroundColor: ["hsl(var(--flare) / 0.18)", "hsl(var(--flare) / 0)"],
+                }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1], backgroundColor: { duration: 1.1 } }}
+                className="rounded-md"
+              >
+                <AlertCard alert={alert} onAcknowledge={() => handleAcknowledge(alert.id)} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        )}
       </div>
 
       <div className="border-t border-border/70 p-2.5 text-center text-xs text-subtle-foreground">

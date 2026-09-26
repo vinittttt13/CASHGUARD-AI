@@ -1,13 +1,17 @@
 "use client";
 
 import { AlertCircle, Map, FileText, ShieldAlert } from "lucide-react";
+import { motion } from "motion/react";
 import { cn, formatConfidence } from "@/lib/utils";
 import Link from "next/link";
 import { normalizeRiskLevel, RISK_META, SeverityBadge } from "@/components/shared/intel-primitives";
+import { RiskGauge } from "@/components/shared/risk-gauge";
+import { shapReason } from "@/lib/shap-reasons";
 
 interface PredictionData {
   id: string;
   riskLevel: "Critical" | "High" | "Medium" | "Low";
+  confidenceScore?: number;
   locations: { name: string; confidence: number }[];
   features: { name: string; value: number }[];
 }
@@ -27,7 +31,7 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
     return (
       <div className="flex min-h-[320px] flex-col items-center justify-center gap-2 rounded-lg border border-border bg-surface p-8 text-center">
         <AlertCircle className="h-6 w-6 text-subtle-foreground" />
-        <p className="text-xs font-semibold uppercase tracking-wide text-foreground">No Prediction Selected</p>
+        <p className="label-caps text-sm font-semibold text-foreground">No prediction selected</p>
         <span className="text-xs text-muted-foreground">Select a complaint from the live feed to score it.</span>
       </div>
     );
@@ -39,25 +43,28 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
   return (
     <div className="flex h-full flex-col rounded-lg border border-border bg-surface">
       <header className="border-b border-border/70 p-4">
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15 text-primary">
-              <ShieldAlert className="h-4 w-4" />
-            </div>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <ShieldAlert className="h-4 w-4" aria-hidden="true" />
             <div>
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-foreground">
-                Why This Incident Was Flagged
+              <h3 className="label-caps text-sm font-semibold text-foreground">
+                Why this incident was flagged
               </h3>
               <span className="text-[10px] text-subtle-foreground">XGBoost + Random Forest</span>
             </div>
           </div>
-          <SeverityBadge level={level} />
+          <div className="flex shrink-0 items-center gap-3">
+            <SeverityBadge level={level} />
+            {typeof data.confidenceScore === "number" && (
+              <RiskGauge value={data.confidenceScore} size={56} strokeWidth={5} />
+            )}
+          </div>
         </div>
 
         <div className="mt-4 space-y-2">
           <div className="flex items-center justify-between">
-            <h4 className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Predicted Cash-Out Targets
+            <h4 className="label-caps text-xs font-semibold text-muted-foreground">
+              Predicted cash-out targets
             </h4>
             <span className="text-[10px] text-subtle-foreground">Confidence</span>
           </div>
@@ -92,33 +99,47 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
       </header>
 
       <div className="flex-1 p-4">
-        <h4 className="mb-3 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          Top Contributing Factors
+        <h4 className="label-caps mb-3 text-xs font-semibold text-muted-foreground">
+          Top contributing factors
         </h4>
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {data.features.slice(0, 5).map((feat, i) => {
             const isPositive = feat.value >= 0;
+            const pct = Math.min(Math.abs(feat.value) * 100, 100);
             return (
-              <div key={i} className="flex items-center justify-between gap-3 text-xs">
-                <span
-                  className={cn("shrink-0 font-mono text-[10px] font-semibold", isPositive ? "text-risk-critical" : "text-risk-low")}
-                >
-                  {isPositive ? "+" : "−"}
-                </span>
-                <span className="min-w-0 flex-1 truncate capitalize text-muted-foreground" title={feat.name}>
-                  {feat.name.replace(/_/g, " ")}
-                </span>
-                <div className="flex w-28 shrink-0 items-center gap-2">
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-overlay">
-                    <div
-                      className={cn("h-full rounded-full", isPositive ? "bg-risk-critical" : "bg-risk-low")}
-                      style={{ width: `${Math.min(Math.abs(feat.value) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <span className="w-10 shrink-0 text-right font-mono text-[10px] font-semibold text-foreground">
-                    {feat.value.toFixed(2)}
+              <div key={feat.name} className="text-xs">
+                <div className="flex items-center justify-between gap-3">
+                  <span
+                    className={cn("shrink-0 font-mono text-[10px] font-semibold", isPositive ? "text-risk-critical" : "text-risk-low")}
+                  >
+                    {isPositive ? "+" : "−"}
                   </span>
+                  <span className="min-w-0 flex-1 truncate capitalize text-muted-foreground" title={feat.name}>
+                    {feat.name.replace(/_/g, " ")}
+                  </span>
+                  <div className="flex w-28 shrink-0 items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-overlay">
+                      <motion.div
+                        className={cn("h-full rounded-full", isPositive ? "bg-risk-critical" : "bg-risk-low")}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.4, delay: i * 0.12, ease: [0.16, 1, 0.3, 1] }}
+                      />
+                    </div>
+                    <span className="w-10 shrink-0 text-right font-mono text-[10px] font-semibold text-foreground">
+                      {feat.value.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: i * 0.12 + 0.25 }}
+                  className="ml-4 mt-0.5 truncate pl-0.5 text-[11px] text-subtle-foreground"
+                  title={shapReason(feat.name)}
+                >
+                  {shapReason(feat.name)}
+                </motion.p>
               </div>
             );
           })}
@@ -137,15 +158,15 @@ export function PredictionPanel({ data, loading }: { data?: PredictionData; load
           }}
           className="flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-raised px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-surface-overlay"
         >
-          <Map className="h-3.5 w-3.5 text-primary" />
-          Focus on Map
+          <Map className="h-3.5 w-3.5" aria-hidden="true" />
+          Focus on map
         </button>
         <Link
           href="/intelligence"
           className="flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          <FileText className="h-3.5 w-3.5" />
-          Intelligence Dossier
+          <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+          Open dossier
         </Link>
       </div>
     </div>

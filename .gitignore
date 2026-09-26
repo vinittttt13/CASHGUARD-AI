@@ -56,8 +56,15 @@ logs/
 *.log
 
 # Models/Data
-backend/app/ml/model_artifacts/*.pkl
+# NOTE: model_artifacts/*.pkl are intentionally NOT ignored (see the README
+# in that directory) — they're the pre-trained fallback the demo needs on a
+# fresh clone with no MODEL_STORE_URI configured. Do not re-add this ignore
+# rule without also fixing PredictionService to fail loudly (not silently
+# heuristic-fallback) when no real models are available.
 backend/data/
+# Machine-specific (CPU/GPU/driver) snapshot rewritten by hardware detection on
+# every run — tracking it causes spurious dirty-tree diffs on every dev machine.
+backend/app/ml/model_artifacts/hardware_profile.json
 dataset/*.csv
 dataset/*.txt
 dataset/*.parquet

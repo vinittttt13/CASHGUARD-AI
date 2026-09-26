@@ -22,26 +22,29 @@ export function FeatureImportanceRadar({ data }: FeatureImportanceRadarProps) {
   return (
     <div className="h-[350px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={formattedData}>
-          <PolarGrid stroke="#1b2a38" />
-          <PolarAngleAxis dataKey="formattedName" tick={{ fill: "#8b9aaa", fontSize: 11 }} />
+        <RadarChart cx="50%" cy="50%" outerRadius="58%" data={formattedData} margin={{ top: 8, right: 48, bottom: 8, left: 48 }}>
+          <PolarGrid stroke="hsl(var(--hairline))" />
+          <PolarAngleAxis dataKey="formattedName" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
           <PolarRadiusAxis angle={30} domain={[0, "auto"]} tick={false} axisLine={false} />
 
           <Tooltip
             contentStyle={{
-              borderRadius: 6,
-              border: "1px solid #1b2a38",
-              background: "#111a24",
-              color: "#e6edf3",
+              borderRadius: 3,
+              border: "1px solid hsl(var(--border))",
+              background: "hsl(var(--surface-raised) / var(--glass-opacity-raised))",
+              backdropFilter: "blur(20px) saturate(150%)",
+              color: "hsl(var(--foreground))",
               fontSize: 12,
             }}
             itemStyle={{ fontSize: 12 }}
-            labelStyle={{ color: "#e6edf3" }}
+            labelStyle={{ color: "hsl(var(--foreground))" }}
           />
-          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, color: "#8b9aaa" }} />
+          <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, color: "hsl(var(--muted-foreground))" }} />
 
-          <Radar name="Current Event" dataKey="current" stroke="#22d3ee" fill="#22d3ee" fillOpacity={0.4} />
-          <Radar name="7-Day Average" dataKey="average" stroke="#a78bfa" fill="#a78bfa" fillOpacity={0.2} />
+          {/* Current event uses flare (it's this incident's live profile); the
+              7-day average is a neutral reference line, not a risk signal. */}
+          <Radar name="Current Event" dataKey="current" stroke="hsl(var(--flare))" fill="hsl(var(--flare))" fillOpacity={0.35} />
+          <Radar name="7-Day Average" dataKey="average" stroke="hsl(var(--ash))" fill="hsl(var(--ash))" fillOpacity={0.15} />
         </RadarChart>
       </ResponsiveContainer>
     </div>
